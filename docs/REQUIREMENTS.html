@@ -1,0 +1,1688 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Stage Accord Production V1 制作フロー共有・段階承認プラットフォーム 要求仕様書">
+<meta name="author" content="Stage Accord Project">
+<title>REQUIREMENTS | Stage Accord</title>
+<style>
+/* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V4 */
+/* Hallmark · macrostructure: Long Document · genre: editorial-reference · theme: Editorial
+ * reveal: none · typography: roman headings · nav: N5 document TOC · footer: Ft1 statement
+ * contrast: pass (40–41) · honest: pass (46) · chrome: pass (47) · tokens: pass (48)
+ * responsive: pass (49) · icons: pass (30) · mobile: pass (34, 49, 50–57) · widths: 320/375/414/768/1440
+ */
+:root {
+  --color-paper: #f4f1ea;
+  --color-paper-raised: #fbfaf6;
+  --color-ink: #202321;
+  --color-muted: #626861;
+  --color-soft: #696f69;
+  --color-line: #d4d0c7;
+  --color-line-strong: #aaa79f;
+  --color-accent: #275f5a;
+  --color-accent-soft: #dfeae6;
+  --color-warm: #8b4d3f;
+  --color-warm-soft: #efe3de;
+  --color-blue: #3f5f79;
+  --color-blue-soft: #e1e8ee;
+  --color-gold: #775f2e;
+  --color-gold-soft: #eee7d4;
+  --color-focus: #0a70c7;
+  --color-code: #ebe8df;
+  --font-display: "Yu Mincho", "Hiragino Mincho ProN", "Noto Serif JP", serif;
+  --font-body: "Hiragino Sans", "Yu Gothic UI", "Yu Gothic", "Noto Sans JP", sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --measure: 68ch;
+  --sidebar: 17rem;
+  --space-1: .35rem;
+  --space-2: .6rem;
+  --space-3: .9rem;
+  --space-4: 1.25rem;
+  --space-5: 1.75rem;
+  --space-6: 2.5rem;
+  --space-7: 3.75rem;
+  --space-8: 5.5rem;
+  --radius-sm: .35rem;
+  --radius-md: .7rem;
+  --shadow-paper: 0 1px 0 rgba(32,35,33,.04), 0 14px 40px rgba(32,35,33,.06);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; overflow-x: clip; background: var(--color-paper); color: var(--color-ink); }
+html { scroll-behavior: smooth; }
+body { font-family: var(--font-body); font-size: 1rem; line-height: 1.75; letter-spacing: .01em; }
+a { color: var(--color-accent); text-underline-offset: .18em; text-decoration-thickness: .08em; }
+a:hover { text-decoration-thickness: .13em; }
+a:focus-visible, button:focus-visible, summary:focus-visible { outline: .18rem solid var(--color-focus); outline-offset: .2rem; }
+button { font: inherit; }
+.skip-link { position: fixed; inset-block-start: .5rem; inset-inline-start: .5rem; z-index: 100; transform: translateY(-180%); padding: .65rem 1rem; background: var(--color-ink); color: var(--color-paper-raised); border-radius: var(--radius-sm); }
+.skip-link:focus { transform: none; }
+.document { width: min(100%, 104rem); margin-inline: auto; }
+.document-header { padding: clamp(2rem, 7vw, 6.5rem) clamp(1rem, 5vw, 5rem) clamp(2.5rem, 7vw, 5.5rem); border-block-end: 1px solid var(--color-line); }
+.kicker { margin: 0 0 var(--space-5); color: var(--color-accent); font-size: .76rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
+.document-title { margin: 0; max-width: 12ch; font-family: var(--font-display); font-size: clamp(3rem, 8vw, 7.2rem); font-style: normal; font-weight: 600; line-height: .94; letter-spacing: -.045em; overflow-wrap: anywhere; min-width: 0; }
+.document-subtitle { margin: var(--space-5) 0 0; max-width: 45ch; color: var(--color-muted); font-size: clamp(1.05rem, 1.4vw, 1.35rem); line-height: 1.55; }
+.meta-strip { display: grid; grid-template-columns: 1fr; gap: var(--space-3) var(--space-5); margin: var(--space-6) 0 0; padding: var(--space-4) 0 0; border-block-start: 1px solid var(--color-line); max-width: 60rem; }
+.meta-item dt { color: var(--color-soft); font-size: .76rem; font-weight: 700; letter-spacing: .08em; }
+.meta-item dd { margin: .1rem 0 0; font-weight: 650; }
+.layout { display: block; }
+.toc-panel { padding: var(--space-4) 1rem; border-block-end: 1px solid var(--color-line); background: var(--color-paper-raised); }
+.toc-panel summary { cursor: pointer; font-weight: 700; }
+.toc-panel ol { margin: var(--space-3) 0 0; padding: 0; columns: 1; list-style: none; }
+.toc-panel li { break-inside: avoid; margin-block: .3rem; }
+.toc-panel a { color: var(--color-muted); text-decoration: none; }
+.toc-panel a:hover { color: var(--color-accent); text-decoration: underline; }
+.main { min-width: 0; padding: 0 clamp(1rem, 5vw, 5rem) var(--space-8); }
+.section { max-width: var(--measure); margin-inline: auto; padding-block: clamp(3.5rem, 8vw, 7rem); scroll-margin-block-start: 2rem; }
+.section + .section { border-block-start: 1px solid var(--color-line); }
+.section--wide { max-width: 78rem; }
+.section--wide > h2, .section--wide > h3, .section--wide > p, .section--wide > ul, .section--wide > ol, .section--wide > .lede { max-width: var(--measure); }
+.section-number { display: block; margin-block-end: var(--space-3); color: var(--color-accent); font-family: var(--font-mono); font-size: .78rem; font-weight: 700; letter-spacing: .08em; }
+h1,h2,h3,h4 { font-style: normal; overflow-wrap: anywhere; min-width: 0; }
+h2 { margin: 0 0 var(--space-5); font-family: var(--font-display); font-size: clamp(2rem, 4vw, 3.4rem); font-weight: 600; line-height: 1.18; letter-spacing: -.025em; }
+h3 { margin: var(--space-7) 0 var(--space-3); font-size: clamp(1.2rem, 2vw, 1.55rem); line-height: 1.4; }
+h4 { margin: var(--space-5) 0 var(--space-2); font-size: 1rem; }
+p { margin: 0 0 var(--space-4); }
+.lede { color: var(--color-muted); font-size: clamp(1.08rem, 1.7vw, 1.3rem); line-height: 1.75; }
+.callout { margin: var(--space-6) 0; padding: var(--space-5); border: 1px solid var(--color-line); border-radius: var(--radius-md); background: var(--color-paper-raised); box-shadow: var(--shadow-paper); }
+.callout--warm { border-color: var(--color-warm); }
+.callout--plain { box-shadow: none; }
+.callout h3, .callout h4 { margin-block-start: 0; }
+.tagline { margin: 0; font-family: var(--font-display); font-size: clamp(1.45rem, 3vw, 2.1rem); line-height: 1.45; }
+.definition { display: grid; gap: var(--space-4); margin-block: var(--space-5); }
+.definition > div { padding-block: var(--space-4); border-block-start: 1px solid var(--color-line); }
+.definition dt { color: var(--color-soft); font-size: .76rem; font-weight: 700; letter-spacing: .08em; }
+.definition dd { margin: .25rem 0 0; font-size: 1.03rem; }
+.principle-grid { display: grid; grid-template-columns: 1fr; gap: var(--space-4); margin-block: var(--space-5); }
+.principle { padding: var(--space-5); border-block-start: .22rem solid var(--color-accent); background: var(--color-paper-raised); }
+.principle:nth-child(2) { border-color: var(--color-blue); }
+.principle:nth-child(3) { border-color: var(--color-warm); }
+.principle:nth-child(4) { border-color: var(--color-gold); }
+.principle h3 { margin: 0 0 var(--space-2); font-family: var(--font-display); }
+.principle p:last-child { margin-bottom: 0; }
+ul, ol { padding-inline-start: 1.3rem; }
+li + li { margin-block-start: .35rem; }
+.compact-list { margin-block: var(--space-3); }
+.compact-list li + li { margin-block-start: .2rem; }
+.flow { list-style: none; padding: 0; margin: var(--space-6) 0; counter-reset: stage; }
+.flow li { position: relative; padding: 0 0 var(--space-5) 3.4rem; counter-increment: stage; }
+.flow li::before { content: counter(stage, decimal-leading-zero); position: absolute; inset-inline-start: 0; inset-block-start: .1rem; width: 2.4rem; height: 2.4rem; display: grid; place-items: center; border: 1px solid var(--color-line-strong); border-radius: 50%; color: var(--color-accent); background: var(--color-paper-raised); font-family: var(--font-mono); font-size: .72rem; font-weight: 700; }
+.flow li:not(:last-child)::after { content: ""; position: absolute; inset-inline-start: 1.18rem; inset-block-start: 2.7rem; inset-block-end: .25rem; width: 1px; background: var(--color-line); }
+.flow strong { display: block; margin-block-end: .15rem; }
+.state-line, code { font-family: var(--font-mono); }
+.state-line { display: block; margin: var(--space-4) 0; padding: var(--space-4); background: var(--color-code); border-radius: var(--radius-sm); white-space: pre-wrap; overflow-wrap: anywhere; }
+code { padding: .08rem .3rem; background: var(--color-code); border-radius: .2rem; font-size: .9em; }
+.table-wrap { width: 100%; margin: var(--space-4) 0 var(--space-7); }
+table { width: 100%; border-collapse: collapse; background: var(--color-paper-raised); }
+caption { padding: 0 0 var(--space-2); color: var(--color-soft); font-size: .8rem; text-align: start; }
+th, td { padding: .8rem .7rem; border-block-end: 1px solid var(--color-line); vertical-align: top; text-align: start; }
+thead th { color: var(--color-soft); font-size: .73rem; letter-spacing: .06em; background: var(--color-paper); }
+tbody th { width: 29%; }
+td p { margin: .2rem 0 0; color: var(--color-muted); font-size: .93rem; line-height: 1.6; }
+.requirements-table { font-size: .91rem; }
+.requirements-table th:nth-child(1), .requirements-table td:nth-child(1) { width: 7.5rem; }
+.requirements-table th:nth-child(3), .requirements-table td:nth-child(3) { width: 5.2rem; }
+.requirements-table th:nth-child(4), .requirements-table td:nth-child(4) { width: 7.5rem; }
+.requirements-table th:nth-child(5), .requirements-table td:nth-child(5) { width: 27%; }
+.req-id { font-family: var(--font-mono); font-size: .77rem; font-weight: 700; color: var(--color-accent); text-decoration: none; white-space: nowrap; }
+.status, .priority { display: inline-flex; align-items: center; min-height: 1.7rem; padding: .15rem .48rem; border-radius: 99rem; font-size: .7rem; font-weight: 750; line-height: 1; white-space: nowrap; }
+.status--fixed { color: var(--color-accent); background: var(--color-accent-soft); }
+.status--recommended { color: var(--color-blue); background: var(--color-blue-soft); }
+.status--future, .status--design { color: var(--color-gold); background: var(--color-gold-soft); }
+.status--out { color: var(--color-warm); background: var(--color-warm-soft); }
+.priority { border: 1px solid var(--color-line); background: var(--color-paper); color: var(--color-muted); }
+.priority--p0 { border-color: var(--color-warm); color: var(--color-warm); }
+.priority--p1 { border-color: var(--color-accent); color: var(--color-accent); }
+.priority--p2 { border-color: var(--color-line-strong); color: var(--color-muted); }
+.legend { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-block: var(--space-4); }
+.scope-grid { display: grid; grid-template-columns: 1fr; gap: var(--space-4); margin-block: var(--space-5); }
+.scope-card { padding: var(--space-5); border: 1px solid var(--color-line); border-radius: var(--radius-md); background: var(--color-paper-raised); }
+.scope-card h3 { margin: 0 0 var(--space-3); }
+.scope-card--out { border-color: var(--color-line-strong); background: transparent; }
+.architecture { margin: var(--space-5) 0; padding: var(--space-5); background: var(--color-code); border-radius: var(--radius-md); font-family: var(--font-mono); font-size: .82rem; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
+.kpi-grid { display: grid; grid-template-columns: 1fr; gap: var(--space-3); margin-block: var(--space-5); }
+.kpi { padding: var(--space-4); border-block-start: 1px solid var(--color-line-strong); }
+.kpi dt { color: var(--color-soft); font-size: .78rem; font-weight: 700; }
+.kpi dd { margin: .25rem 0 0; }
+.references { list-style: none; padding: 0; }
+.references a { display: block; inline-size: calc(100% - 1rem); max-width: 100%; overflow-wrap: anywhere; word-break: break-all; min-width: 0; }
+.references li { display: grid; grid-template-columns: 1fr; gap: var(--space-2); padding-block: var(--space-3); border-block-end: 1px solid var(--color-line); }
+.ref-id { font-family: var(--font-mono); font-size: .75rem; color: var(--color-soft); }
+.footnote { color: var(--color-soft); font-size: .85rem; }
+.document-footer { padding: var(--space-6) clamp(1rem, 5vw, 5rem); border-block-start: 1px solid var(--color-line); color: var(--color-soft); font-size: .82rem; }
+.print-button { margin-block-start: var(--space-5); min-height: 2.8rem; padding: .55rem 1rem; border: 1px solid var(--color-ink); border-radius: var(--radius-sm); background: transparent; color: var(--color-ink); cursor: pointer; white-space: nowrap; }
+.print-button:hover { background: var(--color-ink); color: var(--color-paper-raised); }
+.print-button:active { background: var(--color-muted); color: var(--color-paper-raised); }
+.print-button:disabled { border-color: var(--color-line-strong); background: var(--color-paper); color: var(--color-muted); cursor: not-allowed; opacity: .55; }
+@media (min-width: 30rem) {
+  .meta-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 40rem) {
+  .references li { grid-template-columns: 3.4rem minmax(0, 1fr); }
+  .principle-grid, .scope-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .toc-panel ol { columns: 2; column-gap: 2rem; }
+}
+@media (min-width: 60rem) {
+  .meta-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .layout { display: grid; grid-template-columns: var(--sidebar) minmax(0, 1fr); align-items: start; }
+  .toc-panel { position: sticky; inset-block-start: 0; max-height: 100dvh; overflow: auto; padding: var(--space-6) var(--space-4); border-inline-end: 1px solid var(--color-line); border-block-end: 0; background: transparent; }
+  .toc-panel summary { display: none; }
+  .toc-panel ol { display: block; columns: 1; margin: 0; padding: 0; list-style: none; counter-reset: toc; }
+  .toc-panel li { margin-block: .15rem; }
+  .toc-panel a { display: block; padding: .32rem .4rem; border-radius: var(--radius-sm); font-size: .79rem; line-height: 1.35; }
+  .toc-panel a:hover, .toc-panel a[aria-current="location"] { background: var(--color-accent-soft); color: var(--color-accent); text-decoration: none; }
+  .main { padding-inline: clamp(3rem, 7vw, 8rem); }
+  .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 59.99rem) { .toc-panel[open] { padding-block-end: var(--space-5); } }
+@media (max-width: 79.99rem) {
+  .requirements-table thead, .decision-table thead, .risk-table thead { display: none; }
+  .requirements-table caption, .decision-table caption, .risk-table caption { display: block; width: 100%; }
+  .requirements-table, .requirements-table tbody, .requirements-table tr, .requirements-table td,
+  .decision-table, .decision-table tbody, .decision-table tr, .decision-table td,
+  .risk-table, .risk-table tbody, .risk-table tr, .risk-table td { display: block; width: 100%; }
+  .requirements-table tbody th, .decision-table tbody th, .risk-table tbody th { display: block; width: 100%; }
+  .requirements-table tr, .decision-table tr, .risk-table tr { padding: var(--space-4) 0; border-block-end: 1px solid var(--color-line-strong); }
+  .requirements-table td, .decision-table td, .risk-table td,
+  .requirements-table tbody th, .decision-table tbody th, .risk-table tbody th { padding: var(--space-2) 0; border: 0; }
+  .requirements-table td::before, .decision-table td::before, .risk-table td::before,
+  .requirements-table tbody th::before, .decision-table tbody th::before, .risk-table tbody th::before { content: attr(data-label); display: block; margin-block-end: var(--space-1); color: var(--color-soft); font-size: .72rem; font-weight: 700; letter-spacing: .05em; }
+  .requirements-table th:nth-child(n), .requirements-table td:nth-child(n) { width: 100%; }
+  .table-wrap { margin-block-end: var(--space-6); }
+  th, td { padding-inline: var(--space-2); }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+@page { size: A4; margin: 16mm 14mm 18mm; }
+@media print {
+  :root { --color-paper: #ffffff; --color-paper-raised: #ffffff; --color-ink: #000000; --color-muted: #333333; --color-soft: #555555; --color-line: #c8c8c8; --color-line-strong: #888888; }
+  body { font-size: 9.4pt; line-height: 1.55; }
+  .document { width: 100%; }
+  .document-header { padding: 0 0 14mm; }
+  .document-title { font-size: 34pt; }
+  .layout { display: block; }
+  .toc-panel { display: none; }
+  .main { padding: 0; }
+  .section { max-width: none; padding-block: 12mm; }
+  .section + .section { border-block-start: .4pt solid var(--color-line); }
+  .callout, .scope-card, .principle { box-shadow: none; break-inside: avoid; }
+  table { font-size: 8pt; }
+  tr, .flow li, .kpi { break-inside: avoid; }
+  .print-button, .skip-link { display: none; }
+  a { color: inherit; text-decoration: none; }
+  .document-footer { padding-inline: 0; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">本文へ移動</a>
+<div class="document">
+<header class="document-header">
+  <p class="kicker">Product Requirements Document</p>
+  <h1 class="document-title">Stage Accord</h1>
+  <p class="document-subtitle">クリエイターと依頼者のための制作フロー共有・段階承認プラットフォーム</p>
+  <dl class="meta-strip">
+    <div class="meta-item"><dt>文書</dt><dd>Production V1 要求仕様書</dd></div>
+    <div class="meta-item"><dt>ファイル</dt><dd>REQUIREMENTS.html</dd></div>
+    <div class="meta-item"><dt>版</dt><dd>1.0.0</dd></div>
+    <div class="meta-item"><dt>更新日</dt><dd>2026-08-02</dd></div>
+  </dl>
+  <button class="print-button" type="button" onclick="window.print()">印刷・PDF保存</button>
+</header>
+<div class="layout">
+<details class="toc-panel" open>
+  <summary>目次</summary>
+  <ol><li><a href="#summary">1. 文書概要</a></li><li><a href="#product">2. プロダクト定義</a></li><li><a href="#principles">3. 設計原則</a></li><li><a href="#users">4. 対象ユーザーと役割</a></li><li><a href="#journey">5. 利用の流れ</a></li><li><a href="#rules">6. 中核業務ルール</a></li><li><a href="#functional">7. 機能要件</a></li><li><a href="#permissions">8. 権限</a></li><li><a href="#states">9. 状態遷移</a></li><li><a href="#data">10. 概念データ</a></li><li><a href="#ux">11. UX・アクセシビリティ</a></li><li><a href="#nonfunctional">12. 非機能要件</a></li><li><a href="#legal">13. 法令・取引支援</a></li><li><a href="#business">14. 料金と採算判定</a></li><li><a href="#architecture">15. 本番技術方針</a></li><li><a href="#release">16. Production V1リリース条件</a></li><li><a href="#decisions">17. 確定方針</a></li><li><a href="#risks">18. リスク</a></li><li><a href="#glossary">19. 用語</a></li><li><a href="#references">20. 参照資料</a></li></ol>
+</details>
+<main class="main" id="main">
+
+<section class="section" id="summary">
+  <span class="section-number">01</span>
+  <h2>文書概要</h2>
+  <p class="lede">本書は、Stage AccordのProduction V1を設計、実装、検証し、本番投入を判定するための要求仕様ベースラインである。試作品向けの省略を認めず、機能、運用、安全性、法務、採算、復旧を一つのリリース条件として扱う。</p>
+  <div class="callout callout--plain">
+    <p class="tagline">依頼から納品まで、同じ工程を見て進む。</p>
+  </div>
+  <h3>要件の読み方</h3>
+  <div class="legend">
+    <span class="status status--fixed">確定</span><span class="status status--out">対象外</span><span class="status status--future">移行条件付き</span><span class="priority priority--p0">P0</span>
+  </div>
+  <ul class="compact-list">
+    <li><strong>確定：</strong>Production V1の実装と運用へ適用する決定済み方針。</li>
+    <li><strong>対象外：</strong>実装不足ではなく、責任境界、採算、安全性を理由に製品範囲から意図的に除外する事項。</li>
+    <li><strong>移行条件付き：</strong>定量条件をすべて満たした場合だけ再評価できる事項。クラウド移行が該当する。</li>
+    <li><strong>P0：</strong>本番投入前に実装、検証または運用手順の確立が必要なリリース阻害要件。</li>
+    <li><strong>変更管理：</strong>確定要件の変更には、影響分析、承認、版更新、移行手順、ロールバック手順を必要とする。</li>
+  </ul>
+</section>
+
+<section class="section" id="product">
+  <span class="section-number">02</span>
+  <h2>プロダクト定義</h2>
+  <dl class="definition">
+    <div><dt>正式名称</dt><dd>Stage Accord / ステージ・アコード</dd></div>
+    <div><dt>カテゴリ</dt><dd>制作フロー共有・段階承認プラットフォーム</dd></div>
+    <div><dt>主要顧客</dt><dd>個人クリエイター、フリーランス、小規模な制作チーム</dd></div>
+    <div><dt>取引相手</dt><dd>個人依頼者、ファン、配信者、事業者の担当者</dd></div>
+  </dl>
+  <h3>解決する問題</h3>
+  <p>制作依頼では、依頼者は進捗、確認時期、修正範囲が分からず不安になりやすい。クリエイターは、期待範囲、返答時期、無料修正の境界、承認後の変更を管理しにくい。Stage Accordは、制作前に工程を公開し、受注後は同じ工程を双方が見ながら進めることで、認識違いと調整コストを減らす。</p>
+  <h3>提供価値</h3>
+  <ul>
+    <li><strong>依頼者：</strong>現在地、次の予定、自分が行う確認、修正可能範囲が分かる。</li>
+    <li><strong>クリエイター：</strong>案件と内部タスクを管理しながら、見せる情報を自分で制御できる。</li>
+    <li><strong>双方：</strong>条件、提出、修正、承認、日程変更を同じ履歴で確認できる。</li>
+  </ul>
+  <div class="scope-grid">
+    <article class="scope-card">
+      <h3>Production V1の範囲</h3>
+      <ul class="compact-list">
+        <li>音楽、イラスト、映像向け公開受付ページ</li><li>版管理された制作フローテンプレート</li><li>案件固有のチェックポイントと内部タスク</li><li>複数担当者と複数承認者</li><li>提出物の版管理、プレビュー、文脈コメント</li><li>修正、変更注文、段階承認、紛争状態</li><li>営業日カレンダーと日程再合意</li><li>納品、履歴出力、サブスクリプション請求</li>
+      </ul>
+    </article>
+    <article class="scope-card scope-card--out">
+      <h3>意図的な対象外</h3>
+      <ul class="compact-list">
+        <li>クリエイター検索マーケットプレイス</li><li>依頼代金の預かり、分配、取引手数料</li><li>公開ランキングと速度評価</li><li>作業時間、オンライン状態の監視</li><li>独自動画変換基盤</li><li>AIによる法的判断、修正種別判定、利用者データ学習</li><li>ネイティブアプリ</li><li>会計、税務、源泉徴収の自動処理</li>
+      </ul>
+    </article>
+  </div>
+</section>
+
+<section class="section" id="principles">
+  <span class="section-number">03</span>
+  <h2>設計原則</h2>
+  <p class="lede">取引の予測可能性を高めながら、監視、権限集中、運用依存、固定費の増加を抑える。</p>
+  <div class="principle-grid">
+    <article class="principle"><h3>経済学</h3><p><strong>情報の非対称性と取引費用を減らす。</strong></p><p>公開フロー、合意スナップショット、修正境界、承認履歴により、確認・交渉・証明にかかる手間を減らす。</p></article>
+    <article class="principle"><h3>事業運営</h3><p><strong>マーケットプレイス化を前提にしない。</strong></p><p>クリエイターが自分のSNSや既存顧客へ受付URLを共有する。個人利用と制作チーム利用を同じ権限基盤で扱う。</p></article>
+    <article class="principle"><h3>心理学</h3><p><strong>予測可能性を高め、監視は増やさない。</strong></p><p>依頼者には次の予定を示す。一方で、作業時間、オンライン状態、内部タスクは見せず、クリエイターの自律性を守る。</p></article>
+    <article class="principle"><h3>社会学</h3><p><strong>発注者が制作者を一方的に監督する構造にしない。</strong></p><p>双方の行動待ちを同じ基準で表示し、ランキングや速度評価を作らず、対等な合意を中心に据える。</p></article>
+    <article class="principle"><h3>安全性</h3><p><strong>危険な状態では処理を止める。</strong></p><p>認可、マルウェア検査、バックアップ、容量、時刻同期、証明書、複製の検証に失敗した場合は、公開、アップロード、重要操作、デプロイを継続しない。</p></article>
+    <article class="principle"><h3>移植性</h3><p><strong>初期運用はオンプレに置き、技術的な移行可能性は維持する。</strong></p><p>標準プロトコル、OCIコンテナ、PostgreSQL、S3互換API、Valkey互換プロトコルを使い、採算条件を満たすまで中核処理をクラウドへ置かない。</p></article>
+  </div>
+  <p class="footnote">制作過程の可視化は価値認識を高め得る一方、過剰な監視は逆効果になり得るため、本プロダクトでは「常時公開」ではなく「合意したチェックポイントでの公開」を採用する。参照：<a href="#R-05">R-05</a>、<a href="#R-06">R-06</a>。</p>
+</section>
+
+<section class="section" id="users">
+  <span class="section-number">04</span>
+  <h2>対象ユーザーと役割</h2>
+  <h3>初期対象</h3>
+  <ul>
+    <li>音楽制作：作編曲、MIX、マスタリング、BGM、歌唱関連</li>
+    <li>イラスト制作：一枚絵、立ち絵、キャラクター、サムネイル</li>
+    <li>映像制作：MV、動画編集、モーション、配信素材</li>
+  </ul>
+  <p>写真、配信制作、Web制作、ソフトウェア開発もデータモデル上は扱える。ただし、初期の訴求とテンプレートは三分野へ集中する。</p>
+  <h3>クリエイター側の役割</h3>
+  <dl class="definition">
+    <div><dt>ワークスペース所有者</dt><dd>契約、請求、削除、所有権移転を含む全権限を持つ。</dd></div>
+    <div><dt>管理者</dt><dd>メンバー、サービス、テンプレート、案件、監査記録を管理する。契約主体の変更はできない。</dd></div>
+    <div><dt>メンバー</dt><dd>割り当てられた案件、内部タスク、提出、コメントを操作する。</dd></div>
+    <div><dt>閲覧者</dt><dd>許可された案件と記録を読み取る。変更操作はできない。</dd></div>
+    <div><dt>請求管理者</dt><dd>プラン、請求書、支払い方法を管理する。案件内容は閲覧できない。</dd></div>
+  </dl>
+  <h3>依頼者側の役割</h3>
+  <dl class="definition">
+    <div><dt>契約責任者</dt><dd>条件合意、変更注文、キャンセル、受領を行う。</dd></div>
+    <div><dt>承認者</dt><dd>割り当てられたチェックポイントを承認または差し戻す。</dd></div>
+    <div><dt>レビュー担当者</dt><dd>コメントと修正メモを作成する。契約変更や最終承認はできない。</dd></div>
+    <div><dt>閲覧者</dt><dd>案件の公開範囲だけを読み取る。</dd></div>
+  </dl>
+  <h3>運用上のアクター</h3>
+  <p>一般訪問者、案件参加者、配信視聴者、アーカイブ視聴者、ログ閲覧者、サーバー管理者、外部プロフィール閲覧者、転載者、攻撃的に調査する第三者を別アクターとして扱う。アプリ画面だけでなく、通知、ログ、バックアップ、スクリーンショット、外部投稿からの再露出を評価する。</p>
+</section>
+
+<section class="section" id="journey">
+  <span class="section-number">05</span>
+  <h2>利用の流れ</h2>
+  <ol class="flow">
+    <li><strong>制作サービスを公開</strong>クリエイターが内容、価格方式、標準納期、制作フロー、修正条件を公開する。</li>
+    <li><strong>依頼を受ける</strong>依頼者が用途、希望、予算、納期、資料を送る。</li>
+    <li><strong>条件を合意</strong>クリエイターが作業範囲、価格、日程、権利、修正条件、承認規則を提示し、権限を持つ依頼者が明示的に承認する。</li>
+    <li><strong>案件フローを開始</strong>公開テンプレートを案件固有の予定日へ変換し、合意時点の条件を固定する。</li>
+    <li><strong>段階ごとに提出</strong>クリエイターが検査済みファイルまたは外部URLを、版とチェックポイントへ紐付けて提出する。</li>
+    <li><strong>確認、修正、承認</strong>依頼者が、指定された段階で質問、文脈コメント、修正依頼、承認を行う。</li>
+    <li><strong>変更を再合意</strong>追加変更、回答遅延、担当変更があれば、価格、範囲、日程への影響を示した変更注文を合意する。</li>
+    <li><strong>納品して完了</strong>成果物、利用条件、クレジット、履歴をまとめて確認し、受領する。</li>
+  </ol>
+</section>
+
+<section class="section" id="rules">
+  <span class="section-number">06</span>
+  <h2>中核業務ルール</h2>
+  <h3>6.1 公開フローと案件フローを分ける</h3>
+  <p>公開ページでは「受付後3〜5営業日」のような標準日数を示す。合意後は具体的な予定日を持つ案件フローを生成する。公開テンプレートを変更しても既存案件は変えない。</p>
+  <h3>6.2 修正を三段階に分ける</h3>
+  <ol>
+    <li><strong>通常コメント：</strong>質問や確認。いつでも可能で、修正回数を消費しない。</li>
+    <li><strong>修正メモ：</strong>次回レビューまで依頼者が貯める下書き。</li>
+    <li><strong>正式な修正依頼：</strong>指定されたレビュー段階で、一括して提出する。</li>
+  </ol>
+  <h3>6.3 修正の種類を分ける</h3>
+  <ul>
+    <li><strong>仕様不一致の訂正：</strong>合意内容と違うため無償。修正回数を消費しない。</li>
+    <li><strong>料金内修正：</strong>事前に合意した範囲と回数で対応する。</li>
+    <li><strong>追加変更：</strong>合意範囲を超えるため、価格と日程を再合意する。</li>
+    <li><strong>最終軽微調整：</strong>クリエイターが許可した範囲で行う。</li>
+  </ul>
+  <h3>6.4 承認は明示操作だけで成立する</h3>
+  <p>回答期限を過ぎても自動承認しない。期限超過は、リマインド、確認待ち、後続日程への影響として扱う。</p>
+  <h3>6.5 依頼者待ちと制作者遅延を分ける</h3>
+  <p>依頼者の素材・回答・承認が必要な間は「依頼者待ち」とする。システムは後続日程の変更案を作るが、最終日程はクリエイターが確認し、必要に応じて依頼者が再承認する。</p>
+  <h3>6.6 内部タスクは非公開が既定</h3>
+  <p>依頼者へ見せるのは現在のチェックポイント、提出、次の予定、必要な操作である。作業時間、オンライン状態、細かな内部タスク、個人メモは見せない。</p>
+  <h3>6.7 制作フローは順序付きで扱う</h3>
+  <p>チェックポイントは直線的な順序を持つ。一つの段階に複数の提出項目と承認項目をまとめられるが、任意DAGは採用しない。分岐の複雑さを変更注文と状態遷移へ持ち込まないためである。</p>
+  <h3>6.8 判断責任をプラットフォームへ移さない</h3>
+  <p>修正種別はクリエイターが提案し、依頼者が同意または異議を示す。紛争中は対象処理を停止する。運営者と自動処理は、法的判断、仕様不一致の最終判断、権利帰属の裁定を行わない。</p>
+  <h3>6.9 本サービスは依頼代金を扱わない</h3>
+  <p>プラットフォームが処理する決済は、自身のサブスクリプション料金だけである。依頼者からクリエイターへの制作代金は、外部決済URL、振込案内、支払い状態の記録に限定し、預かり、分配、返金仲介を行わない。</p>
+  <h3>6.10 営業日計算は合意済み日程を勝手に変えない</h3>
+  <p>タイムゾーン、稼働曜日、祝日、休業日、締切時刻を使って未来かつ未着手の予定だけを再計算する。最終納品予定日が変わる場合は、契約責任者の再承認を必要とする。</p>
+</section>
+
+<section class="section section--wide" id="functional">
+  <span class="section-number">07</span>
+  <h2>機能要件</h2>
+  <p class="lede">すべての機能要件はProduction V1の本番投入前に満たすP0要件である。受入条件は正常系だけでなく、権限拒否、期限切れ、検査失敗、再実行、復旧後の状態を含む。</p>
+  <h3>7.1 アカウントとアクセス</h3><div class="table-wrap">
+      <table class="requirements-table">
+        <caption>アカウント要件</caption>
+        <thead><tr><th scope="col">ID</th><th scope="col">要件</th><th scope="col">優先度</th><th scope="col">状態</th><th scope="col">受入条件</th></tr></thead>
+        <tbody><tr>
+          <td data-label="ID"><a class="req-id" id="FR-ACC-001" href="#FR-ACC-001">FR-ACC-001</a></td>
+          <td data-label="要件"><strong>クリエイター登録</strong><p>クリエイターは、確認済みメールアドレスを用いてアカウントを作成できる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">メール確認前は公開ページを公開できない。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-ACC-002" href="#FR-ACC-002">FR-ACC-002</a></td>
+          <td data-label="要件"><strong>安全なログインセッション</strong><p>ログイン状態はサーバー管理のセッションで保持し、ブラウザへ秘密情報を露出しない。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">セッションCookieはHttpOnly、Secure、SameSiteを満たす。アイドル12時間、絶対7日で失効し、ログアウト、認証情報変更、復旧後に一括無効化される。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-ACC-003" href="#FR-ACC-003">FR-ACC-003</a></td>
+          <td data-label="要件"><strong>依頼者用アクセスリンク</strong><p>依頼者は、確認済みメールアドレスへ送られる案件限定のワンタイムリンクから、通常アカウントなしで案件ポータルへアクセスできる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">リンクトークンは15分で失効し、再発行時に旧トークンを無効化する。発行先と異なるメールアドレス、案件、役割では利用できない。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-ACC-004" href="#FR-ACC-004">FR-ACC-004</a></td>
+          <td data-label="要件"><strong>アカウント復旧</strong><p>クリエイターは、確認済みメールアドレスを使って安全にアクセスを復旧できる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">復旧後は既存セッション、依頼者リンク、管理者昇格状態を一括失効できる。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-ACC-005" href="#FR-ACC-005">FR-ACC-005</a></td>
+          <td data-label="要件"><strong>多要素認証</strong><p>クリエイター側の所有者、管理者、メンバー、請求管理者は、パスキーまたはTOTPによる多要素認証を必須とする。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">多要素認証の登録完了前は本番ワークスペースへアクセスできず、復旧コードの再生成で旧コードが失効する。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-ACC-006" href="#FR-ACC-006">FR-ACC-006</a></td>
+          <td data-label="要件"><strong>メンバー招待と役割</strong><p>所有者または管理者は、メールアドレスを指定してメンバーを招待し、許可された範囲で役割を変更または失効できる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">招待は期限付きかつ一回限りであり、役割変更と失効が監査記録へ残る。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-ACC-007" href="#FR-ACC-007">FR-ACC-007</a></td>
+          <td data-label="要件"><strong>重要操作の再認証</strong><p>合意、再合意、最終受領、請求変更、権限変更、データ出力では、30分以内の認証を要求する。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">認証時刻が古い場合は操作を確定せず、再認証後に対象版を再表示する。</td>
+        </tr></tbody>
+      </table>
+    </div>
+<h3>7.2 公開プロフィール</h3><div class="table-wrap">
+      <table class="requirements-table">
+        <caption>プロフィール要件</caption>
+        <thead><tr><th scope="col">ID</th><th scope="col">要件</th><th scope="col">優先度</th><th scope="col">状態</th><th scope="col">受入条件</th></tr></thead>
+        <tbody><tr>
+          <td data-label="ID"><a class="req-id" id="FR-PRO-001" href="#FR-PRO-001">FR-PRO-001</a></td>
+          <td data-label="要件"><strong>公開プロフィール</strong><p>クリエイターは、表示名、紹介、対応分野、外部リンク、受付状態を公開できる。実名の公開は必須としない。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">公開項目と非公開項目を明確に分けて保存できる。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-PRO-002" href="#FR-PRO-002">FR-PRO-002</a></td>
+          <td data-label="要件"><strong>共有可能な受付URL</strong><p>クリエイターごとに、SNSやポートフォリオから共有できる受付URLを提供する。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">未公開・停止中・公開中の状態がURL上で正しく反映される。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-PRO-003" href="#FR-PRO-003">FR-PRO-003</a></td>
+          <td data-label="要件"><strong>受付上限と休止</strong><p>クリエイターは受付可否と、同時に受け付ける件数の目安を設定できる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">上限到達時は新規依頼を停止し、既存案件には影響しない。</td>
+        </tr></tbody>
+      </table>
+    </div>
+<h3>7.3 制作サービス</h3><div class="table-wrap">
+      <table class="requirements-table">
+        <caption>制作サービス要件</caption>
+        <thead><tr><th scope="col">ID</th><th scope="col">要件</th><th scope="col">優先度</th><th scope="col">状態</th><th scope="col">受入条件</th></tr></thead>
+        <tbody><tr>
+          <td data-label="ID"><a class="req-id" id="FR-SVC-001" href="#FR-SVC-001">FR-SVC-001</a></td>
+          <td data-label="要件"><strong>制作サービスの登録</strong><p>制作内容、想定成果物、価格または見積方式、標準納期、必要素材、利用条件をサービス単位で登録できる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">公開前に必須項目の不足を検知し、プレビューできる。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-SVC-002" href="#FR-SVC-002">FR-SVC-002</a></td>
+          <td data-label="要件"><strong>分野別依頼フォーム</strong><p>サービスごとに質問項目を設定し、依頼者から用途、希望、予算、納期、参考資料を受け取れる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">必須・任意、単一選択、複数選択、自由記述、URL、ファイルを設定できる。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-SVC-003" href="#FR-SVC-003">FR-SVC-003</a></td>
+          <td data-label="要件"><strong>公開・休止・複製・アーカイブ</strong><p>制作サービスを再利用しやすい形で管理できる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">アーカイブしても既存案件と合意記録は失われない。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-SVC-004" href="#FR-SVC-004">FR-SVC-004</a></td>
+          <td data-label="要件"><strong>フローと修正条件の事前公開</strong><p>依頼前に、制作工程、確認タイミング、標準日数、提出物、修正可能範囲を見られる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">公開ページだけで、依頼から納品までの流れを理解できる。</td>
+        </tr></tbody>
+      </table>
+    </div>
+<h3>7.4 制作フロー</h3><div class="table-wrap">
+      <table class="requirements-table">
+        <caption>制作フロー要件</caption>
+        <thead><tr><th scope="col">ID</th><th scope="col">要件</th><th scope="col">優先度</th><th scope="col">状態</th><th scope="col">受入条件</th></tr></thead>
+        <tbody><tr>
+          <td data-label="ID"><a class="req-id" id="FR-WF-001" href="#FR-WF-001">FR-WF-001</a></td>
+          <td data-label="要件"><strong>フローテンプレート</strong><p>制作サービスごとに、複数のチェックポイントからなるフローテンプレートを作成できる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">追加、編集、削除、複製、並べ替えができる。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-WF-002" href="#FR-WF-002">FR-WF-002</a></td>
+          <td data-label="要件"><strong>チェックポイント種別</strong><p>進捗共有、依頼者入力、レビュー、承認、最終納品を区別して設定できる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">種別に応じて依頼者へ表示する操作が変わる。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-WF-003" href="#FR-WF-003">FR-WF-003</a></td>
+          <td data-label="要件"><strong>標準日数と順序</strong><p>各チェックポイントに順序、標準所要日数、依頼者の回答期限、開始条件を設定できる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">順序は直線的で循環や任意分岐を作れず、受注時に営業日カレンダーを使った具体的な予定日へ変換される。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-WF-004" href="#FR-WF-004">FR-WF-004</a></td>
+          <td data-label="要件"><strong>公開範囲</strong><p>クリエイターは、チェックポイントごとに依頼者へ見せる説明、提出物、状態を制御できる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">内部メモや内部タスクは初期状態で非公開になる。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-WF-005" href="#FR-WF-005">FR-WF-005</a></td>
+          <td data-label="要件"><strong>修正ポリシー</strong><p>チェックポイント単位で、修正受付の有無、範囲、回数、回答期限を設定できる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">依頼者画面に、残り回数と受付可能な内容が表示される。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-WF-006" href="#FR-WF-006">FR-WF-006</a></td>
+          <td data-label="要件"><strong>テンプレート版管理</strong><p>公開済みテンプレートの変更履歴を保持し、過去の案件へ影響させない。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">既存案件の工程と条件が変更されない。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-WF-007" href="#FR-WF-007">FR-WF-007</a></td>
+          <td data-label="要件"><strong>段階内の複数項目</strong><p>一つのチェックポイントに、複数の提出項目、確認項目、承認項目をまとめられる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">必須項目がすべて揃うまで提出または承認成立とせず、各項目の対象版を特定できる。</td>
+        </tr></tbody>
+      </table>
+    </div>
+<h3>7.5 依頼受付</h3><div class="table-wrap">
+      <table class="requirements-table">
+        <caption>依頼受付要件</caption>
+        <thead><tr><th scope="col">ID</th><th scope="col">要件</th><th scope="col">優先度</th><th scope="col">状態</th><th scope="col">受入条件</th></tr></thead>
+        <tbody><tr>
+          <td data-label="ID"><a class="req-id" id="FR-REQ-001" href="#FR-REQ-001">FR-REQ-001</a></td>
+          <td data-label="要件"><strong>依頼の送信</strong><p>依頼者は、公開受付ページから必要事項と参考資料を送信できる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">送信前に入力内容と個人情報の取扱いを確認できる。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-REQ-002" href="#FR-REQ-002">FR-REQ-002</a></td>
+          <td data-label="要件"><strong>依頼の審査</strong><p>クリエイターは、依頼を承諾、辞退、保留、確認事項ありに分類できる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">各操作の結果が依頼者へ通知される。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-REQ-003" href="#FR-REQ-003">FR-REQ-003</a></td>
+          <td data-label="要件"><strong>迷惑依頼対策</strong><p>公開フォームには、レート制限、bot対策、通報、ブロックを備える。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">短時間の大量送信と既知のブロック対象を拒否できる。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-REQ-004" href="#FR-REQ-004">FR-REQ-004</a></td>
+          <td data-label="要件"><strong>依頼履歴</strong><p>クリエイターは依頼の受信日時、内容、対応状態、返信履歴を確認できる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">依頼を削除しても法令・規約上必要な監査情報は規定に従って保持される。</td>
+        </tr></tbody>
+      </table>
+    </div>
+<h3>7.6 条件提示と合意</h3><div class="table-wrap">
+      <table class="requirements-table">
+        <caption>条件合意要件</caption>
+        <thead><tr><th scope="col">ID</th><th scope="col">要件</th><th scope="col">優先度</th><th scope="col">状態</th><th scope="col">受入条件</th></tr></thead>
+        <tbody><tr>
+          <td data-label="ID"><a class="req-id" id="FR-AGR-001" href="#FR-AGR-001">FR-AGR-001</a></td>
+          <td data-label="要件"><strong>条件提示</strong><p>クリエイターは、作業範囲、成果物、価格、日程、修正条件、利用範囲、支払方法をまとめて提示できる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">依頼者が一画面で条件全体を確認できる。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-AGR-002" href="#FR-AGR-002">FR-AGR-002</a></td>
+          <td data-label="要件"><strong>明示的な合意</strong><p>依頼者は、提示された条件を明示的に承認してから案件を開始する。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">承認日時、対象版、操作者を記録する。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-AGR-003" href="#FR-AGR-003">FR-AGR-003</a></td>
+          <td data-label="要件"><strong>合意スナップショット</strong><p>受注時点のサービス内容、フロー、価格、期日、修正条件、権利条件を変更不能な版として保存する。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">元テンプレートを変更しても、合意済み案件の表示が変わらない。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-AGR-004" href="#FR-AGR-004">FR-AGR-004</a></td>
+          <td data-label="要件"><strong>外部支払いの記録</strong><p>依頼代金を預からず、外部決済URL、振込案内、支払い状態だけを案件に記録する。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">支払い情報の更新者と更新日時を確認でき、プラットフォーム決済と誤認させる表示を行わない。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-AGR-005" href="#FR-AGR-005">FR-AGR-005</a></td>
+          <td data-label="要件"><strong>変更注文</strong><p>合意後の範囲、価格、日程、権利、修正条件の変更は、元合意を上書きせず、新しい変更注文として提示する。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">差分、理由、影響、対象版、提示者を表示し、契約責任者の明示承認前は発効しない。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-AGR-006" href="#FR-AGR-006">FR-AGR-006</a></td>
+          <td data-label="要件"><strong>複数承認規則</strong><p>チェックポイントごとに、指定者のいずれか一人、全員、指定人数のいずれかを承認成立条件として設定できる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">規則変更は未開始チェックポイントだけに適用し、合意済み規則の変更は再合意を要求する。</td>
+        </tr></tbody>
+      </table>
+    </div>
+<h3>7.7 案件進行</h3><div class="table-wrap">
+      <table class="requirements-table">
+        <caption>案件要件</caption>
+        <thead><tr><th scope="col">ID</th><th scope="col">要件</th><th scope="col">優先度</th><th scope="col">状態</th><th scope="col">受入条件</th></tr></thead>
+        <tbody><tr>
+          <td data-label="ID"><a class="req-id" id="FR-PRJ-001" href="#FR-PRJ-001">FR-PRJ-001</a></td>
+          <td data-label="要件"><strong>案件フローの生成</strong><p>合意成立後、スナップショットから案件固有のチェックポイントと予定日を生成する。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">公開用の標準日数が具体的な予定日に変換される。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-PRJ-002" href="#FR-PRJ-002">FR-PRJ-002</a></td>
+          <td data-label="要件"><strong>案件一覧</strong><p>クリエイターは、全案件を「自分の作業」「依頼者確認待ち」「期限接近」「保留」で絞り込める。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">次に必要な行動と期日が一覧で分かる。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-PRJ-003" href="#FR-PRJ-003">FR-PRJ-003</a></td>
+          <td data-label="要件"><strong>依頼者ポータル</strong><p>依頼者は、現在の段階、次の予定、納品予定、自分が行う操作を一画面で確認できる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">専門的なプロジェクト管理用語を知らなくても状況を理解できる。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-PRJ-004" href="#FR-PRJ-004">FR-PRJ-004</a></td>
+          <td data-label="要件"><strong>案件の保留と再開</strong><p>当事者の都合や素材不足により案件を保留し、理由と影響を記録して再開できる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">保留期間は遅延計算と区別され、再開時に後続日程の再合意要否を判定する。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-PRJ-005" href="#FR-PRJ-005">FR-PRJ-005</a></td>
+          <td data-label="要件"><strong>担当者割り当て</strong><p>案件と内部タスクへワークスペースのメンバーを割り当てられる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">担当解除後は非公開案件へアクセスできず、過去の操作主体は監査記録に残る。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-PRJ-006" href="#FR-PRJ-006">FR-PRJ-006</a></td>
+          <td data-label="要件"><strong>キャンセルと紛争</strong><p>案件をキャンセル協議中、キャンセル済み、紛争中に遷移させ、理由、当事者、対象合意、成果物の扱いを記録する。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">紛争中は承認、納品完了、削除を停止し、運営者は裁定せず記録保全と安全確保だけを行う。</td>
+        </tr></tbody>
+      </table>
+    </div>
+<h3>7.8 チェックポイント</h3><div class="table-wrap">
+      <table class="requirements-table">
+        <caption>チェックポイント要件</caption>
+        <thead><tr><th scope="col">ID</th><th scope="col">要件</th><th scope="col">優先度</th><th scope="col">状態</th><th scope="col">受入条件</th></tr></thead>
+        <tbody><tr>
+          <td data-label="ID"><a class="req-id" id="FR-CHK-001" href="#FR-CHK-001">FR-CHK-001</a></td>
+          <td data-label="要件"><strong>チェックポイント進行</strong><p>クリエイターは、未着手、作業中、提出済み、確認待ち、修正中、承認済みを更新できる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">状態に応じて依頼者が行える操作が制御される。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-CHK-002" href="#FR-CHK-002">FR-CHK-002</a></td>
+          <td data-label="要件"><strong>提出物の紐付け</strong><p>進捗投稿、画像、音声、文書、スクリーンショット、外部URLをチェックポイントへ紐付けられる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">どの版を確認・承認したか特定できる。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-CHK-003" href="#FR-CHK-003">FR-CHK-003</a></td>
+          <td data-label="要件"><strong>依頼者入力の完了</strong><p>素材提出や質問回答が必要なチェックポイントでは、依頼者の完了操作を待って次へ進む。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">不足項目がある場合は完了できない。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-CHK-004" href="#FR-CHK-004">FR-CHK-004</a></td>
+          <td data-label="要件"><strong>承認後の固定</strong><p>承認済みチェックポイントは通常編集で巻き戻さず、変更が必要な場合は追加変更または訂正として扱う。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">承認履歴が上書きされない。</td>
+        </tr></tbody>
+      </table>
+    </div>
+<h3>7.9 内部タスク</h3><div class="table-wrap">
+      <table class="requirements-table">
+        <caption>内部タスク要件</caption>
+        <thead><tr><th scope="col">ID</th><th scope="col">要件</th><th scope="col">優先度</th><th scope="col">状態</th><th scope="col">受入条件</th></tr></thead>
+        <tbody><tr>
+          <td data-label="ID"><a class="req-id" id="FR-TSK-001" href="#FR-TSK-001">FR-TSK-001</a></td>
+          <td data-label="要件"><strong>内部タスク</strong><p>クリエイターは、公開チェックポイントに非公開の内部タスクを紐付けて管理できる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">依頼者にはタスク名、作業時間、個人メモが表示されない。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-TSK-002" href="#FR-TSK-002">FR-TSK-002</a></td>
+          <td data-label="要件"><strong>内部期限と優先度</strong><p>内部タスクに期限、優先度、状態を設定できる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">期限超過や今日の作業を一覧できる。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-TSK-003" href="#FR-TSK-003">FR-TSK-003</a></td>
+          <td data-label="要件"><strong>進捗率の非推測</strong><p>内部タスクの完了数から依頼者向け進捗率を自動算出しない。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">依頼者にはクリエイターが公開した状態だけが表示される。</td>
+        </tr></tbody>
+      </table>
+    </div>
+<h3>7.10 進捗とファイル</h3><div class="table-wrap">
+      <table class="requirements-table">
+        <caption>進捗・ファイル要件</caption>
+        <thead><tr><th scope="col">ID</th><th scope="col">要件</th><th scope="col">優先度</th><th scope="col">状態</th><th scope="col">受入条件</th></tr></thead>
+        <tbody><tr>
+          <td data-label="ID"><a class="req-id" id="FR-UPD-001" href="#FR-UPD-001">FR-UPD-001</a></td>
+          <td data-label="要件"><strong>進捗投稿</strong><p>クリエイターは、チェックポイントの状況を短い説明と添付で共有できる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">投稿前に依頼者へ見える内容をプレビューできる。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-UPD-002" href="#FR-UPD-002">FR-UPD-002</a></td>
+          <td data-label="要件"><strong>公開・非公開の制御</strong><p>進捗投稿ごとに依頼者への公開可否を選べる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">非公開投稿は依頼者のAPIからも取得できない。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-UPD-003" href="#FR-UPD-003">FR-UPD-003</a></td>
+          <td data-label="要件"><strong>版の保持</strong><p>提出物を差し替える場合も旧版を残し、最新・確認対象・承認対象を区別する。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">旧版と新版本文の取り違えが起きない。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-FIL-001" href="#FR-FIL-001">FR-FIL-001</a></td>
+          <td data-label="要件"><strong>安全なファイル共有</strong><p>ファイルは案件権限に基づく期限付きURLで配信し、公開URLを恒久的に露出しない。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">ダウンロードURLは5分で失効し、発行時と取得時の両方で案件権限を検証する。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-FIL-002" href="#FR-FIL-002">FR-FIL-002</a></td>
+          <td data-label="要件"><strong>アップロード検証</strong><p>拡張子だけでなくMIME、容量、マルウェア、危険な埋め込みを検証する。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">ファイルは隔離領域でMIME、シグネチャ、容量、マルウェアを検査し、安全判定前は配信領域へ移動しない。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-FIL-003" href="#FR-FIL-003">FR-FIL-003</a></td>
+          <td data-label="要件"><strong>外部URLの添付</strong><p>大容量動画、音声、ステージング環境、リポジトリ等を外部URLとして共有できる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">URLの種類と説明を付け、危険なスキーム、認証情報を含むURL、ローカルネットワーク宛てURLを拒否する。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-FIL-004" href="#FR-FIL-004">FR-FIL-004</a></td>
+          <td data-label="要件"><strong>大容量アップロード</strong><p>1ファイル5GBまでの直接かつ分割アップロードを提供し、中断後に安全に再開できる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">各パートと完成物のサイズ、整合性、権限を検証し、不完全なアップロードを期限後に削除する。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-FIL-005" href="#FR-FIL-005">FR-FIL-005</a></td>
+          <td data-label="要件"><strong>プレビューと拒否形式</strong><p>PNG、JPEG、WebP、PDF、MP3、M4A、WAV、MP4、WebM、UTF-8テキストをプレビュー対象とし、安全な非対応形式はダウンロード専用にする。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">実行ファイル、スクリプト、HTML、危険なSVG、マクロ、パスワード付きまたは検査不能なアーカイブ、マルウェアを拒否する。</td>
+        </tr></tbody>
+      </table>
+    </div>
+<h3>7.11 コメント・修正・承認</h3><div class="table-wrap">
+      <table class="requirements-table">
+        <caption>フィードバック要件</caption>
+        <thead><tr><th scope="col">ID</th><th scope="col">要件</th><th scope="col">優先度</th><th scope="col">状態</th><th scope="col">受入条件</th></tr></thead>
+        <tbody><tr>
+          <td data-label="ID"><a class="req-id" id="FR-COM-001" href="#FR-COM-001">FR-COM-001</a></td>
+          <td data-label="要件"><strong>通常コメント</strong><p>依頼者とクリエイターは、質問や確認事項をチェックポイント単位でやり取りできる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">通常コメントは修正回数を消費しない。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-COM-002" href="#FR-COM-002">FR-COM-002</a></td>
+          <td data-label="要件"><strong>コメントの文脈</strong><p>コメントは、対象チェックポイント、提出物、版、時刻または位置に紐付けられる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">対象が削除・差し替えられても履歴上の参照先を確認できる。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-REV-001" href="#FR-REV-001">FR-REV-001</a></td>
+          <td data-label="要件"><strong>修正メモ</strong><p>依頼者は、正式提出前の修正候補を下書きとして蓄積できる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">下書きは正式提出までクリエイターへ通知されない。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-REV-002" href="#FR-REV-002">FR-REV-002</a></td>
+          <td data-label="要件"><strong>正式な修正依頼</strong><p>正式な修正依頼は、修正受付が有効なチェックポイントで、一括した修正ラウンドとして送信する。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">提出前に対象範囲、残り回数、追加料金の可能性を表示する。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-REV-003" href="#FR-REV-003">FR-REV-003</a></td>
+          <td data-label="要件"><strong>修正ラウンドの計数</strong><p>修正項目の数ではなく、一度に確定して送信したまとまりを1回として数える。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">複数項目を一括送信しても1回だけ消費する。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-REV-004" href="#FR-REV-004">FR-REV-004</a></td>
+          <td data-label="要件"><strong>仕様不一致の訂正</strong><p>合意内容と異なる成果物の訂正は、料金内修正とは分け、修正回数を消費しない。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">訂正理由と対応履歴を残し、通常修正の残数を維持する。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-REV-005" href="#FR-REV-005">FR-REV-005</a></td>
+          <td data-label="要件"><strong>追加変更の提案</strong><p>合意範囲を超える依頼は、価格と日程への影響を示した追加変更として再合意する。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">依頼者の明示承認前に新しい作業範囲を確定しない。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-APP-001" href="#FR-APP-001">FR-APP-001</a></td>
+          <td data-label="要件"><strong>段階承認</strong><p>依頼者は、確認対象の版を見たうえで、承認、修正依頼、質問を選べる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">承認時に、次工程へ進むことと後戻り時の扱いを表示する。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-APP-002" href="#FR-APP-002">FR-APP-002</a></td>
+          <td data-label="要件"><strong>自動承認の禁止</strong><p>回答期限を過ぎても自動承認せず、確認待ちと日程への影響を通知する。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">未操作が承認として記録されない。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-APP-003" href="#FR-APP-003">FR-APP-003</a></td>
+          <td data-label="要件"><strong>承認成立判定</strong><p>複数承認者の操作を、合意済みの成立規則に従って集計する。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">対象版、各操作者、操作時刻、成立規則、成立時刻を保存し、差し替え後の版へ承認を流用しない。</td>
+        </tr></tbody>
+      </table>
+    </div>
+<h3>7.12 日程と通知</h3><div class="table-wrap">
+      <table class="requirements-table">
+        <caption>日程・通知要件</caption>
+        <thead><tr><th scope="col">ID</th><th scope="col">要件</th><th scope="col">優先度</th><th scope="col">状態</th><th scope="col">受入条件</th></tr></thead>
+        <tbody><tr>
+          <td data-label="ID"><a class="req-id" id="FR-SCH-001" href="#FR-SCH-001">FR-SCH-001</a></td>
+          <td data-label="要件"><strong>二種類の期限</strong><p>クリエイターの提出期限と、依頼者の回答期限を区別して表示する。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">現在どちらの行動待ちか明確に分かる。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-SCH-002" href="#FR-SCH-002">FR-SCH-002</a></td>
+          <td data-label="要件"><strong>依頼者待ちの停止</strong><p>依頼者の回答が必要な期間は、後続工程の開始条件を満たさない状態として扱う。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">クリエイター遅延として集計されない。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-SCH-003" href="#FR-SCH-003">FR-SCH-003</a></td>
+          <td data-label="要件"><strong>日程再計算案</strong><p>回答遅延や追加変更が発生した場合、影響を受ける後続日程の案を自動算出する。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">自動算出だけで日程を確定せず、クリエイターが確認できる。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-SCH-004" href="#FR-SCH-004">FR-SCH-004</a></td>
+          <td data-label="要件"><strong>納品予定の再合意</strong><p>合意済み最終納品日が変わる場合は、理由と新日程を依頼者へ提示する。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">確定日、提示者、承認状況を履歴で確認できる。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-NOT-001" href="#FR-NOT-001">FR-NOT-001</a></td>
+          <td data-label="要件"><strong>重要通知</strong><p>依頼、条件提示、提出、修正、承認、期限接近、納品についてメールとアプリ内で通知する。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">同一事象の重複通知を抑え、送信結果を記録する。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-NOT-002" href="#FR-NOT-002">FR-NOT-002</a></td>
+          <td data-label="要件"><strong>通知設定</strong><p>重要度の低い通知は利用者が停止または集約できる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">取引上重要な通知とセキュリティ通知は完全停止できないことを明示する。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-SCH-005" href="#FR-SCH-005">FR-SCH-005</a></td>
+          <td data-label="要件"><strong>営業日カレンダー</strong><p>ワークスペースごとにタイムゾーン、稼働曜日、祝日、独自休業日、締切時刻を設定できる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">変更は未来かつ未着手の予定だけへ適用し、既に合意した最終納品日は自動変更しない。</td>
+        </tr></tbody>
+      </table>
+    </div>
+<h3>7.13 納品と記録</h3><div class="table-wrap">
+      <table class="requirements-table">
+        <caption>納品・監査要件</caption>
+        <thead><tr><th scope="col">ID</th><th scope="col">要件</th><th scope="col">優先度</th><th scope="col">状態</th><th scope="col">受入条件</th></tr></thead>
+        <tbody><tr>
+          <td data-label="ID"><a class="req-id" id="FR-DEL-001" href="#FR-DEL-001">FR-DEL-001</a></td>
+          <td data-label="要件"><strong>最終納品パッケージ</strong><p>最終成果物、納品物一覧、利用条件、クレジット、補足事項を一つの納品画面へまとめる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">依頼者が受領対象を漏れなく確認できる。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-DEL-002" href="#FR-DEL-002">FR-DEL-002</a></td>
+          <td data-label="要件"><strong>受領確認</strong><p>依頼者は最終納品を受領し、完了または問題報告を選べる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">受領日時と対象版を記録する。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-DEL-003" href="#FR-DEL-003">FR-DEL-003</a></td>
+          <td data-label="要件"><strong>案件記録の出力</strong><p>合意条件、チェックポイント、提出、修正、承認、日程変更、納品の記録を人が読める形式で出力できる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">HTML印刷または構造化エクスポートで、対象版と時刻を含む重要履歴を一続きに確認できる。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-AUD-001" href="#FR-AUD-001">FR-AUD-001</a></td>
+          <td data-label="要件"><strong>重要操作履歴</strong><p>合意、承認、修正、追加変更、日程変更、アクセスリンク発行、納品を追記型の履歴として保持する。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">通常の編集操作で過去イベントを上書きできない。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-AUD-002" href="#FR-AUD-002">FR-AUD-002</a></td>
+          <td data-label="要件"><strong>監査記録の保全</strong><p>監査イベントを追記型で保存し、操作者、代理操作、対象、結果、理由、相関ID、信頼できる時刻を記録する。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">アプリ管理者が監査イベントを更新または削除できず、出力時に欠落と改変を検知できる。</td>
+        </tr></tbody>
+      </table>
+    </div>
+<h3>7.14 運営機能</h3><div class="table-wrap">
+      <table class="requirements-table">
+        <caption>運営要件</caption>
+        <thead><tr><th scope="col">ID</th><th scope="col">要件</th><th scope="col">優先度</th><th scope="col">状態</th><th scope="col">受入条件</th></tr></thead>
+        <tbody><tr>
+          <td data-label="ID"><a class="req-id" id="FR-ADM-001" href="#FR-ADM-001">FR-ADM-001</a></td>
+          <td data-label="要件"><strong>通報とブロック</strong><p>利用者は不適切な依頼、嫌がらせ、権利侵害、危険なファイルを通報し、相手をブロックできる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">ブロック後は新規依頼と不要な連絡を遮断できる。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-ADM-002" href="#FR-ADM-002">FR-ADM-002</a></td>
+          <td data-label="要件"><strong>運営者の対応</strong><p>運営者は、利用停止、リンク失効、危険ファイル隔離、通報処理を行える。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">操作理由、担当、日時を監査記録へ残す。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-ADM-003" href="#FR-ADM-003">FR-ADM-003</a></td>
+          <td data-label="要件"><strong>最小権限のサポート</strong><p>運営者が案件内容へアクセスする場合は、目的、対象、期間を限定し、監査する。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">通常の管理画面から無理由に全案件を閲覧できない。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-ADM-004" href="#FR-ADM-004">FR-ADM-004</a></td>
+          <td data-label="要件"><strong>緊急停止</strong><p>運営者は、認証、依頼受付、アップロード、重要な書き込みを機能単位で停止できる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">停止理由、開始者、開始時刻、解除条件を記録し、解除にも再認証と別担当者の確認を要求する。</td>
+        </tr></tbody>
+      </table>
+    </div>
+<h3>7.15 サブスクリプション請求</h3><div class="table-wrap">
+      <table class="requirements-table">
+        <caption>プラットフォーム利用料金の要件</caption>
+        <thead><tr><th scope="col">ID</th><th scope="col">要件</th><th scope="col">優先度</th><th scope="col">状態</th><th scope="col">受入条件</th></tr></thead>
+        <tbody><tr>
+          <td data-label="ID"><a class="req-id" id="FR-BIL-001" href="#FR-BIL-001">FR-BIL-001</a></td>
+          <td data-label="要件"><strong>プラン契約</strong><p>ワークスペース所有者または請求管理者は、外部のStripe Checkoutを使って有料プランを契約できる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">カード情報を本システムへ保存せず、署名検証済みWebhookとStripe API照合後だけ契約状態を変更する。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-BIL-002" href="#FR-BIL-002">FR-BIL-002</a></td>
+          <td data-label="要件"><strong>請求ポータル</strong><p>支払い方法、請求書、解約、プラン変更はStripe Customer Portalで管理する。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">ポータルセッションは都度発行し、対象ワークスペースとStripe顧客の対応をサーバー側で検証する。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-BIL-003" href="#FR-BIL-003">FR-BIL-003</a></td>
+          <td data-label="要件"><strong>支払い失敗時の猶予</strong><p>支払い失敗後7日間は再決済を案内し、その後は読み取り専用へ移行する。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">既存案件とデータを自動削除せず、閲覧、出力、支払い更新は継続できる。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-BIL-004" href="#FR-BIL-004">FR-BIL-004</a></td>
+          <td data-label="要件"><strong>プラン変更</strong><p>アップグレードは支払い確定後に即時反映し、ダウングレードと解約は次回更新日に反映する。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">下位プランの上限を超える場合は、新規作成を停止して既存データを保持し、削除を強制しない。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="FR-BIL-005" href="#FR-BIL-005">FR-BIL-005</a></td>
+          <td data-label="要件"><strong>利用上限の適用</strong><p>アクティブ案件数、メンバー数、保存容量、テンプレート数をプランごとに計測する。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">上限の80％で警告し、100％で新規作成またはアップロードを停止するが、既存データの閲覧と出力は止めない。</td>
+        </tr></tbody>
+      </table>
+    </div>
+</section>
+
+<section class="section section--wide" id="permissions">
+  <span class="section-number">08</span>
+  <h2>権限</h2>
+  <div class="table-wrap">
+    <table class="decision-table">
+      <caption>クリエイター側の基本権限</caption>
+      <thead><tr><th scope="col">操作</th><th scope="col">所有者</th><th scope="col">管理者</th><th scope="col">メンバー</th><th scope="col">閲覧者</th><th scope="col">請求管理者</th></tr></thead>
+      <tbody>
+        <tr><th scope="row" data-label="操作">契約と所有権移転</th><td data-label="所有者">可</td><td data-label="管理者">不可</td><td data-label="メンバー">不可</td><td data-label="閲覧者">不可</td><td data-label="請求管理者">不可</td></tr>
+        <tr><th scope="row" data-label="操作">メンバーと役割</th><td data-label="所有者">可</td><td data-label="管理者">可</td><td data-label="メンバー">不可</td><td data-label="閲覧者">不可</td><td data-label="請求管理者">不可</td></tr>
+        <tr><th scope="row" data-label="操作">サービスとテンプレート</th><td data-label="所有者">可</td><td data-label="管理者">可</td><td data-label="メンバー">割当範囲</td><td data-label="閲覧者">閲覧のみ</td><td data-label="請求管理者">不可</td></tr>
+        <tr><th scope="row" data-label="操作">案件と内部タスク</th><td data-label="所有者">可</td><td data-label="管理者">可</td><td data-label="メンバー">割当範囲</td><td data-label="閲覧者">許可範囲を閲覧</td><td data-label="請求管理者">不可</td></tr>
+        <tr><th scope="row" data-label="操作">監査記録</th><td data-label="所有者">可</td><td data-label="管理者">可</td><td data-label="メンバー">自分の操作</td><td data-label="閲覧者">不可</td><td data-label="請求管理者">請求操作のみ</td></tr>
+        <tr><th scope="row" data-label="操作">プランと請求</th><td data-label="所有者">可</td><td data-label="管理者">閲覧のみ</td><td data-label="メンバー">不可</td><td data-label="閲覧者">不可</td><td data-label="請求管理者">可</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="table-wrap">
+    <table class="decision-table">
+      <caption>依頼者側の基本権限</caption>
+      <thead><tr><th scope="col">操作</th><th scope="col">契約責任者</th><th scope="col">承認者</th><th scope="col">レビュー担当者</th><th scope="col">閲覧者</th></tr></thead>
+      <tbody>
+        <tr><th scope="row" data-label="操作">条件合意と変更注文</th><td data-label="契約責任者">可</td><td data-label="承認者">指定時のみ</td><td data-label="レビュー担当者">不可</td><td data-label="閲覧者">不可</td></tr>
+        <tr><th scope="row" data-label="操作">チェックポイント承認</th><td data-label="契約責任者">可</td><td data-label="承認者">割当範囲</td><td data-label="レビュー担当者">不可</td><td data-label="閲覧者">不可</td></tr>
+        <tr><th scope="row" data-label="操作">コメントと修正メモ</th><td data-label="契約責任者">可</td><td data-label="承認者">可</td><td data-label="レビュー担当者">可</td><td data-label="閲覧者">不可</td></tr>
+        <tr><th scope="row" data-label="操作">ファイル閲覧と取得</th><td data-label="契約責任者">可</td><td data-label="承認者">割当範囲</td><td data-label="レビュー担当者">割当範囲</td><td data-label="閲覧者">許可範囲</td></tr>
+        <tr><th scope="row" data-label="操作">キャンセルと最終受領</th><td data-label="契約責任者">可</td><td data-label="承認者">不可</td><td data-label="レビュー担当者">不可</td><td data-label="閲覧者">不可</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout callout--warm"><strong>認可原則：</strong>画面上で操作を隠すだけではなく、Spring Boot側で関係性と属性を毎回検証する。API、ファイル、プレビュー、検索、通知、出力、管理操作は既定拒否とし、対象ワークスペース、案件、役割、版、操作種別が一致した場合だけ許可する。</div>
+  <h3>運営者アクセス</h3>
+  <p>運営者は通常状態で案件本文を閲覧できない。通報、安全確保、障害調査に必要な場合だけ、対象、目的、期間、承認者を指定して一時アクセスを発行する。操作は利用者向け監査記録にも残し、緊急アクセスは事後レビューを必要とする。</p>
+</section>
+
+<section class="section" id="states">
+  <span class="section-number">09</span>
+  <h2>状態遷移</h2>
+  <h3>依頼</h3>
+  <span class="state-line">受信 → 確認中 → 条件提示 → 合意済み
+  ├→ 辞退
+  ├→ 依頼者取下げ
+  └→ 期限切れ</span>
+  <h3>案件</h3>
+  <span class="state-line">開始待ち → 制作中 → 依頼者確認待ち → 次工程
+  ├→ 修正中 → 再提出 → 依頼者確認待ち
+  ├→ 変更注文の合意待ち → 制作中
+  ├→ 保留 → 再開判定 → 制作中
+  ├→ キャンセル協議中 → キャンセル済み
+  └→ 紛争中 → 協議結果に応じた状態
+最終工程 → 納品済み → 受領済み → 完了</span>
+  <h3>チェックポイント</h3>
+  <span class="state-line">未着手 → 作業中 → 提出済み → 確認待ち
+  ├→ 修正要求 → 修正中 → 再提出
+  └→ 承認済み</span>
+  <h3>ファイル</h3>
+  <span class="state-line">アップロード中 → 隔離 → 検査中
+  ├→ 安全 → 配信可能
+  ├→ 危険 → 拒否・隔離継続
+  └→ 検査不能 → 拒否</span>
+  <h3>サブスクリプション</h3>
+  <span class="state-line">Free → 有効 → 支払い再試行中 → 読み取り専用
+  ├→ 支払い回復 → 有効
+  └→ 解約予約 → 契約期間終了 → Freeまたは読み取り専用</span>
+  <h3>障害と復旧</h3>
+  <span class="state-line">正常 → 性能劣化 → 機能制限 → 書き込み停止 → 復旧検証 → 正常
+復旧時：全セッション・認証リンク・管理者昇格を失効</span>
+  <p>状態変更は、許可された役割と前提条件を満たす場合だけ行う。再起動、再接続、ロールバック、バックアップ復元後も状態と権限を再検証し、重要な状態変更を監査履歴へ残す。</p>
+</section>
+
+<section class="section" id="data">
+  <span class="section-number">10</span>
+  <h2>概念データ</h2>
+  <div class="architecture">Workspace
+  ├─ Membership / RoleAssignment
+  ├─ BillingSubscription / UsageCounter
+  └─ CreatorProfile
+       └─ ServiceOffering
+            ├─ IntakeFormVersion
+            └─ WorkflowTemplateVersion
+                 └─ CheckpointTemplate / RevisionPolicy
+
+Request
+  └─ ProposalVersion → AgreementSnapshot
+       └─ Project
+            ├─ ProjectParticipant / ClientAccessGrant
+            ├─ WorkflowInstance
+            │    └─ CheckpointInstance
+            │         ├─ InternalTask / Assignment
+            │         ├─ ProgressUpdate
+            │         ├─ DeliverableVersion / FileObject
+            │         ├─ Comment / RevisionRequest
+            │         └─ Approval / ApprovalRule
+            ├─ ScheduleChange / BusinessCalendarSnapshot
+            ├─ ChangeOrder / DisputeRecord / CancellationRecord
+            ├─ DeliveryPackage / Receipt
+            └─ AuditEvent</div>
+  <p>テンプレートと案件インスタンス、提案と合意スナップショット、ファイルと提出版、承認操作と承認成立を別エンティティにする。履歴を更新で消さず、後続イベントで変更する。</p>
+  <h3>保存境界</h3>
+  <ul>
+    <li>個人情報、案件データ、請求識別子、監査記録、運用ログを論理的に分離する。</li>
+    <li>隔離ファイルと安全判定済みファイルを別バケットへ保存し、アプリケーションから隔離領域を配信しない。</li>
+    <li>合意、承認、受領、監査イベントは追記型とし、訂正は元記録を残した新イベントで表す。</li>
+    <li>削除要求では本番データ、検索インデックス、キャッシュ、複製先、バックアップの保持期限を区別して処理する。</li>
+  </ul>
+</section>
+
+<section class="section" id="ux">
+  <span class="section-number">11</span>
+  <h2>UX・アクセシビリティ</h2>
+  <h3>依頼者画面の優先順位</h3>
+  <ol>
+    <li>今どの段階か</li><li>次に何が起きるか</li><li>自分が何をするか</li><li>いつまでにするか</li><li>何を修正できるか</li>
+  </ol>
+  <h3>クリエイター画面の優先順位</h3>
+  <ol>
+    <li>今日、自分が対応する案件</li><li>依頼者の確認待ち</li><li>期限が近い案件</li><li>追加変更・日程変更の合意待ち</li><li>今週の納品</li>
+  </ol>
+  <h3>共通要件</h3>
+  <ul>
+    <li>主要操作を一画面に詰め込みすぎず、次の行動を一つに絞る。</li>
+    <li>「監視」「追跡」ではなく、「共有」「確認」「合意」の語彙を使う。</li>
+    <li>状態は色だけで伝えず、文言とアイコン相当の形でも示す。</li>
+    <li>ドラッグ操作にはキーボード操作と代替ボタンを用意する。</li>
+    <li>期限、料金、修正回数、権利条件を省略表示だけにしない。</li>
+    <li>ローディング、成功、入力エラー、権限拒否、期限切れ、検査中、読み取り専用を別状態として表示する。</li>
+    <li>アップロード中と検査中を区別し、安全判定前のファイルを閲覧可能と誤認させない。</li>
+    <li>320、375、414、768ピクセルとデスクトップ幅で、主要操作、表、モーダル、固定要素を実画面確認する。</li>
+    <li>主要画面はWCAG 2.2 AAへ適合させる。自動検査だけでなく、キーボード、スクリーンリーダー、200％拡大、色覚差、認知負荷を手動確認する。参照：<a href="#R-12">R-12</a>。</li>
+  </ul>
+</section>
+
+<section class="section section--wide" id="nonfunctional">
+  <span class="section-number">12</span>
+  <h2>非機能要件</h2>
+  <div class="table-wrap">
+      <table class="requirements-table">
+        <caption>セキュリティ・性能・運用要件</caption>
+        <thead><tr><th scope="col">ID</th><th scope="col">要件</th><th scope="col">優先度</th><th scope="col">状態</th><th scope="col">受入条件</th></tr></thead>
+        <tbody><tr>
+          <td data-label="ID"><a class="req-id" id="NFR-SEC-001" href="#NFR-SEC-001">NFR-SEC-001</a></td>
+          <td data-label="要件"><strong>認可境界</strong><p>すべての非公開データは、画面表示だけでなくAPIとファイル配信でも案件単位の認可を行う。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">他者の識別子を推測しても情報を取得・変更できない。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="NFR-SEC-002" href="#NFR-SEC-002">NFR-SEC-002</a></td>
+          <td data-label="要件"><strong>主要攻撃への防御</strong><p>CSRF、XSS、SQLインジェクション、SSRF、総当たり、危険なアップロード、権限昇格を設計とテストで防ぐ。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">OWASP ASVS 5.0を基準に、リスクの高い要件をリリース判定へ組み込む。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="NFR-SEC-003" href="#NFR-SEC-003">NFR-SEC-003</a></td>
+          <td data-label="要件"><strong>秘密情報の分離</strong><p>DB認証情報、署名鍵、外部API秘密鍵をフロントエンド、コンテナイメージ、リポジトリ、ログへ含めない。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">秘密情報は暗号化された設定とハードウェア鍵で管理し、ビルド成果物、ブラウザ通信、通常ログの検査で検出されない。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="NFR-SEC-004" href="#NFR-SEC-004">NFR-SEC-004</a></td>
+          <td data-label="要件"><strong>ネットワーク境界</strong><p>公開はHTTPSだけとし、管理、SSH、DB、Valkey、MinIO、監視画面をインターネットへ公開しない。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">管理接続はWireGuardとMFAを必須とし、IPv4とIPv6の両方で外部ポート検査に合格する。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="NFR-SEC-005" href="#NFR-SEC-005">NFR-SEC-005</a></td>
+          <td data-label="要件"><strong>ファイル検査のフェイルクローズ</strong><p>マルウェア検査が利用不能または定義更新から24時間を超えた場合、アップロードを安全領域へ移動しない。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">検査停止時は隔離を維持し、定義期限超過時は新規アップロードを拒否して運用者へ通知する。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="NFR-SEC-006" href="#NFR-SEC-006">NFR-SEC-006</a></td>
+          <td data-label="要件"><strong>脆弱性と供給網管理</strong><p>OS、コンテナ、依存関係、SBOM、署名、脆弱性情報を継続管理する。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">重大または悪用確認済み脆弱性に期限付き対応方針がなく、署名または来歴を検証できない成果物はデプロイしない。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="NFR-PRV-001" href="#NFR-PRV-001">NFR-PRV-001</a></td>
+          <td data-label="要件"><strong>データ最小化</strong><p>依頼と制作進行に必要な情報だけを収集し、利用目的を明示する。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">任意項目と必須項目を区別し、不要な本人情報を要求しない。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="NFR-PRV-002" href="#NFR-PRV-002">NFR-PRV-002</a></td>
+          <td data-label="要件"><strong>削除と持ち出し</strong><p>利用者は自分の情報を確認、出力、削除要求できる。法令・不正対策上の保持が必要な場合は理由を示す。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">削除要求の受付と処理状況を追跡し、複製、キャッシュ、バックアップから消える予定日と法的保持理由を説明できる。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="NFR-PRV-003" href="#NFR-PRV-003">NFR-PRV-003</a></td>
+          <td data-label="要件"><strong>利用者データのAI学習禁止</strong><p>案件、ファイル、コメント、監査記録、利用統計を、利用者の明示的な別契約なしに生成AIの学習へ使用しない。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">外部AIサービスへ案件内容を送信する処理が存在せず、将来追加時は既定無効、目的限定、個別同意、削除手段を要求する。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="NFR-ACC-001" href="#NFR-ACC-001">NFR-ACC-001</a></td>
+          <td data-label="要件"><strong>アクセシビリティ</strong><p>主要画面はWCAG 2.2 AAへ適合し、キーボード、スクリーンリーダー、拡大表示で操作できる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">自動検査と手動検査をリリース判定へ含める。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="NFR-UX-001" href="#NFR-UX-001">NFR-UX-001</a></td>
+          <td data-label="要件"><strong>レスポンシブ表示</strong><p>公開ページと依頼者ポータルは320px以上の画面で横スクロールなく利用できる。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">320、375、414、768、1440pxで主要状態を撮影し、横溢れ、欠け、重なり、固定要素、モーダル、ローディングを目視確認する。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="NFR-PERF-001" href="#NFR-PERF-001">NFR-PERF-001</a></td>
+          <td data-label="要件"><strong>応答性能</strong><p>公開受付ページは一般的なモバイル環境で素早く表示し、通常APIは操作を妨げない応答時間を維持する。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">公開ページLCPのp75を2.5秒以内、ファイル転送を除く通常APIのp95を500ms以内とする。測定条件と除外理由を記録する。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="NFR-PERF-002" href="#NFR-PERF-002">NFR-PERF-002</a></td>
+          <td data-label="要件"><strong>容量試験</strong><p>実測または保守的な利用予測の2倍の同時利用、データ量、アップロード量で性能を確認する。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">p95応答、DB負荷、ディスク待ち、ネットワーク、キュー滞留、スキャン時間が閾値内であり、超過時の停止条件を検証する。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="NFR-AVL-001" href="#NFR-AVL-001">NFR-AVL-001</a></td>
+          <td data-label="要件"><strong>可用性</strong><p>初期オンプレ運用の月間サービスレベル目標を99.5％とする。契約上のSLAを提示する場合は、実測実績と補償条件を別途承認する。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">外形監視で停止時間、性能劣化、機能制限、原因、復旧時刻を計測し、月次レビューを行う。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="NFR-AVL-002" href="#NFR-AVL-002">NFR-AVL-002</a></td>
+          <td data-label="要件"><strong>段階的な機能制限</strong><p>資源不足または二次拠点同期停止時は、機密性と整合性を優先してアップロード、新規案件、重要書き込みを順に停止する。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">停止順序、表示メッセージ、解除条件を自動試験でき、単なる警告だけで危険な書き込みを継続しない。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="NFR-BCP-001" href="#NFR-BCP-001">NFR-BCP-001</a></td>
+          <td data-label="要件"><strong>バックアップと復旧</strong><p>データベース、オブジェクト、設定、監査記録を別建物の二次拠点とオフライン媒体へ暗号化して保全する。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">RPO 15分、RTO 4時間を満たす。PostgreSQLは継続WAL転送、日次増分、週次差分、月次完全バックアップを行い、オブジェクトは版管理、削除マーカーを含む一方向複製、週次オフラインバックアップを行う。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="NFR-BCP-002" href="#NFR-BCP-002">NFR-BCP-002</a></td>
+          <td data-label="要件"><strong>復元検証</strong><p>バックアップの取得成功ではなく、隔離された環境での復元と整合性確認を成功条件とする。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">日次検証、四半期ごとの復元試験、本番リリース前の完全復元を実施し、失敗中はデプロイを停止する。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="NFR-BCP-003" href="#NFR-BCP-003">NFR-BCP-003</a></td>
+          <td data-label="要件"><strong>復旧後の認証失効</strong><p>障害復旧、バックアップ復元、別拠点切替後は、復旧前の認証状態を引き継がない。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">すべてのセッション、依頼者リンク、管理者昇格、ダウンロードURLを失効させ、再認証を要求する。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="NFR-OBS-001" href="#NFR-OBS-001">NFR-OBS-001</a></td>
+          <td data-label="要件"><strong>監視</strong><p>構造化ログ、メトリクス、エラー追跡、監査ログを分離して運用する。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">認証失敗、5xx増加、通知失敗、WAL遅延、複製停止、バックアップ検証失敗、容量、時刻ずれ、UPS、証明書、マルウェア定義を検知できる。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="NFR-OBS-002" href="#NFR-OBS-002">NFR-OBS-002</a></td>
+          <td data-label="要件"><strong>ログの秘匿と保持</strong><p>運用ログ、監査ログ、クラッシュログへ本文、認証情報、署名付きURL、不要な個人情報を記録しない。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">ログ閲覧権限、保持期間、マスキング、出力、削除、バックアップを分離し、サンプル検査で秘匿情報が検出されない。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="NFR-OPS-001" href="#NFR-OPS-001">NFR-OPS-001</a></td>
+          <td data-label="要件"><strong>デプロイ停止条件</strong><p>テスト、脆弱性検査、構成検証、バックアップ検証、復元試験、ロールバック先検査のいずれかが失敗した場合はデプロイしない。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">手作業の注意ではなく、CIまたはデプロイ前スクリプトが非ゼロ終了で反映を停止する。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="NFR-OPS-002" href="#NFR-OPS-002">NFR-OPS-002</a></td>
+          <td data-label="要件"><strong>時刻と容量の安全制御</strong><p>時刻ずれと容量不足が、合意、監査、アップロード、DB整合性へ波及する前に書き込みを止める。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">時刻差2秒超で合意、承認、監査操作を停止する。オブジェクト80％で警告、90％でアップロード停止、DB85％で新規案件作成停止とする。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="NFR-PORT-001" href="#NFR-PORT-001">NFR-PORT-001</a></td>
+          <td data-label="要件"><strong>クラウド移植性</strong><p>中核アプリケーションを、特定の物理パス、MinIO固有API、単一ホスト識別子へ依存させない。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">OCIコンテナ、外部設定、標準PostgreSQL、S3互換API、Valkey互換プロトコル、OpenTelemetry、Outboxとアダプター境界で構成する。</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="NFR-I18N-001" href="#NFR-I18N-001">NFR-I18N-001</a></td>
+          <td data-label="要件"><strong>地域設定の分離</strong><p>Production V1は日本語、日本円、日本の取引を対象とするが、文言、通貨、日時処理を業務ロジックへ埋め込まない。</p></td>
+          <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
+          <td data-label="状態"><span class="status status--fixed">確定</span></td>
+          <td data-label="受入条件">表示文言を一元管理し、時刻は標準時で保存する。</td>
+        </tr></tbody>
+      </table>
+    </div>
+</section>
+
+<section class="section" id="legal">
+  <span class="section-number">13</span>
+  <h2>法令・取引支援</h2>
+  <p class="lede">Stage Accordは契約や適法性を保証するサービスではない。必要事項の入力、合意版の保存、履歴整理を支援する。</p>
+  <h3>取引種別</h3>
+  <p>案件作成時に、少なくとも「個人利用を目的とする依頼」と「事業としての業務委託」を区別する。表示項目や注意文を取引種別に合わせる。</p>
+  <h3>事業者間取引の支援</h3>
+  <p>業務内容、成果物、報酬、発注日、納品・役務提供日、検査、支払期日、支払方法など、条件明示に必要な項目を構造化する。フリーランス法の適用可否や適法性は自動判定しない。参照：<a href="#R-02">R-02</a>。</p>
+  <h3>消費者向け取引の支援</h3>
+  <p>クリエイターが事業者として消費者へ役務を提供する場合に備え、販売者情報、価格、追加費用、支払時期、提供時期、キャンセル条件等の表示欄を用意する。最終的な表示内容は利用者と専門家が確認する。参照：<a href="#R-03">R-03</a>。</p>
+  <h3>個人情報</h3>
+  <p>利用目的、保存期間、委託先、問い合わせ先を明示し、必要な安全管理措置と委託先管理を行う。参照：<a href="#R-04">R-04</a>。</p>
+  <h3>権利条件</h3>
+  <p>著作権譲渡、利用許諾、商用利用、独占性、期間、地域、媒体、クレジット、元データ納品、AI利用の可否を選択式と自由記述で記録する。法的助言ではないことを明示する。</p>
+  <h3>年齢</h3>
+  <p>Production V1は18歳以上だけを対象とし、登録と依頼時に確認する。未成年者を扱う変更は、保護者同意、取消し、本人確認、決済、個人情報の影響評価を完了するまで公開しない。</p>
+  <h3>本番公開前の専門確認</h3>
+  <p>利用規約、プライバシーポリシー、特定商取引法上の表示、契約画面、権利条件、キャンセル表示、商標と名称は、日本法の有資格専門家または担当専門家のレビューを完了する。レビュー未完了、指摘未解消、対象画面との不一致がある場合は本番公開しない。</p>
+</section>
+
+<section class="section" id="business">
+  <span class="section-number">14</span>
+  <h2>料金と採算判定</h2>
+  <h3>市場への入り方</h3>
+  <p>初期は「BtoC型で利用者を獲得し、CtoC・小規模BtoBの取引で使われる」構造を採る。サービス内で依頼者を探す市場は作らず、クリエイターが自分のSNS、動画概要欄、ポートフォリオ、既存顧客へ受付URLを共有する。</p>
+  <p class="footnote">国内クリエイターエコノミーは拡大が報告され、創作支援サービスも市場の一部を構成する。参照：<a href="#R-01">R-01</a>。</p>
+  <h3>料金プラン</h3>
+  <div class="table-wrap">
+    <table class="decision-table">
+      <caption>税込価格と利用上限</caption>
+      <thead><tr><th scope="col">プラン</th><th scope="col">価格</th><th scope="col">クリエイター</th><th scope="col">アクティブ案件</th><th scope="col">保存容量</th><th scope="col">テンプレート</th></tr></thead>
+      <tbody>
+        <tr><th scope="row" data-label="プラン">Free</th><td data-label="価格">0円</td><td data-label="クリエイター">1人</td><td data-label="アクティブ案件">2件</td><td data-label="保存容量">2GB</td><td data-label="テンプレート">3件</td></tr>
+        <tr><th scope="row" data-label="プラン">Creator Pro</th><td data-label="価格">月額1,980円<br>年額19,800円</td><td data-label="クリエイター">1人</td><td data-label="アクティブ案件">50件</td><td data-label="保存容量">100GB</td><td data-label="テンプレート">無制限</td></tr>
+        <tr><th scope="row" data-label="プラン">Studio</th><td data-label="価格">月額5,980円<br>年額59,800円</td><td data-label="クリエイター">5人</td><td data-label="アクティブ案件">200件</td><td data-label="保存容量">500GB</td><td data-label="テンプレート">無制限</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Creator Proはブランド設定を含む。Studioは役割、担当、組織監査を含む。追加クリエイター1人または追加容量100GBは、それぞれ月額980円または年額9,800円とする。セキュリティ、合意記録、監査、出力、アクセシビリティを有料プランだけの安全機能にしない。</p>
+  <h3>請求境界</h3>
+  <p>プラットフォーム利用料金だけをStripe Checkout、Billing、Customer Portalで処理する。依頼代金を預からず、取引手数料を課さない。支払い失敗には7日間の猶予を設け、その後は読み取り専用とし、自動削除しない。アップグレードは支払い確定後に即時、ダウングレードと解約は次回更新日に反映する。</p>
+  <h3>差別化</h3>
+  <p>競合には、マーケットプレイス、作業キュー、やり取り最小化型、専門的レビュー機能がある。Stage Accordは、<strong>依頼前に公開した制作フローを、合意時点で固定し、チェックポイント、修正条件、承認、日程、納品まで一貫して使うこと</strong>を中核にする。参照：<a href="#R-07">R-07</a>〜<a href="#R-11">R-11</a>。</p>
+  <h3>KPI</h3>
+  <dl class="kpi-grid">
+    <div class="kpi"><dt>Activation</dt><dd>登録後7日以内に、制作サービスとフローを公開した割合</dd></div>
+    <div class="kpi"><dt>Client adoption</dt><dd>依頼者が案件ポータルを一度以上開いた割合</dd></div>
+    <div class="kpi"><dt>Workflow completion</dt><dd>チェックポイントを経て完了した案件の割合</dd></div>
+    <div class="kpi"><dt>Repeat use</dt><dd>60日以内に2件目の案件を開始したクリエイターの割合</dd></div>
+    <div class="kpi"><dt>Paid conversion</dt><dd>無料利用者から有料プランへ移行した割合</dd></div>
+    <div class="kpi"><dt>Guardrail</dt><dd>監視感、権限事故、修正紛争、依頼者離脱の件数</dd></div>
+  </dl>
+  <h3>クラウド移行の採算条件</h3>
+  <p>次の条件をすべて満たし、意思決定記録を承認した場合だけ、中核アプリケーション、データベース、オブジェクト、セッション、監視、バックアップをクラウドへ移行できる。</p>
+  <ul>
+    <li>3か月以上の実売上、実利用量、転送量、障害実績がある。</li>
+    <li>クラウドの月間総費用がMRRの25％以下である。</li>
+    <li>決済手数料、外部サービス費、保守工数を含む粗利率が65％以上である。</li>
+    <li>実績の2倍の負荷とp95転送量で、性能と費用の上限を満たす。</li>
+    <li>移行費用の回収期間が12か月以内であり、クラウド費用6か月分の現金余力がある。</li>
+    <li>オンプレTCOへ、減価償却、電力、二回線、予備部品、作業時間、バックアップ、停止損失を含めて比較している。</li>
+    <li>データ保管地域、委託先管理、ログとバックアップの統制が現行より悪化しない。</li>
+    <li>RPO、RTO、可用性のうち少なくとも一つが改善し、他を悪化させない。</li>
+  </ul>
+  <p>条件未達の間は、外部DNS、公開証明書、メール中継、Stripeなどの専門サービスを除き、中核処理をクラウドへ配置しない。</p>
+</section>
+
+<section class="section" id="architecture">
+  <span class="section-number">15</span>
+  <h2>本番技術方針</h2>
+  <p class="lede">Production V1の中核基盤は二拠点オンプレで運用する。単一サーバー、単一回線、同一建物内だけのバックアップを本番構成として認めない。</p>
+  <h3>アプリケーション境界</h3>
+  <ul>
+    <li>バックエンドはJava、Spring Bootのモジュラーモノリスとする。</li>
+    <li>フロントエンドはReact、TypeScript、Viteとする。</li>
+    <li>フロントエンドとバックエンドのソース、依存関係、ビルド、秘密情報を分離する。</li>
+    <li>業務ルールと認可はSpring Bootを正とする。</li>
+    <li>APIはRESTとOpenAPIで定義し、DB変更は前進可能なマイグレーションで管理する。</li>
+    <li>通知、ファイル検査、プレビュー生成、監査連携はTransactional Outboxと再実行可能なワーカーで処理する。</li>
+  </ul>
+  <h3>オンプレ構成</h3>
+  <div class="architecture">Internet
+  └─ External DNS / Public TLS certificate
+       └─ Dual ISP / static address / failover router
+            └─ Firewall / IDS / WireGuard administration
+                 └─ Nginx reverse proxy / WAF / rate limit
+                      ├─ React static assets
+                      └─ Spring Boot application
+                           ├─ background worker
+                           ├─ PostgreSQL primary
+                           ├─ Valkey session and short-lived cache
+                           ├─ MinIO quarantine / clean buckets
+                           └─ ClamAV
+
+Primary site monitoring
+  └─ Prometheus / Grafana / Loki / Alertmanager
+
+Encrypted site-to-site VPN
+  └─ Secondary site
+       ├─ PostgreSQL standby and WAL archive
+       ├─ MinIO replication target and backup repository
+       ├─ encrypted configuration and container cache
+       └─ recovery monitoring</div>
+  <h3>物理構成</h3>
+  <ul>
+    <li><strong>主拠点：</strong>x86_64 12コア以上、ECCメモリ64GB以上、OSとDB用のエンタープライズNVMeミラー、オブジェクト用エンタープライズHDD 4本以上、TPM 2.0、30分以上維持できるUPS、遠隔監視、予備ディスクを備える。</li>
+    <li><strong>副拠点：</strong>別建物、別電源、別回線に置き、x86_64 8コア以上、ECCメモリ32GB以上、同等以上のバックアップ容量、UPSを備える。通常時は公開エンドポイントを持たない。</li>
+    <li><strong>回線：</strong>異なる通信事業者の二回線と固定アドレスを使用し、切替、IPv4、IPv6、DNS、証明書更新を定期試験する。</li>
+  </ul>
+  <h3>ソフトウェア基準</h3>
+  <ul>
+    <li>OSはUbuntu Server 26.04 LTS、コンテナ実行はDocker EngineとDocker Composeを使用する。</li>
+    <li>初期候補はOpenJDK 25 LTS、Spring Boot 4.1、PostgreSQL 18、React 19.2、Node.js 24 LTSとする。</li>
+    <li>ビルドはMaven Wrapperとpnpmを使用し、パッチ版と依存関係はSBOM、互換試験、セキュリティ情報を確認してリリースごとに固定する。</li>
+    <li>Nginx、ModSecurityとOWASP CRS、Valkey、MinIO、ClamAV、pgBackRest、restic、Prometheus、Grafana、Loki、Alertmanager、Ansible、SOPSとageを運用構成へ含める。</li>
+    <li>Kubernetesは初期構成へ導入しない。二拠点の小規模運用では制御面と障害切り分けの負担が利益を上回るためであり、OCIコンテナによる移植性は維持する。</li>
+  </ul>
+  <h3>公開面と管理面</h3>
+  <ul>
+    <li>公開ポートは443だけとし、80はHTTPSへのリダイレクトだけに使う。</li>
+    <li>SSH、DB、Valkey、MinIO、監視、バックアップ、コンテナ管理を公開しない。管理操作はWireGuard、MFA、個人別アカウント、監査を必須とする。</li>
+    <li>オンプレ回線で吸収できないDDoSでは、サービス継続より機密性を優先し、依頼受付、アップロード、認証または公開を停止できる。</li>
+    <li>DNS、公開証明書、トランザクションメール中継、Stripeは外部専門サービスを利用できる。中核データの保管と処理はクラウド移行条件を満たすまでオンプレに置く。</li>
+  </ul>
+  <h3>バックアップと復旧</h3>
+  <ul>
+    <li>PostgreSQLはWALを継続的に副拠点へ転送し、日次増分、週次差分、月次完全バックアップを暗号化する。日次で検証し、四半期と本番前に復元する。</li>
+    <li>MinIOは版管理と一方向複製を使い、削除マーカーと旧版も副拠点へ保全する。必要なバケットはオブジェクトロックを使い、週次で暗号化オフラインバックアップを取得する。</li>
+    <li>副拠点への切替後はデータ件数、オブジェクトハッシュ、版、監査連続性を確認し、全認証状態を失効させる。</li>
+  </ul>
+  <h3>自動停止閾値</h3>
+  <ul>
+    <li>WAL遅延15分で警告、60分で重要書き込みを読み取り専用へ移行する。</li>
+    <li>MinIO使用率80％で警告と上限通知、90％で新規アップロードを停止する。</li>
+    <li>DB使用率85％で新規案件作成を停止する。</li>
+    <li>時刻差2秒超で合意、承認、受領、監査操作を停止する。</li>
+    <li>UPS残量が安全停止閾値を下回った場合は新規書き込みを止め、整合性を保ってシャットダウンする。</li>
+    <li>バックアップ検証失敗、証明書更新失敗、マルウェア定義期限超過では、該当するデプロイ、平文公開、アップロードを許可しない。</li>
+  </ul>
+  <h3>クラウド移行とロールバック</h3>
+  <p>クラウド移行時はDNS TTLを事前に短縮し、DBとファイルを事前同期する。保守時間中に最終WALと差分を適用し、件数、ハッシュ、版、監査連続性を確認してからクラウドを読み取り専用で検証する。切替後7日間はオンプレを読み取り専用で保持する。クラウド側に書き込みが発生した後は、逆同期を完了しない限りオンプレへ戻さない。</p>
+  <p class="footnote">版情報は2026-08-02時点の公式情報を基にした採用候補であり、各リリースではサポート中の安定パッチ版へ固定する。参照：<a href="#R-14">R-14</a>〜<a href="#R-25">R-25</a>。</p>
+</section>
+
+<section class="section" id="release">
+  <span class="section-number">16</span>
+  <h2>Production V1リリース条件</h2>
+  <p>Production V1は、次の一連の取引、運用、障害復旧を本番相当環境で安全に完了し、すべての証拠を保存した場合だけ公開できる。</p>
+  <ol class="flow">
+    <li><strong>公開</strong>クリエイターが制作サービス、フロー、修正条件を公開できる。</li>
+    <li><strong>依頼</strong>依頼者が登録なしで依頼を送れる。</li>
+    <li><strong>合意</strong>価格、日程、成果物、権利、修正条件、複数承認規則を承認できる。</li>
+    <li><strong>制作</strong>担当者が案件フロー、内部タスク、検査済み提出物を管理できる。</li>
+    <li><strong>確認</strong>依頼者が進捗を見て、版に紐付くコメント、修正、承認を行える。</li>
+    <li><strong>調整</strong>依頼者待ち、変更注文、キャンセル、紛争、日程変更を記録し、必要事項を再合意できる。</li>
+    <li><strong>納品</strong>成果物と条件をまとめて受領し、案件記録を出力できる。</li>
+    <li><strong>請求</strong>無料、有料、変更、支払い失敗、読み取り専用、解約を安全に処理できる。</li>
+    <li><strong>保護</strong>他者案件への不正アクセス、危険なファイル、重要履歴の上書きを防げる。</li>
+    <li><strong>復旧</strong>副拠点とバックアップからRPO 15分、RTO 4時間以内に復旧し、旧認証状態を失効できる。</li>
+  </ol>
+  <h3>リリース判定</h3>
+  <ul>
+    <li>P0要件を要求IDへ対応付けた試験で検証し、未実施、失敗、手動回避がない。</li>
+    <li>登録、MFA、依頼者リンク、権限、合意、変更注文、ファイル隔離、承認、請求、納品、削除要求のE2E試験が通る。</li>
+    <li>案件横断、役割横断、版差し替え、期限切れ、再発行、再接続、ロールバック後の認可試験が通る。</li>
+    <li>CSRF、XSS、SQLインジェクション、SSRF、総当たり、危険なアップロード、権限昇格、署名検証を確認する。</li>
+    <li>320、375、414、768、1440ピクセルで主要画面と状態を撮影し、担当者が画像を目視確認する。</li>
+    <li>主拠点障害、副拠点切替、DB復元、オブジェクト復元、セッション失効、元拠点への復帰を実行する。</li>
+    <li>外部公開ポート、IPv4とIPv6、VPN、MFA、TLS更新、WAF、レート制限を本番相当環境で確認する。</li>
+    <li>容量、WAL遅延、時刻ずれ、UPS、マルウェア定義、バックアップ失敗の各停止条件を実際に発火させる。</li>
+    <li>利用規約、プライバシー、法的表示、契約画面、権利条件、商標を専門家が確認し、実画面と一致する。</li>
+    <li>ロールバック対象のイメージ、DBスキーマ、設定、秘密情報、移行手順を検証し、危険な旧設定へ戻らない。</li>
+  </ul>
+  <div class="callout callout--warm"><strong>本番投入不可：</strong>上記証拠の一つでも欠ける場合、またはフェイルクローズを手作業で迂回しなければ公開できない場合は、Production V1として本番投入しない。</div>
+</section>
+
+<section class="section section--wide" id="decisions">
+  <span class="section-number">17</span>
+  <h2>確定方針</h2>
+  <p class="lede">本表はProduction V1へ適用する意思決定記録である。方針変更には影響分析、承認、版更新、移行手順、ロールバック手順を必要とする。</p>
+  <div class="table-wrap">
+    <table class="decision-table">
+      <caption>意思決定一覧</caption>
+      <thead><tr><th scope="col">ID</th><th scope="col">決定対象</th><th scope="col">確定方針</th><th scope="col">根拠</th><th scope="col">変更条件</th></tr></thead>
+      <tbody><tr>
+          <td data-label="ID"><span class="req-id">DEC-001</span></td>
+          <td data-label="決定対象"><strong>初期対象分野</strong></td>
+          <td data-label="確定方針">Production V1の公開テンプレートと訴求は音楽、イラスト、映像に限定する。</td>
+          <td data-label="根拠">段階提出とレビューが分かりやすく、実利用を観察しやすい。</td>
+          <td data-label="変更条件">別分野の法務、ファイル、工程、サポート要件を追加して承認した場合</td>
+        </tr><tr>
+          <td data-label="ID"><span class="req-id">DEC-002</span></td>
+          <td data-label="決定対象"><strong>マーケットプレイス</strong></td>
+          <td data-label="確定方針">製品範囲外とし、クリエイターが自分の顧客を受付ページへ誘導する。</td>
+          <td data-label="根拠">売り手と買い手を同時に集める難易度を避け、個人開発でも検証できる。</td>
+          <td data-label="変更条件">二面市場、審査、検索順位、不正対策の独立事業計画を承認した場合</td>
+        </tr><tr>
+          <td data-label="ID"><span class="req-id">DEC-003</span></td>
+          <td data-label="決定対象"><strong>収益方式</strong></td>
+          <td data-label="確定方針">月額と年額のフリーミアムを採用し、依頼代金の預かり、分配、取引手数料を扱わない。</td>
+          <td data-label="根拠">依頼金の預かり、本人確認、返金、チャージバック対応を初期範囲から外せる。</td>
+          <td data-label="変更条件">資金移動、本人確認、返金、紛争、規制対応を含む別事業として承認した場合</td>
+        </tr><tr>
+          <td data-label="ID"><span class="req-id">DEC-004</span></td>
+          <td data-label="決定対象"><strong>依頼者認証</strong></td>
+          <td data-label="確定方針">通常アカウントを必須にせず、確認済みメールへ案件限定のワンタイムリンクを送る。</td>
+          <td data-label="根拠">依頼者側の導入摩擦を最小化できる。</td>
+          <td data-label="変更条件">導入摩擦、安全性、複数案件管理の実測で通常アカウントが優位になった場合</td>
+        </tr><tr>
+          <td data-label="ID"><span class="req-id">DEC-005</span></td>
+          <td data-label="決定対象"><strong>修正受付</strong></td>
+          <td data-label="確定方針">指定チェックポイントで正式な修正を一括提出するゲート型を採用する。</td>
+          <td data-label="根拠">依頼者の安心と、制作中断の抑制を両立できる。</td>
+          <td data-label="変更条件">テンプレート単位の明示設定として追加する場合</td>
+        </tr><tr>
+          <td data-label="ID"><span class="req-id">DEC-006</span></td>
+          <td data-label="決定対象"><strong>自動承認</strong></td>
+          <td data-label="確定方針">採用しない。期限超過は通知、確認待ち、日程再計算案として扱う。</td>
+          <td data-label="根拠">未操作を合意とみなす誤解と紛争を避ける。</td>
+          <td data-label="変更条件">未操作を合意とみなす法務根拠と紛争対策を個別に承認した場合</td>
+        </tr><tr>
+          <td data-label="ID"><span class="req-id">DEC-007</span></td>
+          <td data-label="決定対象"><strong>対象年齢</strong></td>
+          <td data-label="確定方針">18歳以上だけを対象とする。</td>
+          <td data-label="根拠">未成年契約、保護者同意、取消し、決済の追加要件を初期から抱えない。</td>
+          <td data-label="変更条件">未成年者契約、保護者同意、取消し、本人確認を設計して専門家確認を完了した場合</td>
+        </tr><tr>
+          <td data-label="ID"><span class="req-id">DEC-008</span></td>
+          <td data-label="決定対象"><strong>提供地域</strong></td>
+          <td data-label="確定方針">日本国内、日本語、日本円を対象とする。</td>
+          <td data-label="根拠">法令、決済、サポート、表示要件を限定して検証できる。</td>
+          <td data-label="変更条件">対象国の法務、税務、決済、データ移転、サポートを承認した場合</td>
+        </tr><tr>
+          <td data-label="ID"><span class="req-id">DEC-009</span></td>
+          <td data-label="決定対象"><strong>ファイル運用</strong></td>
+          <td data-label="確定方針">1ファイル5GBまでの検査付き直接添付と外部URLを併用し、独自動画変換は製品範囲外とする。</td>
+          <td data-label="根拠">ストレージ原価とメディア処理の複雑性を抑えられる。</td>
+          <td data-label="変更条件">容量原価、処理能力、権利、安全性を満たす独立メディア基盤を承認した場合</td>
+        </tr><tr>
+          <td data-label="ID"><span class="req-id">DEC-010</span></td>
+          <td data-label="決定対象"><strong>データベース</strong></td>
+          <td data-label="確定方針">PostgreSQL 18系を採用し、パッチ版をリリースごとに固定する。</td>
+          <td data-label="根拠">関係整合性、監査、版スナップショット、JSONデータを一つの基盤で扱いやすい。</td>
+          <td data-label="変更条件">データ移行、整合性、復旧、運用費を比較したADRを承認した場合</td>
+        </tr><tr>
+          <td data-label="ID"><span class="req-id">DEC-011</span></td>
+          <td data-label="決定対象"><strong>本番配信</strong></td>
+          <td data-label="確定方針">ソースとビルドを分離し、Nginx配下の同一オリジンでReactとAPIを配信する。</td>
+          <td data-label="根拠">秘密情報の境界を保ちつつ、Cookie、CORS、CSRF、運用を単純化できる。</td>
+          <td data-label="変更条件">認証、CORS、CSRF、キャッシュ、運用の同等性を検証した場合</td>
+        </tr><tr>
+          <td data-label="ID"><span class="req-id">DEC-012</span></td>
+          <td data-label="決定対象"><strong>AI機能</strong></td>
+          <td data-label="確定方針">法的判断、修正判定、利用者データ学習を製品範囲外とする。</td>
+          <td data-label="根拠">中核価値の検証前に、誤判定、説明責任、費用、信頼問題を増やさない。</td>
+          <td data-label="変更条件">目的、精度、説明責任、費用、同意、削除を独立審査した場合</td>
+        </tr><tr>
+          <td data-label="ID"><span class="req-id">DEC-013</span></td>
+          <td data-label="決定対象"><strong>料金額</strong></td>
+          <td data-label="確定方針">Free 0円、Creator Pro月額1,980円または年額19,800円、Studio月額5,980円または年額59,800円とする。</td>
+          <td data-label="根拠">機能、安全性、容量、チーム利用を明示した継続課金として検証できる。</td>
+          <td data-label="変更条件">税、原価、支払い意欲、解約率、粗利の実績を基に価格改定を承認した場合</td>
+        </tr><tr>
+          <td data-label="ID"><span class="req-id">DEC-014</span></td>
+          <td data-label="決定対象"><strong>商標と名称</strong></td>
+          <td data-label="確定方針">本番公開前に文字商標、称呼類似、主要ドメイン、SNS名を専門調査する。</td>
+          <td data-label="根拠">名称の使用可能性を予備検索だけで断定できない。</td>
+          <td data-label="変更条件">専門調査と必要な出願または名称変更が完了した場合だけ公開可能</td>
+        </tr><tr>
+          <td data-label="ID"><span class="req-id">DEC-015</span></td>
+          <td data-label="決定対象"><strong>チームと承認者</strong></td>
+          <td data-label="確定方針">クリエイター側5役割、依頼者側4役割、複数承認規則をProduction V1へ含める。</td>
+          <td data-label="根拠">公開後に単一操作者へ限定すると、権限モデルと監査を作り直す必要が生じる。</td>
+          <td data-label="変更条件">権限削減は既存データと契約の移行を承認した場合</td>
+        </tr><tr>
+          <td data-label="ID"><span class="req-id">DEC-016</span></td>
+          <td data-label="決定対象"><strong>初期本番基盤</strong></td>
+          <td data-label="確定方針">主拠点と別建物の副拠点によるオンプレ運用とし、単一サーバーを認めない。</td>
+          <td data-label="根拠">クラウド固定費を負う前に採算を確認しながら、RPOとRTOを満たす。</td>
+          <td data-label="変更条件">DEC-017の全条件を満たした場合</td>
+        </tr><tr>
+          <td data-label="ID"><span class="req-id">DEC-017</span></td>
+          <td data-label="決定対象"><strong>クラウド移行</strong></td>
+          <td data-label="確定方針">3か月実績、クラウド費25％MRR以下、粗利65％以上、回収12か月以内、6か月現金余力などの全条件を満たす場合だけ許可する。</td>
+          <td data-label="根拠">技術的な利便性だけで、赤字またはデータ統制の悪化を受け入れない。</td>
+          <td data-label="変更条件">全条件、移行試験、逆同期を含むロールバック手順を承認した場合</td>
+        </tr><tr>
+          <td data-label="ID"><span class="req-id">DEC-018</span></td>
+          <td data-label="決定対象"><strong>コンテナオーケストレーション</strong></td>
+          <td data-label="確定方針">Docker Composeを採用し、Kubernetesは初期構成へ導入しない。</td>
+          <td data-label="根拠">現行規模では制御面、更新、監視、復旧の運用負担が利益を上回る。</td>
+          <td data-label="変更条件">複数ノードの自動配置が必要となり、運用要員と障害訓練を確保した場合</td>
+        </tr></tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section section--wide" id="risks">
+  <span class="section-number">18</span>
+  <h2>リスク</h2>
+  <div class="table-wrap">
+    <table class="risk-table">
+      <caption>主要リスクと対応</caption>
+      <thead><tr><th scope="col">リスク</th><th scope="col">影響</th><th scope="col">対応</th></tr></thead>
+      <tbody>
+        <tr><td data-label="リスク"><strong>対象分野が広がる</strong></td><td data-label="影響">訴求とテンプレートが曖昧になり、サポート範囲も不明確になる</td><td data-label="対応">Production V1は音楽、イラスト、映像に限定し、別分野は変更管理を通す</td></tr>
+        <tr><td data-label="リスク"><strong>依頼者の利用負担</strong></td><td data-label="影響">登録を嫌がり、進捗共有が成立しない</td><td data-label="対応">確認済みメールへの案件限定リンクと、次の操作を絞った画面を使う</td></tr>
+        <tr><td data-label="リスク"><strong>透明性が監視へ変わる</strong></td><td data-label="影響">クリエイターの自律性と心理的安全性を損なう</td><td data-label="対応">公開チェックポイント方式、内部タスク非公開、時間とオンライン状態の追跡禁止</td></tr>
+        <tr><td data-label="リスク"><strong>無制限修正</strong></td><td data-label="影響">採算悪化と制作中断が起こる</td><td data-label="対応">ゲート型、修正ラウンド、追加変更の再合意を使う</td></tr>
+        <tr><td data-label="リスク"><strong>法的効力の過大表示</strong></td><td data-label="影響">利用者が契約支援と法的保証を取り違える</td><td data-label="対応">入力と記録支援に限定し、実画面を専門家が確認するまで公開しない</td></tr>
+        <tr><td data-label="リスク"><strong>ファイル原価と容量不足</strong></td><td data-label="影響">利益圧迫からアップロード、DB、バックアップへ障害が波及する</td><td data-label="対応">プラン別容量、80％警告、90％停止、外部URL、独自変換の対象外化</td></tr>
+        <tr><td data-label="リスク"><strong>権限不備と情報漏えい</strong></td><td data-label="影響">成果物、依頼内容、識別子が第三者へ露出し、ログとバックアップに残る</td><td data-label="対応">既定拒否、関係性認可、短期URL、運営者一時アクセス、監査、再起動と復元後の逆方向検証</td></tr>
+        <tr><td data-label="リスク"><strong>マルウェア検査停止</strong></td><td data-label="影響">危険な成果物が利用者、運用者、バックアップへ広がる</td><td data-label="対応">隔離領域、定義期限、検査不能時の拒否、アップロード停止を機械化する</td></tr>
+        <tr><td data-label="リスク"><strong>単一拠点障害</strong></td><td data-label="影響">火災、停電、回線、盗難でサービスとバックアップを同時に失う</td><td data-label="対応">別建物、別電源、別回線の副拠点、オフラインバックアップ、四半期復元試験</td></tr>
+        <tr><td data-label="リスク"><strong>オンプレ運用負荷</strong></td><td data-label="影響">更新、監視、証明書、容量、予備部品の対応漏れが障害になる</td><td data-label="対応">Ansible、自動監視、停止閾値、運用当番、予備部品、手順訓練、月次レビュー</td></tr>
+        <tr><td data-label="リスク"><strong>DDoSと回線飽和</strong></td><td data-label="影響">オンプレ回線だけでは公開継続が困難になる</td><td data-label="対応">WAFとレート制限を使い、吸収不能時は機密性を優先して受付、アップロード、認証を停止する</td></tr>
+        <tr><td data-label="リスク"><strong>早すぎるクラウド移行</strong></td><td data-label="影響">固定費と転送料で粗利が失われ、撤退費用が増える</td><td data-label="対応">3か月実績、25％MRR、粗利65％、回収12か月、6か月現金余力などを全件ゲート化する</td></tr>
+        <tr><td data-label="リスク"><strong>支払い失敗とデータ喪失</strong></td><td data-label="影響">請求事故が制作案件の消失や信用毀損へつながる</td><td data-label="対応">7日猶予、読み取り専用、出力継続、自動削除禁止、Webhook照合を採用する</td></tr>
+        <tr><td data-label="リスク"><strong>ロールバックによる再露出</strong></td><td data-label="影響">旧権限、旧公開ポート、旧ログ設定が復活する</td><td data-label="対応">ロールバック対象も事前検査し、復帰後に認可、公開面、ログ、認証失効を再検証する</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section" id="glossary">
+  <span class="section-number">19</span>
+  <h2>用語</h2>
+  <dl class="definition">
+    <div><dt>制作サービス</dt><dd>クリエイターが受け付ける依頼内容の単位。</dd></div>
+    <div><dt>フローテンプレート</dt><dd>依頼前に公開する標準的な制作工程。</dd></div>
+    <div><dt>チェックポイント</dt><dd>進捗共有、素材提出、レビュー、承認、納品を行う工程上の区切り。</dd></div>
+    <div><dt>案件フロー</dt><dd>合意時にテンプレートから生成した、具体的な期日を持つ制作工程。</dd></div>
+    <div><dt>修正ラウンド</dt><dd>依頼者が複数の修正項目を一括して正式提出した一回分。</dd></div>
+    <div><dt>追加変更</dt><dd>合意済みの範囲を超え、価格または日程の再合意が必要な変更。</dd></div>
+    <div><dt>合意スナップショット</dt><dd>案件開始時点の価格、日程、成果物、権利、修正条件を固定した版。</dd></div>
+    <div><dt>依頼者待ち</dt><dd>素材、回答、修正提出、承認など、依頼者の行動が必要な状態。</dd></div>
+    <div><dt>ワークスペース</dt><dd>クリエイター、制作チーム、サービス、案件、請求、権限をまとめる契約単位。</dd></div>
+    <div><dt>承認規則</dt><dd>指定者のいずれか一人、全員、指定人数のどれで承認成立とするかを定めた条件。</dd></div>
+    <div><dt>変更注文</dt><dd>合意後に範囲、価格、日程、権利、修正条件を変更するための新しい合意版。</dd></div>
+    <div><dt>紛争中</dt><dd>修正種別、成果物、権利、支払い等について当事者の認識が一致せず、対象処理を停止した状態。</dd></div>
+    <div><dt>隔離領域</dt><dd>安全判定前または危険判定済みのファイルを、利用者へ配信せず保管する領域。</dd></div>
+    <div><dt>フェイルクローズ</dt><dd>安全性を確認できない場合に、警告だけで続行せず操作、公開、書き込み、デプロイを停止する設計。</dd></div>
+    <div><dt>RPO</dt><dd>障害時に許容できるデータ損失時間。本書では15分以内。</dd></div>
+    <div><dt>RTO</dt><dd>障害発生からサービス復旧までの目標時間。本書では4時間以内。</dd></div>
+    <div><dt>MRR</dt><dd>月次経常収益。クラウド費用の採算判定に使う。</dd></div>
+    <div><dt>オンプレ</dt><dd>事業者が管理する物理設備と回線に中核システムを配置する運用形態。</dd></div>
+    <div><dt>クラウド移行ゲート</dt><dd>採算、資金、性能、データ統制、復旧の全条件を満たした場合だけ移行を許可する判定。</dd></div>
+  </dl>
+</section>
+
+<section class="section" id="references">
+  <span class="section-number">20</span>
+  <h2>参照資料</h2>
+  <p>市場、法令、競合、UX、セキュリティ、オンプレ運用の判断に使用した主要資料。参照日は2026-08-02。</p>
+  <ol class="references">
+    <li id="R-01"><span class="ref-id">R-01</span><a href="https://www.murc.jp/library/report/cr_251210/" target="_blank" rel="noreferrer">三菱UFJリサーチ&amp;コンサルティング「国内クリエイターエコノミーに関する調査結果（2025年）」</a></li>
+    <li id="R-02"><span class="ref-id">R-02</span><a href="https://www.jftc.go.jp/fllaw_limited.html" target="_blank" rel="noreferrer">公正取引委員会「フリーランスの取引適正化に向けた公正取引委員会の取組」</a></li>
+    <li id="R-03"><span class="ref-id">R-03</span><a href="https://www.caa.go.jp/policies/policy/consumer_transaction/specified_commercial_transactions/index.html" target="_blank" rel="noreferrer">消費者庁「特定商取引法」</a></li>
+    <li id="R-04"><span class="ref-id">R-04</span><a href="https://www.ppc.go.jp/personalinfo/legal/guidelines_tsusoku/" target="_blank" rel="noreferrer">個人情報保護委員会「個人情報保護法ガイドライン（通則編）」</a></li>
+    <li id="R-05"><span class="ref-id">R-05</span><a href="https://doi.org/10.1287/mnsc.2015.2411" target="_blank" rel="noreferrer">Buell, Kim, Tsay, “Creating Reciprocal Value Through Operational Transparency”</a></li>
+    <li id="R-06"><span class="ref-id">R-06</span><a href="https://doi.org/10.1177/10963480231223146" target="_blank" rel="noreferrer">Hwang, Lee, Legendre, “Operational Transparency as a Service Design”</a></li>
+    <li id="R-07"><span class="ref-id">R-07</span><a href="https://help.vgen.co/hc/en-us/articles/27994755452183-Work-Queue-Artist-Workflow-Board" target="_blank" rel="noreferrer">VGen Help Center「Work Queue &amp; Artist Workflow Board」</a></li>
+    <li id="R-08"><span class="ref-id">R-08</span><a href="https://vgen.co/for-artists" target="_blank" rel="noreferrer">VGen「For Artists」</a></li>
+    <li id="R-09"><span class="ref-id">R-09</span><a href="https://coconala.com/pages/guide_sell" target="_blank" rel="noreferrer">ココナラ「サービスを出品したい」</a></li>
+    <li id="R-10"><span class="ref-id">R-10</span><a href="https://skeb.co.jp/" target="_blank" rel="noreferrer">株式会社スケブ「Skebの特徴」</a></li>
+    <li id="R-11"><span class="ref-id">R-11</span><a href="https://support.frame.io/ja/articles/414306-%E3%83%AC%E3%83%93%E3%83%A5%E3%83%BC%E7%94%A8%E3%81%AB%E3%83%95%E3%82%A1%E3%82%A4%E3%83%AB%E3%81%A8%E3%83%95%E3%82%A9%E3%83%AB%E3%83%80%E3%83%BC%E3%82%92%E5%85%B1%E6%9C%89" target="_blank" rel="noreferrer">Frame.io「レビュー用にファイルとフォルダーを共有」</a></li>
+    <li id="R-12"><span class="ref-id">R-12</span><a href="https://www.w3.org/TR/WCAG22/" target="_blank" rel="noreferrer">W3C「Web Content Accessibility Guidelines (WCAG) 2.2」</a></li>
+    <li id="R-13"><span class="ref-id">R-13</span><a href="https://owasp.org/www-project-application-security-verification-standard/" target="_blank" rel="noreferrer">OWASP「Application Security Verification Standard 5.0」</a></li>
+    <li id="R-14"><span class="ref-id">R-14</span><a href="https://spring.io/projects/spring-boot/" target="_blank" rel="noreferrer">Spring「Spring Boot 4.1」</a></li>
+    <li id="R-15"><span class="ref-id">R-15</span><a href="https://openjdk.org/projects/jdk/25/" target="_blank" rel="noreferrer">OpenJDK「JDK 25」</a></li>
+    <li id="R-16"><span class="ref-id">R-16</span><a href="https://www.postgresql.org/docs/18/release.html" target="_blank" rel="noreferrer">PostgreSQL「Version 18 Release Notes」</a></li>
+    <li id="R-17"><span class="ref-id">R-17</span><a href="https://nodejs.org/en/about/previous-releases" target="_blank" rel="noreferrer">Node.js「Node.js Releases」</a></li>
+    <li id="R-18"><span class="ref-id">R-18</span><a href="https://react.dev/versions" target="_blank" rel="noreferrer">React「Versions」</a></li>
+    <li id="R-19"><span class="ref-id">R-19</span><a href="https://ubuntu.com/about/release-cycle?product=ubuntu&amp;release=ubuntu&amp;version=26.04+LTS" target="_blank" rel="noreferrer">Ubuntu「Release cycle 26.04 LTS」</a></li>
+    <li id="R-20"><span class="ref-id">R-20</span><a href="https://docs.docker.com/compose/how-tos/production/" target="_blank" rel="noreferrer">Docker Docs「Use Compose in production」</a></li>
+    <li id="R-21"><span class="ref-id">R-21</span><a href="https://min.io/docs/minio/linux/administration/object-management/object-versioning.html" target="_blank" rel="noreferrer">MinIO Docs「Object Versioning」</a></li>
+    <li id="R-22"><span class="ref-id">R-22</span><a href="https://min.io/docs/minio/linux/administration/bucket-replication/bucket-replication-requirements.html" target="_blank" rel="noreferrer">MinIO Docs「Bucket Replication Requirements」</a></li>
+    <li id="R-23"><span class="ref-id">R-23</span><a href="https://pgbackrest.org/user-guide.html" target="_blank" rel="noreferrer">pgBackRest「User Guide」</a></li>
+    <li id="R-24"><span class="ref-id">R-24</span><a href="https://docs.clamav.net/manual/Usage/Scanning.html" target="_blank" rel="noreferrer">ClamAV Documentation「Scanning」</a></li>
+    <li id="R-25"><span class="ref-id">R-25</span><a href="https://valkey.io/topics/installation/" target="_blank" rel="noreferrer">Valkey「Installation」</a></li>
+  </ol>
+</section>
+
+</main>
+</div>
+<footer class="document-footer">
+  <p>Stage Accord Requirements · Version 1.0.0 · Production V1 baseline</p>
+</footer>
+</div>
+<script>
+(() => {
+  const links = [...document.querySelectorAll('.toc-panel a')];
+  const sections = links.map(link => document.querySelector(link.getAttribute('href'))).filter(Boolean);
+  if (!('IntersectionObserver' in window)) return;
+  const observer = new IntersectionObserver((entries) => {
+    const visible = entries.filter(entry => entry.isIntersecting).sort((a,b) => b.intersectionRatio - a.intersectionRatio)[0];
+    if (!visible) return;
+    links.forEach(link => link.removeAttribute('aria-current'));
+    const active = links.find(link => link.getAttribute('href') === '#' + visible.target.id);
+    if (active) active.setAttribute('aria-current', 'location');
+  }, { rootMargin: '-15% 0px -70% 0px', threshold: [0, .2, .5] });
+  sections.forEach(section => observer.observe(section));
+})();
+</script>
+</body>
+</html>

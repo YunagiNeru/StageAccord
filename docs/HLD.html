@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="Stage Accord Production V1 の実装、オンプレ本番運用、障害復旧、リリース判定に用いる概要設計書。">
+  <title>Stage Accord — 概要設計書</title>
+  <link rel="stylesheet" href="../tokens.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { overflow-x: clip; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--color-paper);
+      color: var(--color-ink);
+      font-family: var(--font-body);
+      font-size: var(--text-base);
+      line-height: var(--leading-body);
+      text-rendering: optimizeLegibility;
+    }
+    img, svg { display: block; max-width: 100%; }
+    a {
+      color: var(--color-accent-strong);
+      text-decoration-thickness: var(--border-hairline);
+      text-underline-offset: var(--space-2xs);
+    }
+    a:hover { color: var(--color-accent); }
+    a:focus-visible,
+    summary:focus-visible {
+      outline: var(--border-strong) solid var(--color-focus);
+      outline-offset: var(--space-2xs);
+    }
+    code, kbd, samp {
+      font-family: var(--font-mono);
+      font-size: 0.92em;
+      font-variant-numeric: tabular-nums;
+    }
+    code {
+      padding: var(--space-3xs) var(--space-2xs);
+      background: var(--color-paper-subtle);
+      border-radius: var(--radius-xs);
+    }
+    pre {
+      margin: 0;
+      padding: var(--space-lg);
+      overflow: auto;
+      background: var(--color-ink);
+      color: var(--color-paper-raised);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+      line-height: 1.6;
+      tab-size: 2;
+    }
+    h1, h2, h3, h4 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-style: normal;
+      line-height: var(--leading-heading);
+      letter-spacing: -0.025em;
+      overflow-wrap: anywhere;
+    }
+    h1 { max-width: 13ch; font-size: var(--text-display); line-height: var(--leading-display); }
+    h2 { max-width: 26ch; font-size: clamp(var(--text-xl), 4vw, var(--text-3xl)); }
+    h3 { font-size: var(--text-lg); }
+    h4 { font-size: var(--text-md); }
+    p, ul, ol, dl { margin: 0; }
+    ul, ol { padding-inline-start: var(--space-lg); }
+    li + li { margin-block-start: var(--space-xs); }
+    table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+    caption {
+      padding-block-end: var(--space-sm);
+      color: var(--color-ink-soft);
+      font-weight: 700;
+      text-align: start;
+    }
+    th, td {
+      padding: var(--space-sm) var(--space-md);
+      border-block-end: var(--border-hairline) solid var(--color-rule);
+      text-align: start;
+      vertical-align: top;
+    }
+    th {
+      color: var(--color-ink-soft);
+      font-size: var(--text-sm);
+      font-weight: 700;
+    }
+    td { min-width: 8rem; }
+    .skip-link {
+      position: fixed;
+      inset-block-start: var(--space-md);
+      inset-inline-start: var(--space-md);
+      z-index: var(--z-tooltip);
+      padding: var(--space-sm) var(--space-md);
+      transform: translateY(-200%);
+      background: var(--color-ink);
+      color: var(--color-paper-raised);
+      border-radius: var(--radius-sm);
+    }
+    .skip-link:focus { transform: translateY(0); }
+    .rail { display: none; }
+    .mobile-index {
+      position: relative;
+      z-index: var(--z-sticky);
+      margin: var(--space-md);
+      border-block: var(--border-hairline) solid var(--color-rule-strong);
+      background: var(--color-paper);
+    }
+    .mobile-index summary {
+      min-height: 3rem;
+      padding: var(--space-sm) 0;
+      cursor: pointer;
+      font-family: var(--font-display);
+      font-weight: 700;
+    }
+    .mobile-index nav {
+      display: grid;
+      gap: var(--space-2xs);
+      padding-block-end: var(--space-md);
+    }
+    .mobile-index a { min-height: 2.75rem; padding: var(--space-xs) 0; white-space: nowrap; }
+    .page {
+      width: min(100%, var(--page-max));
+      margin-inline: auto;
+      padding-inline: clamp(var(--space-md), 4vw, var(--space-2xl));
+    }
+    .hero {
+      display: grid;
+      gap: var(--space-xl);
+      padding-block: var(--space-2xl) var(--space-3xl);
+      border-block-end: var(--border-strong) solid var(--color-ink);
+    }
+    .hero__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-xs) var(--space-lg);
+      color: var(--color-muted);
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+    }
+    .hero__lede {
+      max-width: 52ch;
+      color: var(--color-ink-soft);
+      font-size: var(--text-md);
+    }
+    .hero__facts {
+      display: grid;
+      align-content: end;
+      gap: 0;
+      margin: 0;
+      border-block-start: var(--border-hairline) solid var(--color-rule-strong);
+    }
+    .hero__facts div {
+      display: grid;
+      grid-template-columns: minmax(7rem, 0.8fr) minmax(0, 1.2fr);
+      gap: var(--space-md);
+      padding-block: var(--space-sm);
+      border-block-end: var(--border-hairline) solid var(--color-rule);
+    }
+    .hero__facts dt { color: var(--color-muted); }
+    .hero__facts dd { margin: 0; font-weight: 700; }
+    .section {
+      display: grid;
+      gap: var(--space-xl);
+      padding-block: var(--space-3xl);
+      border-block-end: var(--border-hairline) solid var(--color-rule-strong);
+      scroll-margin-top: var(--space-xl);
+    }
+    .section--compact { padding-block: var(--space-2xl); }
+    .section__head {
+      display: grid;
+      gap: var(--space-sm);
+      max-width: var(--measure-wide);
+    }
+    .section__head p { max-width: var(--measure); color: var(--color-ink-soft); }
+    .lede { max-width: var(--measure); color: var(--color-ink-soft); font-size: var(--text-md); }
+    .definition-grid {
+      display: grid;
+      gap: 0;
+      border-block-start: var(--border-hairline) solid var(--color-rule-strong);
+    }
+    .definition-grid > div {
+      display: grid;
+      gap: var(--space-xs);
+      padding-block: var(--space-lg);
+      border-block-end: var(--border-hairline) solid var(--color-rule);
+    }
+    .definition-grid dt { font-family: var(--font-display); font-weight: 700; }
+    .definition-grid dd { margin: 0; color: var(--color-ink-soft); }
+    .decision-strip {
+      display: grid;
+      gap: 0;
+      border-block: var(--border-strong) solid var(--color-ink);
+    }
+    .decision-strip article { padding: var(--space-lg) 0; border-block-end: var(--border-hairline) solid var(--color-rule); }
+    .decision-strip article:last-child { border-block-end: 0; }
+    .decision-strip h3 { margin-block-end: var(--space-xs); }
+    .decision-strip p { max-width: var(--measure); color: var(--color-ink-soft); }
+    .diagram {
+      margin: 0;
+      padding: var(--space-sm);
+      background: var(--color-paper-raised);
+      border: var(--border-hairline) solid var(--color-rule-strong);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-whisper);
+    }
+    .diagram img { width: 100%; height: auto; }
+    .diagram figcaption {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: var(--space-xs) var(--space-lg);
+      padding: var(--space-sm) var(--space-xs) var(--space-xs);
+      color: var(--color-muted);
+      font-size: var(--text-sm);
+    }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-xs) var(--space-lg);
+      padding: 0;
+      list-style: none;
+      color: var(--color-ink-soft);
+      font-size: var(--text-sm);
+    }
+    .legend li::before {
+      display: inline-block;
+      width: var(--space-sm);
+      height: var(--space-sm);
+      margin-inline-end: var(--space-xs);
+      border: var(--border-hairline) solid var(--color-rule-strong);
+      background: var(--color-paper-raised);
+      content: "";
+    }
+    .legend li:nth-child(2)::before { background: var(--color-accent-soft); border-color: var(--color-accent); }
+    .legend li:nth-child(3)::before { background: var(--color-ink); border-color: var(--color-ink); }
+    .spec-list { display: grid; gap: 0; border-block-start: var(--border-hairline) solid var(--color-rule-strong); }
+    .spec-row {
+      display: grid;
+      gap: var(--space-xs);
+      padding-block: var(--space-md);
+      border-block-end: var(--border-hairline) solid var(--color-rule);
+    }
+    .spec-row__key { font-family: var(--font-mono); font-size: var(--text-sm); font-weight: 700; }
+    .spec-row__value { color: var(--color-ink-soft); }
+    .spec-row__note { color: var(--color-muted); font-size: var(--text-sm); }
+    .step-list { display: grid; gap: 0; list-style: none; padding: 0; counter-reset: step; }
+    .step-list > li {
+      position: relative;
+      display: grid;
+      grid-template-columns: 3rem minmax(0, 1fr);
+      gap: var(--space-md);
+      padding-block: var(--space-lg);
+      border-block-end: var(--border-hairline) solid var(--color-rule);
+      counter-increment: step;
+    }
+    .step-list > li::before {
+      color: var(--color-accent-strong);
+      font-family: var(--font-mono);
+      font-weight: 700;
+      content: counter(step, decimal-leading-zero);
+    }
+    .step-list h3 { margin-block-end: var(--space-xs); }
+    .step-list p { max-width: var(--measure); color: var(--color-ink-soft); }
+    .callout {
+      display: grid;
+      gap: var(--space-sm);
+      padding: var(--space-lg);
+      border-inline-start: var(--border-strong) solid var(--color-accent);
+      background: var(--color-accent-soft);
+    }
+    .callout strong { font-family: var(--font-display); }
+    .table-wrap { width: 100%; overflow-x: auto; border-block-start: var(--border-hairline) solid var(--color-rule-strong); }
+    .table-wrap table { min-width: 46rem; }
+    .trace-links { display: flex; flex-wrap: wrap; gap: var(--space-2xs) var(--space-xs); }
+    .trace-links a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 2rem;
+      padding-inline: var(--space-xs);
+      border: var(--border-hairline) solid var(--color-rule);
+      border-radius: var(--radius-xs);
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .trace-links a:hover { border-color: var(--color-accent); background: var(--color-accent-soft); }
+    .footer {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+      padding-block: var(--space-xl) var(--space-2xl);
+      border-block-start: var(--border-strong) solid var(--color-ink);
+      color: var(--color-muted);
+      font-size: var(--text-sm);
+    }
+    .footer a { white-space: nowrap; }
+    .footer__brand { color: var(--color-ink); font-family: var(--font-display); font-weight: 700; }
+    @media (min-width: 40rem) {
+      .hero { padding-block-start: var(--space-3xl); }
+      .definition-grid > div { grid-template-columns: minmax(10rem, 0.75fr) minmax(0, 2.25fr); gap: var(--space-xl); }
+      .decision-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .decision-strip article { padding: var(--space-lg); border-inline-end: var(--border-hairline) solid var(--color-rule); }
+      .decision-strip article:nth-child(even) { border-inline-end: 0; }
+      .spec-row { grid-template-columns: minmax(10rem, 0.8fr) minmax(14rem, 1.5fr) minmax(12rem, 1fr); gap: var(--space-lg); }
+      .footer { flex-direction: row; flex-wrap: wrap; align-items: center; }
+      .footer > * + *::before { margin-inline: var(--space-xs); content: "·"; }
+    }
+    @media (min-width: 60rem) {
+      .mobile-index { display: none; }
+      .rail {
+        position: fixed;
+        inset-block: 0;
+        inset-inline-start: 0;
+        z-index: var(--z-sticky);
+        display: grid;
+        width: var(--rail-width);
+        padding: var(--space-xl) var(--space-lg);
+        overflow-y: auto;
+        background: var(--color-paper-subtle);
+        border-inline-end: var(--border-hairline) solid var(--color-rule-strong);
+      }
+      .rail__brand {
+        align-self: start;
+        color: var(--color-ink);
+        font-family: var(--font-display);
+        font-size: var(--text-md);
+        font-weight: 700;
+        text-decoration: none;
+      }
+      .rail nav { display: grid; align-content: center; gap: var(--space-2xs); }
+      .rail nav a {
+        display: grid;
+        grid-template-columns: 1.75rem minmax(0, 1fr);
+        min-height: 2.75rem;
+        align-items: center;
+        color: var(--color-ink-soft);
+        font-size: var(--text-sm);
+        text-decoration: none;
+        white-space: nowrap;
+      }
+      .rail nav span { color: var(--color-accent-strong); font-family: var(--font-mono); font-size: var(--text-xs); }
+      .rail__source { align-self: end; color: var(--color-muted); font-size: var(--text-xs); }
+      .page { width: min(calc(100% - var(--rail-width)), var(--page-max)); margin-inline-start: var(--rail-width); margin-inline-end: auto; }
+      .hero { grid-template-columns: minmax(0, 7fr) minmax(18rem, 5fr); align-items: end; gap: var(--space-3xl); }
+      .decision-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .decision-strip article { border-block-end: 0; }
+      .decision-strip article:nth-child(even) { border-inline-end: var(--border-hairline) solid var(--color-rule); }
+      .decision-strip article:last-child { border-inline-end: 0; }
+    }
+    @media (min-width: 90rem) {
+      .page { padding-inline: var(--space-3xl); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: var(--dur-micro) !important; animation-iteration-count: 1 !important; transition-duration: var(--dur-micro) !important; }
+    }
+    @media print {
+      .rail, .mobile-index, .skip-link { display: none !important; }
+      .page { width: 100%; max-width: none; margin: 0; padding: 0; }
+      .section { break-inside: avoid-page; }
+      .diagram { box-shadow: none; }
+      a { color: inherit; text-decoration: none; }
+      .trace-links a { border: 0; padding: 0; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">本文へ移動</a>
+
+  <aside class="rail" aria-label="文書内ナビゲーション">
+    <a class="rail__brand" href="#top">Stage Accord<br>HLD</a>
+    <nav aria-label="概要設計書の主目次">
+      <a href="#purpose"><span>01</span>目的と境界</a>
+      <a href="#context"><span>02</span>システム文脈</a>
+      <a href="#architecture"><span>03</span>論理構成</a>
+      <a href="#flows"><span>04</span>中核フロー</a>
+      <a href="#security"><span>05</span>セキュリティ</a>
+      <a href="#deployment"><span>06</span>本番配置</a>
+      <a href="#recovery"><span>07</span>復旧設計</a>
+      <a href="#operations"><span>08</span>運用と移行</a>
+      <a href="#traceability"><span>09</span>要件追跡</a>
+      <a href="#decisions"><span>10</span>設計判断</a>
+    </nav>
+    <p class="rail__source">基準: REQUIREMENTS.html<br>Production V1</p>
+  </aside>
+
+  <details class="mobile-index">
+    <summary>概要設計書の目次</summary>
+    <nav aria-label="モバイル文書内ナビゲーション">
+      <a href="#purpose">目的と境界</a><a href="#context">システム文脈</a><a href="#architecture">論理構成</a>
+      <a href="#flows">中核フロー</a><a href="#security">セキュリティ</a><a href="#deployment">本番配置</a>
+      <a href="#recovery">復旧設計</a><a href="#operations">運用と移行</a><a href="#traceability">要件追跡</a><a href="#decisions">設計判断</a>
+    </nav>
+  </details>
+
+  <main class="page" id="main">
+    <header class="hero" id="top">
+      <div class="section__head">
+        <div class="hero__meta"><span>HLD</span><span>Version 1.0</span><span>2026-08-02</span><span>Production V1</span></div>
+        <h1>Stage Accord 概要設計書</h1>
+        <p class="hero__lede">制作依頼の受付、合意、進行、修正、承認、納品を一つの証跡へつなぐ。初期本番は二拠点オンプレミスで運用し、危険な状態では処理を止める。</p>
+      </div>
+      <dl class="hero__facts">
+        <div><dt>設計基準</dt><dd>REQUIREMENTS.html</dd></div>
+        <div><dt>配置形態</dt><dd>オンプレ・主系／待機系</dd></div>
+        <div><dt>アプリ構成</dt><dd>モジュラーモノリス</dd></div>
+        <div><dt>復旧目標</dt><dd>RPO 15分／RTO 4時間</dd></div>
+        <div><dt>要件追跡</dt><dd>FR 83件／NFR 23件</dd></div>
+      </dl>
+    </header>
+
+    <section class="section" id="purpose">
+      <div class="section__head">
+        <h2>目的と設計境界</h2>
+        <p>本書は、要件定義を実装可能なシステム境界、モジュール責務、データ保全、配置、運用、復旧へ落とし込む。詳細なクラス、全API項目、全テーブル定義は後続の詳細設計で確定する。</p>
+      </div>
+      <dl class="definition-grid">
+        <div><dt>主な読者</dt><dd>開発者、インフラ運用者、セキュリティ・法務レビュー担当者、リリース判定者。</dd></div>
+        <div><dt>本書が決めること</dt><dd>実行時境界、依存方向、主要データ所有者、認証・認可境界、ファイル処理、非同期処理、二拠点配置、監視、自動停止、復旧、クラウド移行判定。</dd></div>
+        <div><dt>本書が決めないこと</dt><dd>画面ごとのピクセル仕様、全RESTスキーマ、全DDL、フレームワーク内部クラス、運用手順のコマンド列、法的助言の最終判断。</dd></div>
+        <div><dt>優先順位</dt><dd>安全性 → 追跡可能性 → 可読性 → 移植性 → 採算性 → 実装速度。同順位なら、障害時に読み取り専用へ縮退できる案を採る。</dd></div>
+        <div><dt>単一の正本</dt><dd>業務状態と証跡はPostgreSQLを正本とする。オブジェクト本体はMinIO、短命セッションと短期キャッシュはValkeyに置き、正本としない。</dd></div>
+        <div><dt>変更規則</dt><dd>要件変更は要件書を先に改訂し、設計・実装・テストを追随させる。合意・承認・監査の履歴は上書き訂正せず、追加イベントで修正する。</dd></div>
+      </dl>
+      <section class="decision-strip" aria-label="主要な確定方針">
+        <article><h3>公開面</h3><p>インターネット公開はHTTPS 443のみ。HTTP 80はHTTPSへの転送に限定する。</p></article>
+        <article><h3>管理面</h3><p>VPN経由の分離ネットワークに限定し、SSH、DB、MinIO、監視、バックアップを公開しない。</p></article>
+        <article><h3>ファイル</h3><p>隔離領域から検査済み領域へ昇格したオブジェクトだけを配布する。</p></article>
+        <article><h3>危険時</h3><p>認可、検査、時刻、容量、複製、証明書、バックアップの異常時は対象操作を停止する。</p></article>
+      </section>
+      <aside class="callout" aria-label="本番投入判定">
+        <strong>本番投入判定</strong>
+        <p>本書だけでは本番投入可としない。要件に定めた受入試験、復元訓練、脆弱性検査、法務・セキュリティ確認、実機・実UI確認、運用当番とロールバック確認がすべて通った場合に限り、リリース判定会議で可否を決める。</p>
+      </aside>
+    </section>
+
+<section class="section" id="context">
+      <div class="section__head">
+        <h2>システム文脈</h2>
+        <p>利用者、運営者、外部サービス、オンプレ境界を分ける。依頼代金は扱わず、Stripeは本サービス自身のサブスクリプション請求にだけ使用する。</p>
+      </div>
+      <figure class="diagram">
+        <img src="assets/hld-context.svg" width="1600" height="900" loading="lazy" alt="クリエイター、依頼者、運営者、Stage Accord、メール配信、Stripe、外部支払い、監視通知のシステム文脈図">
+        <figcaption><span>図1 — システム文脈</span><span>実線は同期操作、破線は通知・外部記録</span></figcaption>
+      </figure>
+      <ul class="legend" aria-label="図の凡例"><li>利用者・外部システム</li><li>Stage Accord 管理境界</li><li>管理・運用境界</li></ul>
+      <div class="table-wrap">
+        <table>
+          <caption>アクター別の公開範囲</caption>
+          <thead><tr><th scope="col">アクター</th><th scope="col">主な操作</th><th scope="col">見える情報</th><th scope="col">見せない情報</th></tr></thead>
+          <tbody>
+            <tr><td>クリエイター側</td><td>サービス公開、依頼審査、条件提示、案件進行、請求管理</td><td>所属ワークスペースの公開・内部情報</td><td>他ワークスペース、運営者の内部情報</td></tr>
+            <tr><td>依頼者側</td><td>依頼、合意、入力、コメント、修正依頼、承認、受領</td><td>招待された案件の公開情報と自身の権限範囲</td><td>内部タスク、非公開進捗、他案件、他依頼者</td></tr>
+            <tr><td>運営者</td><td>通報対応、最小権限サポート、緊急停止</td><td>職務と事案に必要な最小範囲</td><td>無関係な案件内容、秘密情報、平文トークン</td></tr>
+            <tr><td>サーバー管理者</td><td>配置、監視、バックアップ、復旧</td><td>基盤メトリクスと秘匿済みログ</td><td>業務データ本文の常時閲覧</td></tr>
+            <tr><td>外部プロフィール閲覧者</td><td>公開プロフィールと受付ページの閲覧</td><td>明示的に公開された項目</td><td>実名、メール、案件、権限、内部状態</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <aside class="callout" aria-label="露出連鎖の設計上の抑止">
+        <strong>露出連鎖の設計上の抑止</strong>
+        <p>内部役割や識別子が公開プロフィールへ混入すると、外部閲覧者がアカウントを特定し、権限や過去行動を推測し、スクリーンショットや外部投稿へ残す経路が生まれる。公開用DTOを内部モデルから分離し、許可項目だけを明示的に射影する。削除後もログ・バックアップ・アーカイブへ残り得るため、ログ秘匿、保存期限、復元後の再検査まで同じ境界を適用する。</p>
+      </aside>
+    </section>
+
+<section class="section" id="architecture">
+      <div class="section__head">
+        <h2>論理アーキテクチャ</h2>
+        <p>Spring Bootのモジュラーモノリスを一つのデプロイ単位とし、業務境界ごとに内部モジュールを分離する。フロントエンドはReactとTypeScript、外部契約はRESTとOpenAPIで管理する。</p>
+      </div>
+      <figure class="diagram">
+        <img src="assets/hld-containers.svg" width="1600" height="1000" loading="lazy" alt="Webフロントエンド、Spring Bootモジュラーモノリス、バックグラウンドワーカー、PostgreSQL、Valkey、MinIO、ClamAV、外部サービスのコンテナ構成図">
+        <figcaption><span>図2 — コンテナとモジュール境界</span><span>モジュール間の直接テーブル更新は禁止</span></figcaption>
+      </figure>
+      <section class="spec-list" aria-label="実行コンテナ仕様">
+        <div class="spec-row"><div class="spec-row__key">web</div><div class="spec-row__value">React 19.2／TypeScript／Vite。公開画面、クリエイター画面、依頼者ポータル、運営画面をルートと権限で分離する。</div><div class="spec-row__note">Nginxから静的配信。APIとの通信は同一オリジンを基本とする。</div></div>
+        <div class="spec-row"><div class="spec-row__key">application</div><div class="spec-row__value">JDK 25／Spring Boot 4.1。REST、認証・認可、業務トランザクション、Outbox書き込みを担う。</div><div class="spec-row__note">水平多重化可能。サーバーセッションはValkeyに置く。</div></div>
+        <div class="spec-row"><div class="spec-row__key">worker</div><div class="spec-row__value">同一コードベースの別プロセス。通知、ファイル検査、プレビュー、監査連携、再試行をOutboxから実行する。</div><div class="spec-row__note">冪等キー、指数バックオフ、上限回数、隔離キューを持つ。</div></div>
+        <div class="spec-row"><div class="spec-row__key">postgres</div><div class="spec-row__value">PostgreSQL 18。業務状態、版、承認、監査、Outbox、冪等性記録の正本。</div><div class="spec-row__note">主系は同期的にローカル永続化し、待機系へWAL転送する。</div></div>
+        <div class="spec-row"><div class="spec-row__key">valkey</div><div class="spec-row__value">サーバーセッション、レート制限、短期キャッシュ、短命ロック。</div><div class="spec-row__note">消失しても業務正本を失わない。復旧後は全セッションを再発行する。</div></div>
+        <div class="spec-row"><div class="spec-row__key">minio</div><div class="spec-row__value">隔離バケット、検査済みバケット、プレビュー、納品パッケージを分離するS3互換ストレージ。</div><div class="spec-row__note">オブジェクト版、保持、複製、整合性ハッシュを有効化する。</div></div>
+        <div class="spec-row"><div class="spec-row__key">clamav</div><div class="spec-row__value">アップロード本体を検査し、検査結果と定義版を記録する。</div><div class="spec-row__note">利用不能、定義期限超過、タイムアウト、陽性は昇格不可。</div></div>
+      </section>
+      <div class="table-wrap">
+        <table>
+          <caption>業務モジュールとデータ所有権</caption>
+          <thead><tr><th scope="col">モジュール</th><th scope="col">主責務</th><th scope="col">所有する主要データ</th><th scope="col">公開契約</th></tr></thead>
+          <tbody>
+            <tr><td><code>identity-access</code></td><td>本人確認、セッション、MFA、再認証、依頼者リンク</td><td>account、credential、session metadata、access grant</td><td>認証済み主体、認証強度、失効命令</td></tr>
+            <tr><td><code>workspace-membership</code></td><td>ワークスペース、招待、役割、担当者</td><td>workspace、membership、invitation</td><td>所属照会、役割変更イベント</td></tr>
+            <tr><td><code>public-catalog</code></td><td>公開プロフィール、制作サービス、フローテンプレート</td><td>profile、service、workflow template version</td><td>公開用射影、テンプレート版</td></tr>
+            <tr><td><code>intake</code></td><td>依頼フォーム、迷惑対策、審査、依頼履歴</td><td>request、request answer、screening event</td><td>依頼受付、採否イベント</td></tr>
+            <tr><td><code>agreement</code></td><td>条件提示、合意スナップショット、変更注文、承認規則</td><td>offer、agreement version、change order、party acceptance</td><td>有効合意版、合意成立イベント</td></tr>
+            <tr><td><code>project</code></td><td>案件、チェックポイント、内部タスク、保留、担当</td><td>project、checkpoint、task、assignment</td><td>案件状態、次の予定、待ち主体</td></tr>
+            <tr><td><code>collaboration</code></td><td>進捗、コメント、修正、承認、納品・受領</td><td>update、comment、revision round、approval、delivery</td><td>公開タイムライン、承認成立イベント</td></tr>
+            <tr><td><code>file</code></td><td>分割アップロード、検査、版、プレビュー、ダウンロード</td><td>file record、object version、scan result、download grant</td><td>検査済みファイル参照、拒否理由</td></tr>
+            <tr><td><code>schedule-notification</code></td><td>営業日、二種類の期限、再計算案、通知</td><td>calendar、schedule proposal、notification preference</td><td>予定計算、通知要求</td></tr>
+            <tr><td><code>billing</code></td><td>本サービスのプラン、利用上限、Stripe連携、猶予・読取専用</td><td>subscription、entitlement、usage counter、billing event</td><td>利用権、請求状態変更イベント</td></tr>
+            <tr><td><code>audit-admin</code></td><td>追記監査、通報、支援アクセス、緊急停止</td><td>audit event、report、support grant、kill switch</td><td>監査追記、停止判定、支援期限</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <aside class="callout" aria-label="依存方向">
+        <strong>依存方向</strong>
+        <p>HTTPアダプター → アプリケーションサービス → ドメイン → ポートの順に依存し、インフラ実装はポートへ接続する。モジュール間は公開アプリケーション契約またはドメインイベントだけを使い、他モジュールのテーブル、内部クラス、リポジトリへ直接依存しない。</p>
+      </aside>
+    </section>
+
+<section class="section" id="flows">
+      <div class="section__head">
+        <h2>中核フローと整合性</h2>
+        <p>同期トランザクションは状態変更とOutbox記録までを一単位とし、外部送信と重い処理はワーカーへ渡す。再試行しても二重通知、二重承認、二重請求を発生させない。</p>
+      </div>
+      <ol class="step-list">
+        <li><div><h3>受付から条件提示</h3><p>公開中のサービス版を依頼へ固定し、フォーム回答を保存する。審査で承認した時点では案件を開始せず、条件提示版と承認者規則を生成する。</p></div></li>
+        <li><div><h3>合意成立</h3><p>対象版、当事者、認証時刻、表示ハッシュを再確認し、各当事者の明示操作を追記する。必要人数が揃った時だけ合意成立イベントを発行する。</p></div></li>
+        <li><div><h3>案件生成と進行</h3><p>合意版から案件フローを複製し、後のテンプレート変更から隔離する。チェックポイントは順序、入力、提出物、承認条件を満たした場合だけ遷移する。</p></div></li>
+        <li><div><h3>修正と変更注文</h3><p>仕様内修正、仕様不一致の訂正、追加変更を別のコマンドとして扱う。追加変更は変更注文の再合意前に作業対象へ入れない。</p></div></li>
+        <li><div><h3>最終納品と受領</h3><p>検査済みファイルだけから納品パッケージを固定し、受領対象版を再表示する。受領は自動成立させず、明示操作と監査記録を残す。</p></div></li>
+      </ol>
+
+      <h3 id="file-pipeline">ファイル取込パイプライン</h3>
+      <figure class="diagram">
+        <img src="assets/hld-file-pipeline.svg" width="1600" height="900" loading="lazy" alt="分割アップロード、隔離、サイズと署名検査、マルウェア検査、検査済み領域への昇格、プレビュー、短命ダウンロードURL発行のファイル処理図">
+        <figcaption><span>図3 — ファイル取込と配布</span><span>検査不能を安全とみなさない</span></figcaption>
+      </figure>
+      <div class="spec-list">
+        <div class="spec-row"><div class="spec-row__key">受入</div><div class="spec-row__value">最大5GBの分割アップロード。宣言サイズ、実サイズ、拡張子、MIME、マジックバイトを照合する。</div><div class="spec-row__note">分割ID、利用者、案件、ファイル用途を結び付ける。</div></div>
+        <div class="spec-row"><div class="spec-row__key">隔離</div><div class="spec-row__value">完了オブジェクトを隔離バケットへ確定し、利用者への配布経路を持たせない。</div><div class="spec-row__note">未完了分割は期限で回収する。</div></div>
+        <div class="spec-row"><div class="spec-row__key">検査</div><div class="spec-row__value">ClamAV定義が24時間以内であることを確認し、本文全体を検査する。</div><div class="spec-row__note">タイムアウト、定義期限超過、スキャナー停止は失敗。</div></div>
+        <div class="spec-row"><div class="spec-row__key">昇格</div><div class="spec-row__value">陰性結果と検査メタデータを同じ業務記録へ保存した後、検査済み領域へサーバー側コピーする。</div><div class="spec-row__note">状態は<code>clean</code>確定後にだけ参照可能。</div></div>
+        <div class="spec-row"><div class="spec-row__key">配布</div><div class="spec-row__value">関係性・役割・用途を認可し、5分以内の署名URLを発行する。</div><div class="spec-row__note">URL再発行時は旧URLの自然失効を待たず、認可世代を更新する。</div></div>
+      </div>
+
+      <h3>状態遷移と競合制御</h3>
+      <div class="table-wrap">
+        <table>
+          <caption>主要集約の状態管理</caption>
+          <thead><tr><th scope="col">集約</th><th scope="col">正当な遷移の判定</th><th scope="col">競合防止</th><th scope="col">追記証跡</th></tr></thead>
+          <tbody>
+            <tr><td>依頼</td><td>公開版、受付状態、迷惑対策、採否権限</td><td>楽観ロックとコマンド冪等キー</td><td>送信、採否、取下げ</td></tr>
+            <tr><td>合意</td><td>対象版、必要当事者、直近認証、時刻健全性</td><td>対象版ハッシュと一意な当事者受諾</td><td>提示、閲覧、受諾、変更注文</td></tr>
+            <tr><td>案件</td><td>合意成立、保留状態、順序、担当権限</td><td>行バージョンと遷移コマンドID</td><td>開始、保留、再開、完了、取消</td></tr>
+            <tr><td>チェックポイント</td><td>入力・提出・承認条件、前段完了</td><td>状態版と承認一意制約</td><td>提出、差戻し、承認、固定</td></tr>
+            <tr><td>ファイル</td><td>検査結果、利用関係、用途、容量状態</td><td>オブジェクト版と状態遷移CAS</td><td>開始、確定、拒否、陰性、昇格、配布</td></tr>
+            <tr><td>サブスクリプション</td><td>署名済みWebhook、イベント順序、猶予期限</td><td>StripeイベントIDの一意制約</td><td>契約、変更、失敗、猶予、読取専用、復帰</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <aside class="callout" aria-label="Transactional Outbox">
+        <strong>Transactional Outbox</strong>
+        <p>業務更新とOutboxイベントを同じPostgreSQLトランザクションに書く。ワーカーは<code>event_id</code>を冪等キーにして処理し、送信先ごとの完了を記録する。上限超過は隔離し、監視通知を出し、運営者が原因を除去するまで暗黙に破棄しない。</p>
+      </aside>
+    </section>
+
+<section class="section" id="security">
+      <div class="section__head">
+        <h2>セキュリティとプライバシー</h2>
+        <p>入口だけでなく、各業務コマンドとデータ取得で主体、役割、ワークスペース、案件関係、対象版、認証強度を検査する。判断不能は拒否する。</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <caption>認証方式と失効条件</caption>
+          <thead><tr><th scope="col">対象</th><th scope="col">方式</th><th scope="col">有効期間</th><th scope="col">強制失効</th></tr></thead>
+          <tbody>
+            <tr><td>クリエイター</td><td>確認済みメール＋パスキーまたはTOTP</td><td>アイドル12時間、絶対7日</td><td>ログアウト、認証情報変更、役割失効、復旧完了</td></tr>
+            <tr><td>依頼者</td><td>案件・メール・役割に結合したワンタイムリンク</td><td>リンク15分、確立セッションはアイドル12時間・絶対7日</td><td>再発行、案件権限失効、復旧完了</td></tr>
+            <tr><td>重要操作</td><td>30分以内の再認証を要求</td><td>操作直前に対象版を再表示</td><td>時刻異常、権限変更、対象版変更</td></tr>
+            <tr><td>ダウンロード</td><td>関係性検査後の短命署名URL</td><td>5分以内</td><td>ファイル状態変更、案件権限失効、復旧完了</td></tr>
+            <tr><td>運営者</td><td>個人アカウント＋MFA＋VPN＋期限付き支援権限</td><td>事案単位、最小時間</td><td>期限、事案終了、緊急停止、復旧完了</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="spec-list">
+        <div class="spec-row"><div class="spec-row__key">Cookie</div><div class="spec-row__value"><code>HttpOnly</code>、<code>Secure</code>、適切な<code>SameSite</code>、固定Path、公開環境限定Domainを使う。</div><div class="spec-row__note">セッションIDをログへ出さず、保存値は再利用不能な形式にする。</div></div>
+        <div class="spec-row"><div class="spec-row__key">CSRF</div><div class="spec-row__value">状態変更APIへCSRFトークンとOrigin検査を適用し、GETで状態を変えない。</div><div class="spec-row__note">CORSは必要な同一オリジンまたは明示許可だけ。</div></div>
+        <div class="spec-row"><div class="spec-row__key">入力</div><div class="spec-row__value">長さ、形式、列挙値、ファイル構造をサーバー側で検証し、出力文脈ごとにエスケープする。</div><div class="spec-row__note">SQLはパラメーター化し、URL取得は許可方式とSSRF防御を持つ。</div></div>
+        <div class="spec-row"><div class="spec-row__key">秘密情報</div><div class="spec-row__value">コード、イメージ、一般設定から分離し、暗号化した秘密ストアから実行時注入する。</div><div class="spec-row__note">ログ、クラッシュダンプ、バックアップ、支援画面へ平文を出さない。</div></div>
+        <div class="spec-row"><div class="spec-row__key">監査</div><div class="spec-row__value">誰が、いつ、どの主体として、何へ、どの版で、何をしたかを追記する。</div><div class="spec-row__note">本文・トークン・秘密は記録せず、改ざん検知可能な連鎖を持つ。</div></div>
+        <div class="spec-row"><div class="spec-row__key">個人情報</div><div class="spec-row__value">公開用と内部用のDTO・保存項目を分離し、削除・持ち出し・保存期限をデータ種別で管理する。</div><div class="spec-row__note">利用者データをAI学習へ転用しない。</div></div>
+      </div>
+      <h3>認可評価の順序</h3>
+      <ol class="step-list">
+        <li><div><h3>主体を確定</h3><p>セッション、MFA、再認証時刻、失効世代、運営者の支援権限を検査する。</p></div></li>
+        <li><div><h3>テナントと関係を確定</h3><p>ワークスペース所属、案件参加、依頼者メール、対象ファイル・コメント・承認との所有関係を検査する。</p></div></li>
+        <li><div><h3>操作と属性を評価</h3><p>役割、案件状態、公開範囲、対象版、期限、緊急停止、縮退状態を同時に評価する。</p></div></li>
+        <li><div><h3>結果を記録</h3><p>重要操作の許可は監査へ追記し、拒否は秘密を含まない理由コードと相関IDを残す。評価不能は拒否する。</p></div></li>
+      </ol>
+      <aside class="callout" aria-label="公開後の残存経路">
+        <strong>公開後の残存経路</strong>
+        <p>公開情報を後から非公開にしても、アクセスログ、監査ログ、バックアップ、メール通知、受領済みファイル、第三者のスクリーンショットには残り得る。公開前の許可項目検査を主防御とし、削除処理は現行DBだけでなく、キャッシュ無効化、検索射影、期限到来後のバックアップ失効、復元後の削除再適用まで含める。</p>
+      </aside>
+    </section>
+
+<section class="section" id="deployment">
+      <div class="section__head">
+        <h2>オンプレ本番配置</h2>
+        <p>主系拠点で通常運用し、地理的に分離した待機系拠点へデータと復旧資材を複製する。クラウドは要件定義の採算ゲートを満たすまで中核処理に使わない。</p>
+      </div>
+      <figure class="diagram">
+        <img src="assets/hld-deployment.svg" width="1600" height="1000" loading="lazy" alt="二回線、ファイアウォール、Nginx WAF、アプリ、ワーカー、PostgreSQL、Valkey、MinIO、監視、バックアップ、待機系拠点を示すオンプレ配置図">
+        <figcaption><span>図4 — 主系／待機系の本番配置</span><span>公開面と管理面をネットワークで分離</span></figcaption>
+      </figure>
+      <div class="table-wrap">
+        <table>
+          <caption>ネットワークゾーン</caption>
+          <thead><tr><th scope="col">ゾーン</th><th scope="col">配置</th><th scope="col">許可する通信</th><th scope="col">禁止する通信</th></tr></thead>
+          <tbody>
+            <tr><td>インターネット</td><td>利用者、外部Webhook送信元</td><td>公開VIPの443、80から443への転送</td><td>管理ポート、DB、オブジェクトストレージ</td></tr>
+            <tr><td>DMZ</td><td>ファイアウォール、IDS、Nginx WAF</td><td>検査済みHTTPをアプリへ転送</td><td>データ層への直接到達</td></tr>
+            <tr><td>アプリ</td><td>Web静的配信、Spring Boot、ワーカー</td><td>必要なデータ層、メール、Stripe、DNS、時刻同期</td><td>任意の東西通信、管理端末からの直接公開</td></tr>
+            <tr><td>データ</td><td>PostgreSQL、Valkey、MinIO、ClamAV</td><td>アプリ／ワーカーの許可済みポート、複製</td><td>インターネットとDMZからの直接通信</td></tr>
+            <tr><td>管理</td><td>VPN踏み台、監視、ログ、構成管理</td><td>個人MFA付きVPN、必要先への限定管理</td><td>共有アカウント、恒久昇格、公開接続</td></tr>
+            <tr><td>バックアップ</td><td>暗号化バックアップリポジトリ</td><td>一方向の書込み、復元訓練時の限定読出し</td><td>アプリ通常系からの削除、公開読出し</td></tr>
+            <tr><td>待機系拠点</td><td>PostgreSQL待機、MinIO複製、構成・イメージキャッシュ、復旧監視</td><td>WireGuard経由の複製と監視</td><td>平常時の利用者書込み</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="spec-list">
+        <div class="spec-row"><div class="spec-row__key">compute</div><div class="spec-row__value">アプリとワーカーはOCIコンテナで固定し、同じ署名済みイメージを主系・待機系で使用する。</div><div class="spec-row__note">構成は環境差分を外部注入し、イメージへ秘密を含めない。</div></div>
+        <div class="spec-row"><div class="spec-row__key">database</div><div class="spec-row__value">主系PostgreSQL、待機系ストリーミングレプリカ、WALアーカイブ、暗号化ベースバックアップ。</div><div class="spec-row__note">スキーマ変更は前方互換のexpand／migrate／contractで行う。</div></div>
+        <div class="spec-row"><div class="spec-row__key">object</div><div class="spec-row__value">MinIOの版管理と拠点間複製を有効化し、バックアップとは別経路で保持する。</div><div class="spec-row__note">DBのファイル記録とオブジェクト版を整合性検査する。</div></div>
+        <div class="spec-row"><div class="spec-row__key">power</div><div class="spec-row__value">UPS、監視可能なPDU、適切な冷却を用意し、低残量時はデータ層を含む順序付き停止を行う。</div><div class="spec-row__note">復電時は依存順と検査結果で起動を制御する。</div></div>
+        <div class="spec-row"><div class="spec-row__key">time</div><div class="spec-row__value">複数の信頼できるNTP源を監視し、2秒を超えるずれで合意、承認、受領、監査を停止する。</div><div class="spec-row__note">時刻回復後に自動解除せず、連続正常を確認する。</div></div>
+      </div>
+      <h3>自動停止と縮退</h3>
+      <div class="table-wrap">
+        <table>
+          <caption>フェイルクローズ判定</caption>
+          <thead><tr><th scope="col">検知条件</th><th scope="col">警告</th><th scope="col">自動制限</th><th scope="col">解除条件</th></tr></thead>
+          <tbody>
+            <tr><td>WAL複製遅延</td><td>15分</td><td>60分で全体を読み取り専用</td><td>連続正常、欠損なし、運用者承認</td></tr>
+            <tr><td>MinIO使用率</td><td>80%</td><td>90%で新規アップロード停止</td><td>容量回復と整合性確認</td></tr>
+            <tr><td>PostgreSQL使用率</td><td>運用警告</td><td>85%で新規案件生成停止</td><td>空き容量回復とVACUUM／健全性確認</td></tr>
+            <tr><td>時刻ずれ</td><td>傾向監視</td><td>2秒超で合意・承認・受領・監査停止</td><td>複数NTP源で連続正常</td></tr>
+            <tr><td>ClamAV</td><td>定義期限接近</td><td>停止、失敗、定義24時間超で昇格停止</td><td>更新・自己試験・EICAR検査成功</td></tr>
+            <tr><td>バックアップ／復元検証</td><td>期限接近</td><td>失敗または期限超過でデプロイ停止</td><td>新しい成功バックアップと復元検証</td></tr>
+            <tr><td>TLS証明書</td><td>期限前通知</td><td>更新検証失敗でデプロイ停止</td><td>新証明書の実接続確認</td></tr>
+            <tr><td>UPS低残量</td><td>閾値到達</td><td>順序付き安全停止</td><td>電源、容量、複製、時刻の起動前検査</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+<section class="section" id="recovery">
+      <div class="section__head">
+        <h2>バックアップ・復旧・再露出防止</h2>
+        <p>RPO 15分、RTO 4時間を設計目標とし、バックアップが存在することではなく、隔離環境で復元し業務整合性を検証できることを合格条件とする。</p>
+      </div>
+      <figure class="diagram">
+        <img src="assets/hld-recovery.svg" width="1600" height="900" loading="lazy" alt="障害検知、書込み停止、待機系昇格、データ整合性確認、全認証失効、限定公開、通常公開、主系再構築の復旧フロー図">
+        <figcaption><span>図5 — 障害復旧と復旧後の安全化</span><span>検証失敗時は公開へ進まない</span></figcaption>
+      </figure>
+      <ol class="step-list">
+        <li><div><h3>障害を宣言し書込みを止める</h3><p>監視と人の判断でインシデントを開始し、外部入口を保守表示または読み取り専用へ切り替える。障害中の未確定操作を監査へ記録する。</p></div></li>
+        <li><div><h3>復旧点を選ぶ</h3><p>WAL、ベースバックアップ、MinIO版、構成版、コンテナ署名を照合し、RPO内の最新かつ一貫した復旧点を選ぶ。危険な設定を含む復旧点は採用しない。</p></div></li>
+        <li><div><h3>隔離環境で復元する</h3><p>ネットワークを閉じた状態でDB、オブジェクト、構成を復元し、件数、外部キー、版、ハッシュ、監査連鎖、Outbox重複を検証する。</p></div></li>
+        <li><div><h3>認証を全失効する</h3><p>クリエイター・依頼者セッション、ワンタイムリンク、管理者昇格、復旧コード、短命ダウンロードURLの世代を更新する。</p></div></li>
+        <li><div><h3>限定公開から通常公開へ進む</h3><p>運用者の読み取り確認、代表業務の合成試験、監視、複製、バックアップを確認した後に利用者トラフィックを段階的に戻す。</p></div></li>
+        <li><div><h3>旧主系を再構築する</h3><p>旧環境をそのまま再参加させず、原因除去、初期化、再同期、再検証を行う。事故中の危険設定や漏えい済み秘密を復活させない。</p></div></li>
+      </ol>
+      <div class="table-wrap">
+        <table>
+          <caption>状態別の復旧確認</caption>
+          <thead><tr><th scope="col">状態</th><th scope="col">確認内容</th><th scope="col">不合格時</th></tr></thead>
+          <tbody>
+            <tr><td>変更直後</td><td>構成差分、秘密参照、マイグレーション互換、停止条件</td><td>反映を中止し旧版を維持</td></tr>
+            <tr><td>再起動後</td><td>証明書、時刻、DB、Valkey、MinIO、ClamAV、監視の依存順</td><td>公開入口を開かない</td></tr>
+            <tr><td>再接続後</td><td>旧セッション・旧リンク・旧URLが拒否されること</td><td>認証世代を再更新し調査</td></tr>
+            <tr><td>本番中</td><td>読み書き合成試験、通知、Outbox、複製遅延、容量</td><td>対象機能を縮退または全体読取専用</td></tr>
+            <tr><td>アーカイブ後</td><td>ログ、メール、出力、バックアップに秘密が増えていないこと</td><td>保持・秘匿処理をやり直す</td></tr>
+            <tr><td>ロールバック後</td><td>旧版が新スキーマを安全に読めること、危険設定が復活しないこと</td><td>ロールバックせず前進修復</td></tr>
+            <tr><td>バックアップ復元後</td><td>削除・失効・公開制御を再適用し、再露出しないこと</td><td>隔離を維持し復旧点を再選定</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <aside class="callout" aria-label="ロールバックの原則">
+        <strong>ロールバックの原則</strong>
+        <p>アプリは一つ前の署名済みイメージへ戻せるが、DBマイグレーションは破壊的な逆変換を前提にしない。旧版が新旧両形式を読める期間を確保し、データ変換後は前進修復を優先する。ロールバック先が危険な設定、失効前の秘密、非対応スキーマを含む場合は自動的に拒否する。</p>
+      </aside>
+    </section>
+
+<section class="section" id="operations">
+      <div class="section__head">
+        <h2>運用、観測、リリース、クラウド移行</h2>
+        <p>監視は障害を知らせるだけでなく、自動停止の入力とリリース判定の証拠になる。ログは相関可能にしつつ、本文、秘密、認証情報、不要な個人情報を収集しない。</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <caption>観測設計</caption>
+          <thead><tr><th scope="col">信号</th><th scope="col">収集内容</th><th scope="col">主な判定</th><th scope="col">秘匿</th></tr></thead>
+          <tbody>
+            <tr><td>Metrics</td><td>RED、USE、WAL遅延、容量、Outbox滞留、スキャン時間、通知失敗</td><td>SLO、容量、自動縮退</td><td>利用者識別子を高カーディナリティラベルにしない</td></tr>
+            <tr><td>Logs</td><td>相関ID、操作種別、結果コード、対象種別、処理時間</td><td>障害切り分け、不正試行</td><td>本文、トークン、Cookie、署名URL、秘密を除去</td></tr>
+            <tr><td>Audit</td><td>主体、代理主体、対象、版、重要操作、時刻、結果</td><td>説明責任、支援アクセス、合意証跡</td><td>業務本文を複製せず参照IDとハッシュを使う</td></tr>
+            <tr><td>Traces</td><td>入口、DB、Outbox、外部メール、Stripe、オブジェクト操作</td><td>API p95、依存遅延、再試行原因</td><td>属性の許可リスト化とサンプリング</td></tr>
+            <tr><td>Alerts</td><td>Prometheus規則からAlertmanagerで通知</td><td>ページ、チケット、運用連絡</td><td>通知本文へ個人情報や秘密を含めない</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>リリース経路</h3>
+      <ol class="step-list">
+        <li><div><h3>ビルドと供給網検査</h3><p>固定依存、SBOM、ライセンス、静的解析、テスト、秘密検査、コンテナ脆弱性検査を実行し、成果物へ署名する。</p></div></li>
+        <li><div><h3>前方互換マイグレーション</h3><p>expandを先行し、新旧アプリが共存できることを検証する。バックアップと復元検証が期限内でなければ実行しない。</p></div></li>
+        <li><div><h3>限定反映</h3><p>一部インスタンスへ反映し、起動前検査、合成試験、エラー率、p95、Outbox、DB負荷を確認する。</p></div></li>
+        <li><div><h3>全体反映</h3><p>段階的に切り替え、旧版を即時退避できる状態で維持する。フェイルクローズ条件に触れた場合は自動停止する。</p></div></li>
+        <li><div><h3>契約整理</h3><p>十分な共存期間とデータ移行確認の後にcontractを実行する。ロールバック可能期間を終了する判断を監査へ残す。</p></div></li>
+      </ol>
+      <div class="table-wrap">
+        <table>
+          <caption>Production V1の主要リリース証拠</caption>
+          <thead><tr><th scope="col">領域</th><th scope="col">必要な証拠</th><th scope="col">不合格時</th></tr></thead>
+          <tbody>
+            <tr><td>機能</td><td>全P0受入条件の正常系・拒否・期限切れ・再試行・復旧後テスト</td><td>リリース不可</td></tr>
+            <tr><td>セキュリティ</td><td>脅威モデル、認可境界、SAST／DAST／依存・イメージ検査、秘密検査、専門レビュー</td><td>リリース不可</td></tr>
+            <tr><td>復旧</td><td>隔離復元、RPO／RTO計測、全認証失効、再露出防止、待機系切替訓練</td><td>リリース不可</td></tr>
+            <tr><td>性能</td><td>LCP p75 2.5秒以内、API p95 500ms以内、想定2倍負荷と5GB転送</td><td>容量増強または設計修正</td></tr>
+            <tr><td>可用性</td><td>月間99.5%設計、二回線、電源、容量、複製、縮退の実証</td><td>リリース不可</td></tr>
+            <tr><td>法令・取引</td><td>利用規約、プライバシー、取引表示、年齢、権利条件の専門確認</td><td>公開不可</td></tr>
+            <tr><td>運用</td><td>当番、連絡経路、Runbook、監視、バックアップ、証明書、ロールバック訓練</td><td>リリース不可</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>クラウド移行ゲート</h3>
+      <div class="spec-list">
+        <div class="spec-row"><div class="spec-row__key">採算実績</div><div class="spec-row__value">3か月の実測を使い、クラウド総費用がMRRの25%以下、粗利率65%以上を同時に満たす。</div><div class="spec-row__note">見積りだけでは移行しない。</div></div>
+        <div class="spec-row"><div class="spec-row__key">負荷と費用</div><div class="spec-row__value">本番2倍負荷と実測エグレスで性能・費用を検証し、投資回収12か月以内、クラウド費6か月分の現金余力を確認する。</div><div class="spec-row__note">オンプレの人件費、回線、電力、保守、更新を含むTCOと比較する。</div></div>
+        <div class="spec-row"><div class="spec-row__key">安全性</div><div class="spec-row__value">個人情報、暗号化、秘密、監査、データ所在地、バックアップ、削除の統制がオンプレより悪化しない。</div><div class="spec-row__note">少なくともRPO、RTO、可用性の一つを改善し、他を悪化させない。</div></div>
+        <div class="spec-row"><div class="spec-row__key">移行</div><div class="spec-row__value">DNS TTL短縮、事前同期、保守時間中の最終WAL・差分同期、件数・ハッシュ・版・監査連鎖を検証する。</div><div class="spec-row__note">オンプレは7日間読取専用で保持する。</div></div>
+        <div class="spec-row"><div class="spec-row__key">逆移行</div><div class="spec-row__value">クラウドで書込みが発生した場合はオンプレへ逆同期し、整合性検証後にだけDNSを戻す。</div><div class="spec-row__note">旧オンプレをそのまま書込み主系へ戻さない。</div></div>
+      </div>
+    </section>
+
+<section class="section" id="traceability">
+      <div class="section__head">
+        <h2>要件追跡</h2>
+        <p>要件定義書に存在するFR 83件、NFR 23件、合計106件を設計領域へ対応付ける。要件の本文と受入条件は要件定義書を正とし、本表は設計上の実現先を示す。</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <caption>機能要件の設計対応</caption>
+          <thead><tr><th scope="col">要件群</th><th scope="col">要件ID</th><th scope="col">主モジュール</th><th scope="col">設計対応</th></tr></thead>
+          <tbody>
+            <tr><td>アカウントとアクセス</td><td><div class="trace-links"><a href="REQUIREMENTS.html#FR-ACC-001">FR-ACC-001</a><a href="REQUIREMENTS.html#FR-ACC-002">FR-ACC-002</a><a href="REQUIREMENTS.html#FR-ACC-003">FR-ACC-003</a><a href="REQUIREMENTS.html#FR-ACC-004">FR-ACC-004</a><a href="REQUIREMENTS.html#FR-ACC-005">FR-ACC-005</a><a href="REQUIREMENTS.html#FR-ACC-006">FR-ACC-006</a><a href="REQUIREMENTS.html#FR-ACC-007">FR-ACC-007</a></div></td><td><code>identity-access</code>、<code>workspace-membership</code></td><td><a href="#security">認証方式、再認証、失効</a></td></tr>
+            <tr><td>公開プロフィール</td><td><div class="trace-links"><a href="REQUIREMENTS.html#FR-PRO-001">FR-PRO-001</a><a href="REQUIREMENTS.html#FR-PRO-002">FR-PRO-002</a><a href="REQUIREMENTS.html#FR-PRO-003">FR-PRO-003</a></div></td><td><code>public-catalog</code></td><td><a href="#context">公開用射影と露出境界</a></td></tr>
+            <tr><td>制作サービス</td><td><div class="trace-links"><a href="REQUIREMENTS.html#FR-SVC-001">FR-SVC-001</a><a href="REQUIREMENTS.html#FR-SVC-002">FR-SVC-002</a><a href="REQUIREMENTS.html#FR-SVC-003">FR-SVC-003</a><a href="REQUIREMENTS.html#FR-SVC-004">FR-SVC-004</a></div></td><td><code>public-catalog</code></td><td><a href="#architecture">版管理された公開契約</a></td></tr>
+            <tr><td>制作フロー</td><td><div class="trace-links"><a href="REQUIREMENTS.html#FR-WF-001">FR-WF-001</a><a href="REQUIREMENTS.html#FR-WF-002">FR-WF-002</a><a href="REQUIREMENTS.html#FR-WF-003">FR-WF-003</a><a href="REQUIREMENTS.html#FR-WF-004">FR-WF-004</a><a href="REQUIREMENTS.html#FR-WF-005">FR-WF-005</a><a href="REQUIREMENTS.html#FR-WF-006">FR-WF-006</a><a href="REQUIREMENTS.html#FR-WF-007">FR-WF-007</a></div></td><td><code>public-catalog</code>、<code>project</code></td><td><a href="#flows">合意版からの案件フロー生成</a></td></tr>
+            <tr><td>依頼受付</td><td><div class="trace-links"><a href="REQUIREMENTS.html#FR-REQ-001">FR-REQ-001</a><a href="REQUIREMENTS.html#FR-REQ-002">FR-REQ-002</a><a href="REQUIREMENTS.html#FR-REQ-003">FR-REQ-003</a><a href="REQUIREMENTS.html#FR-REQ-004">FR-REQ-004</a></div></td><td><code>intake</code></td><td><a href="#flows">受付から条件提示</a></td></tr>
+            <tr><td>条件提示と合意</td><td><div class="trace-links"><a href="REQUIREMENTS.html#FR-AGR-001">FR-AGR-001</a><a href="REQUIREMENTS.html#FR-AGR-002">FR-AGR-002</a><a href="REQUIREMENTS.html#FR-AGR-003">FR-AGR-003</a><a href="REQUIREMENTS.html#FR-AGR-004">FR-AGR-004</a><a href="REQUIREMENTS.html#FR-AGR-005">FR-AGR-005</a><a href="REQUIREMENTS.html#FR-AGR-006">FR-AGR-006</a></div></td><td><code>agreement</code></td><td><a href="#flows">版固定、明示合意、変更注文</a></td></tr>
+            <tr><td>案件進行</td><td><div class="trace-links"><a href="REQUIREMENTS.html#FR-PRJ-001">FR-PRJ-001</a><a href="REQUIREMENTS.html#FR-PRJ-002">FR-PRJ-002</a><a href="REQUIREMENTS.html#FR-PRJ-003">FR-PRJ-003</a><a href="REQUIREMENTS.html#FR-PRJ-004">FR-PRJ-004</a><a href="REQUIREMENTS.html#FR-PRJ-005">FR-PRJ-005</a><a href="REQUIREMENTS.html#FR-PRJ-006">FR-PRJ-006</a></div></td><td><code>project</code></td><td><a href="#architecture">案件集約と公開境界</a></td></tr>
+            <tr><td>チェックポイント</td><td><div class="trace-links"><a href="REQUIREMENTS.html#FR-CHK-001">FR-CHK-001</a><a href="REQUIREMENTS.html#FR-CHK-002">FR-CHK-002</a><a href="REQUIREMENTS.html#FR-CHK-003">FR-CHK-003</a><a href="REQUIREMENTS.html#FR-CHK-004">FR-CHK-004</a></div></td><td><code>project</code>、<code>collaboration</code></td><td><a href="#flows">順序、提出、承認、固定</a></td></tr>
+            <tr><td>内部タスク</td><td><div class="trace-links"><a href="REQUIREMENTS.html#FR-TSK-001">FR-TSK-001</a><a href="REQUIREMENTS.html#FR-TSK-002">FR-TSK-002</a><a href="REQUIREMENTS.html#FR-TSK-003">FR-TSK-003</a></div></td><td><code>project</code></td><td><a href="#context">非公開既定と公開用射影</a></td></tr>
+            <tr><td>進捗</td><td><div class="trace-links"><a href="REQUIREMENTS.html#FR-UPD-001">FR-UPD-001</a><a href="REQUIREMENTS.html#FR-UPD-002">FR-UPD-002</a><a href="REQUIREMENTS.html#FR-UPD-003">FR-UPD-003</a></div></td><td><code>collaboration</code></td><td><a href="#architecture">公開・非公開データ所有権</a></td></tr>
+            <tr><td>ファイル</td><td><div class="trace-links"><a href="REQUIREMENTS.html#FR-FIL-001">FR-FIL-001</a><a href="REQUIREMENTS.html#FR-FIL-002">FR-FIL-002</a><a href="REQUIREMENTS.html#FR-FIL-003">FR-FIL-003</a><a href="REQUIREMENTS.html#FR-FIL-004">FR-FIL-004</a><a href="REQUIREMENTS.html#FR-FIL-005">FR-FIL-005</a></div></td><td><code>file</code></td><td><a href="#flows">隔離・検査・昇格・配布</a></td></tr>
+            <tr><td>コメント</td><td><div class="trace-links"><a href="REQUIREMENTS.html#FR-COM-001">FR-COM-001</a><a href="REQUIREMENTS.html#FR-COM-002">FR-COM-002</a></div></td><td><code>collaboration</code></td><td><a href="#architecture">文脈付き追記データ</a></td></tr>
+            <tr><td>修正</td><td><div class="trace-links"><a href="REQUIREMENTS.html#FR-REV-001">FR-REV-001</a><a href="REQUIREMENTS.html#FR-REV-002">FR-REV-002</a><a href="REQUIREMENTS.html#FR-REV-003">FR-REV-003</a><a href="REQUIREMENTS.html#FR-REV-004">FR-REV-004</a><a href="REQUIREMENTS.html#FR-REV-005">FR-REV-005</a></div></td><td><code>collaboration</code>、<code>agreement</code></td><td><a href="#flows">修正種別と変更注文境界</a></td></tr>
+            <tr><td>承認</td><td><div class="trace-links"><a href="REQUIREMENTS.html#FR-APP-001">FR-APP-001</a><a href="REQUIREMENTS.html#FR-APP-002">FR-APP-002</a><a href="REQUIREMENTS.html#FR-APP-003">FR-APP-003</a></div></td><td><code>collaboration</code>、<code>agreement</code></td><td><a href="#flows">明示承認と成立判定</a></td></tr>
+            <tr><td>日程</td><td><div class="trace-links"><a href="REQUIREMENTS.html#FR-SCH-001">FR-SCH-001</a><a href="REQUIREMENTS.html#FR-SCH-002">FR-SCH-002</a><a href="REQUIREMENTS.html#FR-SCH-003">FR-SCH-003</a><a href="REQUIREMENTS.html#FR-SCH-004">FR-SCH-004</a><a href="REQUIREMENTS.html#FR-SCH-005">FR-SCH-005</a></div></td><td><code>schedule-notification</code></td><td><a href="#architecture">営業日、期限、再合意</a></td></tr>
+            <tr><td>通知</td><td><div class="trace-links"><a href="REQUIREMENTS.html#FR-NOT-001">FR-NOT-001</a><a href="REQUIREMENTS.html#FR-NOT-002">FR-NOT-002</a></div></td><td><code>schedule-notification</code></td><td><a href="#flows">Outboxと再試行</a></td></tr>
+            <tr><td>納品と記録</td><td><div class="trace-links"><a href="REQUIREMENTS.html#FR-DEL-001">FR-DEL-001</a><a href="REQUIREMENTS.html#FR-DEL-002">FR-DEL-002</a><a href="REQUIREMENTS.html#FR-DEL-003">FR-DEL-003</a></div></td><td><code>collaboration</code>、<code>file</code></td><td><a href="#flows">固定納品版、受領、出力</a></td></tr>
+            <tr><td>監査</td><td><div class="trace-links"><a href="REQUIREMENTS.html#FR-AUD-001">FR-AUD-001</a><a href="REQUIREMENTS.html#FR-AUD-002">FR-AUD-002</a></div></td><td><code>audit-admin</code></td><td><a href="#security">追記監査と保全</a></td></tr>
+            <tr><td>運営</td><td><div class="trace-links"><a href="REQUIREMENTS.html#FR-ADM-001">FR-ADM-001</a><a href="REQUIREMENTS.html#FR-ADM-002">FR-ADM-002</a><a href="REQUIREMENTS.html#FR-ADM-003">FR-ADM-003</a><a href="REQUIREMENTS.html#FR-ADM-004">FR-ADM-004</a></div></td><td><code>audit-admin</code></td><td><a href="#security">期限付き支援と緊急停止</a></td></tr>
+            <tr><td>サブスクリプション</td><td><div class="trace-links"><a href="REQUIREMENTS.html#FR-BIL-001">FR-BIL-001</a><a href="REQUIREMENTS.html#FR-BIL-002">FR-BIL-002</a><a href="REQUIREMENTS.html#FR-BIL-003">FR-BIL-003</a><a href="REQUIREMENTS.html#FR-BIL-004">FR-BIL-004</a><a href="REQUIREMENTS.html#FR-BIL-005">FR-BIL-005</a></div></td><td><code>billing</code></td><td><a href="#flows">冪等Webhook、猶予、利用権</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <caption>非機能要件の設計対応</caption>
+          <thead><tr><th scope="col">要件群</th><th scope="col">要件ID</th><th scope="col">設計対応</th><th scope="col">主要な検証証拠</th></tr></thead>
+          <tbody>
+            <tr><td>セキュリティ</td><td><div class="trace-links"><a href="REQUIREMENTS.html#NFR-SEC-001">NFR-SEC-001</a><a href="REQUIREMENTS.html#NFR-SEC-002">NFR-SEC-002</a><a href="REQUIREMENTS.html#NFR-SEC-003">NFR-SEC-003</a><a href="REQUIREMENTS.html#NFR-SEC-004">NFR-SEC-004</a><a href="REQUIREMENTS.html#NFR-SEC-005">NFR-SEC-005</a><a href="REQUIREMENTS.html#NFR-SEC-006">NFR-SEC-006</a></div></td><td><a href="#security">認可・防御・秘密</a>、<a href="#deployment">ネットワーク</a>、<a href="#flows">ファイル検査</a></td><td>脅威モデル、境界テスト、SAST／DAST、供給網・イメージ検査</td></tr>
+            <tr><td>プライバシー</td><td><div class="trace-links"><a href="REQUIREMENTS.html#NFR-PRV-001">NFR-PRV-001</a><a href="REQUIREMENTS.html#NFR-PRV-002">NFR-PRV-002</a><a href="REQUIREMENTS.html#NFR-PRV-003">NFR-PRV-003</a></div></td><td><a href="#security">データ最小化、削除・持出し、AI学習禁止</a></td><td>データ台帳、削除・出力試験、委託先確認、復元後の再削除試験</td></tr>
+            <tr><td>アクセシビリティ</td><td><div class="trace-links"><a href="REQUIREMENTS.html#NFR-ACC-001">NFR-ACC-001</a></div></td><td>React共通UI、意味論的HTML、キーボード、フォーカス、コントラスト</td><td>自動検査、スクリーンリーダー、キーボード、実画面確認</td></tr>
+            <tr><td>UX</td><td><div class="trace-links"><a href="REQUIREMENTS.html#NFR-UX-001">NFR-UX-001</a></div></td><td>モバイルファースト、320–1440px、公開・内部表示分離</td><td>対象幅の実画面スクリーンショットと操作試験</td></tr>
+            <tr><td>性能</td><td><div class="trace-links"><a href="REQUIREMENTS.html#NFR-PERF-001">NFR-PERF-001</a><a href="REQUIREMENTS.html#NFR-PERF-002">NFR-PERF-002</a></div></td><td><a href="#architecture">水平化可能なアプリ</a>、<a href="#flows">非同期化と5GB転送</a></td><td>LCP p75、API p95、2倍負荷、5GBアップロード・ダウンロード</td></tr>
+            <tr><td>可用性</td><td><div class="trace-links"><a href="REQUIREMENTS.html#NFR-AVL-001">NFR-AVL-001</a><a href="REQUIREMENTS.html#NFR-AVL-002">NFR-AVL-002</a></div></td><td><a href="#deployment">二回線、二拠点、段階的機能制限</a></td><td>SLO集計、回線断・容量・複製遅延の障害注入</td></tr>
+            <tr><td>事業継続</td><td><div class="trace-links"><a href="REQUIREMENTS.html#NFR-BCP-001">NFR-BCP-001</a><a href="REQUIREMENTS.html#NFR-BCP-002">NFR-BCP-002</a><a href="REQUIREMENTS.html#NFR-BCP-003">NFR-BCP-003</a></div></td><td><a href="#recovery">RPO／RTO、復元検証、認証失効</a></td><td>隔離復元、待機系切替、全認証失効、再露出防止</td></tr>
+            <tr><td>観測</td><td><div class="trace-links"><a href="REQUIREMENTS.html#NFR-OBS-001">NFR-OBS-001</a><a href="REQUIREMENTS.html#NFR-OBS-002">NFR-OBS-002</a></div></td><td><a href="#operations">Prometheus、Grafana、Loki、Alertmanager、秘匿ログ</a></td><td>アラート試験、ログ秘匿検査、保持・削除試験</td></tr>
+            <tr><td>運用安全</td><td><div class="trace-links"><a href="REQUIREMENTS.html#NFR-OPS-001">NFR-OPS-001</a><a href="REQUIREMENTS.html#NFR-OPS-002">NFR-OPS-002</a></div></td><td><a href="#deployment">時刻・容量の自動停止</a>、<a href="#operations">デプロイゲート</a></td><td>起動前検査、閾値試験、失敗時のデプロイ停止</td></tr>
+            <tr><td>移植性</td><td><div class="trace-links"><a href="REQUIREMENTS.html#NFR-PORT-001">NFR-PORT-001</a></div></td><td><a href="#operations">OCI、PostgreSQL、S3、Valkey、採算ゲート、逆移行</a></td><td>構成移植試験、費用実測、事前・逆同期訓練</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <aside class="callout" aria-label="追跡の機械検証">
+        <strong>追跡の機械検証</strong>
+        <p>CIでは要件定義書と本書から<code>FR-*</code>／<code>NFR-*</code>を抽出し、集合差分が空であることを確認する。欠落、未知ID、重複ID、リンク切れが一件でもあればドキュメント検証を失敗させる。</p>
+      </aside>
+    </section>
+
+<section class="section" id="decisions">
+      <div class="section__head">
+        <h2>主要な設計判断</h2>
+        <p>実装開始時に迷いが戻らないよう、採用案、代替案、不採用理由、再検討条件を残す。</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <caption>アーキテクチャ判断記録</caption>
+          <thead><tr><th scope="col">判断</th><th scope="col">採用</th><th scope="col">代替と不採用理由</th><th scope="col">再検討条件</th></tr></thead>
+          <tbody>
+            <tr><td>サービス分割</td><td>Spring Bootモジュラーモノリス</td><td>マイクロサービスは、初期オンプレで配備、監視、ネットワーク、整合性の運用負荷が利益を上回る。</td><td>独立スケールや障害分離が計測上必要になり、専任運用能力を持つ。</td></tr>
+            <tr><td>ブラウザ認証</td><td>サーバー管理セッション</td><td>長寿命JWTは即時失効、権限変更、復旧後の一括無効化を複雑にする。</td><td>別クライアント向け公開APIを設ける場合は、短命トークンと認可サーバーを別途設計。</td></tr>
+            <tr><td>非同期基盤</td><td>PostgreSQL Transactional Outbox</td><td>専用メッセージブローカーは現時点の量に対して運用部品を増やす。</td><td>Outbox処理量、保持、配信遅延がPostgreSQLの主要負荷になる。</td></tr>
+            <tr><td>ファイル受入</td><td>MinIO隔離／検査済み領域の物理分離</td><td>同一公開バケット内のタグ制御は誤設定時の露出範囲が広い。</td><td>将来のストレージ変更でも隔離境界とフェイルクローズは維持。</td></tr>
+            <tr><td>待機系</td><td>受動待機と手順化した昇格</td><td>初期のactive-activeは競合、スプリットブレイン、費用、訓練負荷が高い。</td><td>停止時間実績がSLOを継続的に侵害し、自動切替を安全に検証できる。</td></tr>
+            <tr><td>DB変更</td><td>expand／migrate／contract</td><td>破壊的な一括マイグレーションはロールバックと段階反映を妨げる。</td><td>原則維持。例外は停止時間と復元を事前実証した単発保守のみ。</td></tr>
+            <tr><td>クラウド</td><td>採算・安全・改善の全条件を満たした場合のみ移行</td><td>技術的な利便性だけの移行は粗利、エグレス、データ統制の悪化を見落とす。</td><td>要件定義の全ゲートを3か月実績で満たす。</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>残余リスクと検知</h3>
+      <div class="spec-list">
+        <div class="spec-row"><div class="spec-row__key">オンプレ運用能力</div><div class="spec-row__value">少人数運用では回線、電源、証明書、バックアップ、パッチ、当番の集中が単一障害点になり得る。</div><div class="spec-row__note">当番不在、期限超過、訓練未実施を監視し、代行可能なRunbookと四半期訓練を持つ。</div></div>
+        <div class="spec-row"><div class="spec-row__key">5GBファイル</div><div class="spec-row__value">長時間転送、再送、検査待ち、プレビュー生成が容量とキューを圧迫する。</div><div class="spec-row__note">分割完了率、検査p95、滞留、隔離容量、回線エグレスを計測する。</div></div>
+        <div class="spec-row"><div class="spec-row__key">外部依存</div><div class="spec-row__value">メール、Stripe、DNS、NTPの障害は認証、請求、公開、証跡時刻へ影響する。</div><div class="spec-row__note">タイムアウト、サーキットブレーカー、署名検証、Outbox再試行、時刻フェイルクローズを使う。</div></div>
+        <div class="spec-row"><div class="spec-row__key">法的適合</div><div class="spec-row__value">取引条件、個人情報、年齢、権利条件は実装だけで最終適合を保証できない。</div><div class="spec-row__note">公開前と重要変更時に専門家の文書確認を必須ゲートにする。</div></div>
+        <div class="spec-row"><div class="spec-row__key">復旧実効性</div><div class="spec-row__value">RPO／RTOは設計値であり、訓練しなければ実績ではない。</div><div class="spec-row__note">復元・切替の所要時間、欠損、手作業、再露出を記録し、目標超過を改善案件にする。</div></div>
+      </div>
+      <details>
+        <summary>詳細設計へ引き継ぐ成果物</summary>
+        <ul>
+          <li>モジュールごとのユースケース、公開インターフェース、ドメインイベント、依存規則。</li>
+          <li>OpenAPI、エラーコード、冪等キー、ページング、監査相関IDの契約。</li>
+          <li>概念モデルから論理DDL、索引、制約、保持、削除、暗号化への展開。</li>
+          <li>状態遷移表、権限マトリクス、公開用DTO許可リスト、支援アクセス手順。</li>
+          <li>物理台数・容量、回線、UPS、監視閾値、バックアップ周期、復旧Runbook。</li>
+          <li>脅威モデル、データフロー図、法的表示、アクセシビリティ、性能・障害試験計画。</li>
+        </ul>
+      </details>
+    </section>
+
+<section class="section section--compact" id="document-control">
+      <div class="section__head">
+        <h2>文書管理</h2>
+        <p>要件と実装の差分を残さないための更新規則。</p>
+      </div>
+      <dl class="definition-grid">
+        <div><dt>基準文書</dt><dd><a href="REQUIREMENTS.html">Stage Accord 要件定義書</a>。要件本文、優先度、状態、受入条件は同文書を正とする。</dd></div>
+        <div><dt>更新契機</dt><dd>要件変更、モジュール境界変更、データ所有権変更、配置変更、RPO／RTO変更、クラウド移行判断、重大インシデント後。</dd></div>
+        <div><dt>レビュー</dt><dd>開発、インフラ、セキュリティ、法務・取引、運用の各責任者が担当章と要件追跡を確認する。</dd></div>
+        <div><dt>ロールバック</dt><dd>文書変更はGitの単一コミットで戻す。要件定義書を同時に戻す場合は、適用中の実装・運用判断との不整合を先に確認する。</dd></div>
+      </dl>
+    </section>
+  </main>
+
+  <footer class="page footer">
+    <span>概要設計書 1.0</span><span class="footer__brand">Stage Accord</span><a href="REQUIREMENTS.html">要件定義書</a><a href="#top">先頭へ戻る</a><span>2026-08-02</span>
+  </footer>
+</body>
+</html>

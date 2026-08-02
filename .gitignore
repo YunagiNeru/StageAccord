@@ -1,0 +1,13 @@
+# ローカル検証・復旧用成果物
+.rollback/
+.verification/
+
+# Hallmark の再生成可能な事前調査キャッシュ
+.hallmark/preflight.json
+
+# 依存関係・一時ファイル
+node_modules/
+*.tmp
+*.log
+.DS_Store
+Thumbs.db
