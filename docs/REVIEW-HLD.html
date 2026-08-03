@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="Stage Accord Production V1の概要設計レビューについて、全指摘の解消結果と本番投入前の実行条件を示す完了記録。">
+  <title>Stage Accord — HLDレビュー完了記録</title>
+  <style>
+    /* Hallmark document profile: Ledger / modern-minimal / self-contained */
+    :root {
+      color-scheme: light;
+      --font-display: "Bahnschrift", "Arial Narrow", ui-sans-serif, sans-serif;
+      --font-body: "Aptos", "Segoe UI", "Yu Gothic UI", "Yu Gothic", ui-sans-serif, sans-serif;
+      --font-mono: "Cascadia Mono", "Consolas", ui-monospace, monospace;
+      --paper: oklch(97.5% 0.009 258);
+      --raised: oklch(99% 0.006 258);
+      --ink: oklch(22% 0.026 258);
+      --muted: oklch(47% 0.025 258);
+      --rule: oklch(83% 0.018 258);
+      --rule-strong: oklch(61% 0.05 258);
+      --accent: oklch(48% 0.15 259);
+      --accent-soft: oklch(92% 0.035 259);
+      --success: oklch(41% 0.11 155);
+      --success-soft: oklch(93% 0.035 155);
+      --warning: oklch(45% 0.105 75);
+      --warning-soft: oklch(94% 0.045 75);
+      --rail: 16rem;
+      --measure: 78rem;
+      --space-1: .4rem;
+      --space-2: .75rem;
+      --space-3: 1.15rem;
+      --space-4: 1.8rem;
+      --space-5: 3rem;
+      --radius: .35rem;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); line-height: 1.72; }
+    a { color: var(--accent); text-underline-offset: .18em; }
+    code { font-family: var(--font-mono); font-size: .88em; }
+    .skip-link { position: fixed; inset: .5rem auto auto .5rem; z-index: 10; transform: translateY(-150%); background: var(--ink); color: white; padding: .6rem .9rem; }
+    .skip-link:focus { transform: none; }
+    .rail { position: fixed; inset: 0 auto 0 0; width: var(--rail); overflow-y: auto; padding: var(--space-4); background: var(--ink); color: white; }
+    .rail__title { margin: 0 0 var(--space-3); font: 700 1.1rem/1.2 var(--font-display); letter-spacing: .04em; }
+    .rail ol { margin: 0; padding: 0; list-style: none; counter-reset: nav; }
+    .rail li { counter-increment: nav; border-top: 1px solid color-mix(in oklch, white 18%, transparent); }
+    .rail a { display: grid; grid-template-columns: 2rem 1fr; gap: .5rem; padding: .78rem 0; color: white; text-decoration: none; font-size: .88rem; }
+    .rail a::before { content: "0" counter(nav); color: color-mix(in oklch, white 55%, transparent); font-family: var(--font-mono); }
+    .page, .foot { margin-inline-start: var(--rail); }
+    .page { min-height: 100vh; }
+    .hero, .section, .foot { padding-inline: clamp(1.25rem, 4vw, 4.5rem); }
+    .hero { padding-block: clamp(3.5rem, 8vw, 7rem); background: var(--raised); border-bottom: 1px solid var(--rule); }
+    .eyebrow, .section__label { margin: 0 0 var(--space-2); color: var(--accent); font: 700 .78rem/1.2 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; }
+    h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; text-wrap: balance; }
+    h1 { max-width: 18ch; margin: 0; font-size: clamp(2.7rem, 7vw, 6.2rem); letter-spacing: -.045em; }
+    h2 { margin: 0; font-size: clamp(2rem, 4vw, 3.5rem); letter-spacing: -.03em; }
+    h3 { margin-block: var(--space-4) var(--space-2); font-size: 1.35rem; }
+    .lede { max-width: 62rem; margin: var(--space-4) 0 0; color: var(--muted); font-size: clamp(1.05rem, 2vw, 1.35rem); }
+    .contract { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 1px; margin: var(--space-5) 0 0; padding: 1px; background: var(--rule); }
+    .contract div { min-width: 0; padding: var(--space-3); background: var(--raised); }
+    .contract dt { color: var(--muted); font: 700 .72rem/1.2 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+    .contract dd { margin: .45rem 0 0; font-weight: 700; }
+    .section { max-width: calc(var(--measure) + 9rem); padding-block: var(--space-5); border-bottom: 1px solid var(--rule); }
+    .section__head { display: grid; grid-template-columns: minmax(15rem, .7fr) minmax(20rem, 1.3fr); gap: clamp(1.5rem, 5vw, 5rem); align-items: end; margin-bottom: var(--space-4); }
+    .section__head p:last-child { margin: 0; color: var(--muted); }
+    .callout { max-width: var(--measure); margin-block: var(--space-4); padding: var(--space-3) var(--space-4); border-inline-start: .3rem solid var(--accent); background: var(--accent-soft); }
+    .callout--success { border-color: var(--success); background: var(--success-soft); }
+    .callout--warning { border-color: var(--warning); background: var(--warning-soft); }
+    .callout p { margin: 0; }
+    .record { max-width: var(--measure); padding: var(--space-4); border: 1px solid var(--rule); background: var(--raised); }
+    .record__head { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+    .record__id, .status { font: 700 .74rem/1 var(--font-mono); letter-spacing: .06em; }
+    .record__id { color: var(--accent); }
+    .status { padding: .48rem .65rem; border-radius: 999px; }
+    .status--closed { color: var(--success); background: var(--success-soft); }
+    .status--gate { color: var(--warning); background: var(--warning-soft); }
+    .record h3 { flex: 1 1 22rem; margin: 0; }
+    .table-wrap { max-width: 100%; overflow-x: auto; border: 1px solid var(--rule); background: var(--raised); }
+    table { width: 100%; min-width: 70rem; border-collapse: collapse; font-size: .91rem; }
+    caption { padding: var(--space-3); text-align: left; color: var(--muted); font-weight: 700; }
+    th, td { padding: .8rem .9rem; border-top: 1px solid var(--rule); text-align: left; vertical-align: top; }
+    thead th { border-top: 0; background: var(--accent-soft); font: 700 .75rem/1.25 var(--font-mono); letter-spacing: .04em; }
+    tbody th { width: 9rem; font-family: var(--font-mono); white-space: nowrap; }
+    .decision-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: var(--space-3); }
+    .decision { padding: var(--space-3); border: 1px solid var(--rule); background: var(--raised); }
+    .decision h3 { margin: .35rem 0 .65rem; }
+    .decision p { margin: 0; color: var(--muted); }
+    .foot { padding-block: var(--space-4); color: var(--muted); background: var(--raised); font-size: .86rem; }
+    .foot p { max-width: var(--measure); margin: 0; }
+    @media (max-width: 900px) {
+      .rail { position: static; width: auto; }
+      .rail ol { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .page, .foot { margin-inline-start: 0; }
+      .contract, .decision-grid { grid-template-columns: 1fr 1fr; }
+      .section__head { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .rail ol, .contract, .decision-grid { grid-template-columns: 1fr; }
+      .hero, .section, .foot { padding-inline: 1rem; }
+      h1 { font-size: 2.6rem; }
+    }
+    @page { size: A4; margin: 15mm; }
+    @media print {
+      .rail, .skip-link { display: none; }
+      .page, .foot { margin: 0; }
+      .hero, .section, .foot { padding-inline: 0; }
+      .hero { padding-block: 12mm; }
+      .section { max-width: none; padding-block: 8mm; }
+      .record, .decision, tr { break-inside: avoid; }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">本文へ移動</a>
+  <aside class="rail" aria-label="文書内索引">
+    <p class="rail__title">HLDレビュー完了記録</p>
+    <nav aria-label="主要章">
+      <ol>
+        <li><a href="#contract">文書契約</a></li>
+        <li><a href="#verdict">完了判定</a></li>
+        <li><a href="#required">必須指摘</a></li>
+        <li><a href="#recommended">推奨指摘</a></li>
+        <li><a href="#decisions">確定判断</a></li>
+        <li><a href="#release">本番投入条件</a></li>
+      </ol>
+    </nav>
+  </aside>
+
+  <main class="page" id="main">
+    <header class="hero" id="top">
+      <p class="eyebrow">Architecture Review / Closure Record</p>
+      <h1>HLDレビュー完了記録</h1>
+      <p class="lede">2026年8月3日に提示された概要設計レビューについて、必須指摘14件、推奨指摘14件、判断保留4件をすべて設計へ反映した結果を示す。設計上の保留は0件である。</p>
+      <dl class="contract">
+        <div><dt>レビュー状態</dt><dd>全件解消・閉鎖</dd></div>
+        <div><dt>対象</dt><dd><a href="HLD.html">HLD.html 1.2.0</a></dd></div>
+        <div><dt>要件基準</dt><dd><a href="REQUIREMENTS.html">REQUIREMENTS.html 1.2.0</a></dd></div>
+        <div><dt>本番投入</dt><dd>実行証拠の承認前</dd></div>
+      </dl>
+    </header>
+
+    <section class="section" id="contract">
+      <div class="section__head">
+        <div><p class="section__label">01 / Contract</p><h2>文書契約</h2></div>
+        <p>本書は過去の修正指示を再度課す文書ではない。レビュー指摘がどの確定設計へ置換されたかを残す履歴正本であり、製品要件は要件定義書、現行設計は概要設計書を正とする。</p>
+      </div>
+      <dl class="contract">
+        <div><dt>目的</dt><dd>レビュー閉鎖根拠の保存</dd></div>
+        <div><dt>読者</dt><dd>設計・実装・運用・監査担当者とAI</dd></div>
+        <div><dt>正本関係</dt><dd>要求はREQUIREMENTS、設計はHLD</dd></div>
+        <div><dt>変更規則</dt><dd>再オープンは新しい証拠と影響範囲を必須化</dd></div>
+        <div><dt>解消件数</dt><dd>REQ 14 / 14</dd></div>
+        <div><dt>採用件数</dt><dd>REC 14 / 14</dd></div>
+        <div><dt>確定判断</dt><dd>4 / 4</dd></div>
+        <div><dt>設計保留</dt><dd>0件</dd></div>
+      </dl>
+    </section>
+
+    <section class="section" id="verdict">
+      <div class="section__head">
+        <div><p class="section__label">02 / Verdict</p><h2>完了判定</h2></div>
+        <p>レビューで問題となった相互矛盾、未定義境界、製品選定、物理構成、追跡不足は、HLD 1.2.0とREQUIREMENTS 1.2.0の確定設計に置換された。</p>
+      </div>
+      <article class="record" id="DEC-201">
+        <header class="record__head">
+          <span class="record__id">DEC-201</span>
+          <h3>概要設計レビューを閉鎖する</h3>
+          <span class="status status--closed">承認済み</span>
+        </header>
+        <dl class="contract"><div><dt>種別</dt><dd>決定</dd></div><div><dt>規範強度</dt><dd>必須</dd></div><div><dt>適用範囲</dt><dd>HLDレビュー全指摘</dd></div><div><dt>状態</dt><dd>閉鎖</dd></div></dl>
+        <p class="record__statement">必須指摘14件はすべてHLD制御IDへ、推奨指摘14件はすべて横断設計へ、判断保留4件はすべて明示的な設計判断へ紐付いたため、概要設計レビューを閉鎖する。実装担当者が選択をやり直す必要のある項目は残っていない。</p>
+      </article>
+      <div class="callout callout--success">
+        <p><strong>結論：</strong>概要設計の改訂は完了している。詳細設計と実装はHLD 1.2.0を承認済みベースラインとして開始できる。</p>
+      </div>
+      <div class="callout callout--warning">
+        <p><strong>境界：</strong>設計承認は本番投入承認ではない。試験、復元訓練、セキュリティ・法務確認、運用リハーサルの証拠が揃うまでは、本番公開を許可しない。</p>
+      </div>
+    </section>
+
+    <section class="section" id="required">
+      <div class="section__head">
+        <div><p class="section__label">03 / Required</p><h2>必須指摘の解消</h2></div>
+        <p>各指摘を、推奨方針の説明ではなく、採用済み制御と判断へ結び付ける。状態は全件「解消済み」である。</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <caption>REQ-001〜REQ-014 解消台帳</caption>
+          <thead><tr><th scope="col">指摘</th><th scope="col">確定内容</th><th scope="col">設計制御</th><th scope="col">判断</th><th scope="col">状態</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">REQ-001</th><td>概要設計承認と本番投入承認を別状態として表示</td><td><a href="HLD.html#purpose">目的と設計境界</a></td><td>文書契約</td><td>解消済み</td></tr>
+            <tr><th scope="row">REQ-002</th><td>RPO 5・10・12・15分の段階制御と重要書込み停止を整合</td><td><a href="HLD.html#deployment">配置・自動停止</a></td><td><a href="HLD.html#DEC-105">DEC-105</a></td><td>解消済み</td></tr>
+            <tr><th scope="row">REQ-003</th><td>etcd排他世代、PDU・ネットワーク二重フェンシング、二者昇格</td><td><a href="HLD.html#HLD-DR-001">HLD-DR-001</a></td><td><a href="HLD.html#DEC-105">DEC-105</a></td><td>解消済み</td></tr>
+            <tr><th scope="row">REQ-004</th><td>DB LSN、RGW watermark、ファイル・信頼マニフェストを同一復旧点へ固定</td><td><a href="HLD.html#HLD-DR-002">HLD-DR-002</a></td><td><a href="HLD.html#DEC-114">DEC-114</a></td><td>解消済み</td></tr>
+            <tr><th scope="row">REQ-005</th><td>4GB multipartを専用upload ingressへ限定し、管理APIを非公開化</td><td><a href="HLD.html#HLD-FIL-001">HLD-FIL-001</a></td><td><a href="HLD.html#DEC-104">DEC-104</a></td><td>解消済み</td></tr>
+            <tr><th scope="row">REQ-006</th><td>FILDES全体検査、バイト一致、上限・停止・ERRORのフェイルクローズ</td><td><a href="HLD.html#HLD-FIL-002">HLD-FIL-002</a></td><td><a href="HLD.html#DEC-104">DEC-104</a></td><td>解消済み</td></tr>
+            <tr><th scope="row">REQ-007</th><td>形式別ツール、受入条件、資源上限、出力、失敗動作を行列化</td><td><a href="HLD.html#HLD-FIL-003">HLD-FIL-003</a></td><td><a href="HLD.html#DEC-104">DEC-104</a></td><td>解消済み</td></tr>
+            <tr><th scope="row">REQ-008</th><td>Ceph Tentacle 20.2系列とRGW二拠点構成を採用</td><td><a href="HLD.html#HLD-OBJ-001">HLD-OBJ-001</a></td><td><a href="HLD.html#DEC-104">DEC-104</a></td><td>解消済み</td></tr>
+            <tr><th scope="row">REQ-009</th><td>時刻劣化中もsequenceとローカル追記spoolで監査を継続</td><td><a href="HLD.html#HLD-AUD-002">HLD-AUD-002</a></td><td><a href="HLD.html#DEC-111">DEC-111</a></td><td>解消済み</td></tr>
+            <tr><th scope="row">REQ-010</th><td>RFC 8785、SHA-256連鎖、Ed25519日次固定点を採用</td><td><a href="HLD.html#HLD-AUD-001">HLD-AUD-001</a></td><td><a href="HLD.html#DEC-111">DEC-111</a></td><td>解消済み</td></tr>
+            <tr><th scope="row">REQ-011</th><td>パスキー第一、password＋TOTP代替、72時間二者復旧、全失効</td><td><a href="HLD.html#HLD-AUT-001">HLD-AUT-001</a></td><td><a href="HLD.html#DEC-110">DEC-110</a></td><td>解消済み</td></tr>
+            <tr><th scope="row">REQ-012</th><td>2-of-3オフラインルート、拠点・ホスト・用途別鍵、TPM封印</td><td><a href="HLD.html#HLD-KEY-001">HLD-KEY-001</a></td><td><a href="HLD.html#DEC-112">DEC-112</a></td><td>解消済み</td></tr>
+            <tr><th scope="row">REQ-013</th><td>主バックアップから独立した署名付き削除・失効台帳を採用</td><td><a href="HLD.html#HLD-DEL-001">HLD-DEL-001</a></td><td><a href="HLD.html#DEC-113">DEC-113</a></td><td>解消済み</td></tr>
+            <tr><th scope="row">REQ-014</th><td>107要件を一要件一行で設計・認可・状態・監査・試験へ追跡</td><td><a href="HLD.html#HLD-TRC-001">HLD-TRC-001</a></td><td>全行の保留欄なし</td><td>解消済み</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" id="recommended">
+      <div class="section__head">
+        <div><p class="section__label">04 / Recommended</p><h2>推奨指摘の採用</h2></div>
+        <p>推奨14件は将来候補として残さず、Production V1の設計制御へ採用した。</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <caption>REC-001〜REC-014 採用台帳</caption>
+          <thead><tr><th scope="col">指摘</th><th scope="col">採用内容</th><th scope="col">設計制御</th><th scope="col">状態</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">REC-001</th><td>workspace_idを複合制約、Repository、検索、バッチ、管理操作へ強制</td><td><a href="HLD.html#HLD-TEN-001">HLD-TEN-001</a></td><td>採用済み</td></tr>
+            <tr><th scope="row">REC-002</th><td>合意正本をRFC 8785正規化JSONと固定renderer情報で保持</td><td><a href="HLD.html#HLD-AGR-001">HLD-AGR-001</a></td><td>採用済み</td></tr>
+            <tr><th scope="row">REC-003</th><td>集約内連番、60秒lease、冪等キー、隔離キューを持つOutbox</td><td><a href="HLD.html#HLD-OUT-001">HLD-OUT-001</a></td><td>採用済み</td></tr>
+            <tr><th scope="row">REC-004</th><td>隔離から削除までのファイル状態と保持を一つのライフサイクルへ統合</td><td><a href="HLD.html#HLD-FIL-001">HLD-FIL-001</a></td><td>採用済み</td></tr>
+            <tr><th scope="row">REC-005</th><td>各拠点3ノード、実効容量、契約・運用上限を確定</td><td><a href="HLD.html#HLD-DEP-001">HLD-DEP-001</a></td><td>採用済み</td></tr>
+            <tr><th scope="row">REC-006</th><td>rootless、read-only、capability除去、資源制限、署名イメージ</td><td><a href="HLD.html#HLD-CNT-001">HLD-CNT-001</a></td><td>採用済み</td></tr>
+            <tr><th scope="row">REC-007</th><td>公開3入口と外向き通信を台帳化し、管理面を非公開化</td><td><a href="HLD.html#HLD-NET-001">HLD-NET-001</a></td><td>採用済み</td></tr>
+            <tr><th scope="row">REC-008</th><td>Valkey障害時の新規ログイン拒否と既存セッション検証失敗を確定</td><td><a href="HLD.html#HLD-AUT-001">HLD-AUT-001</a></td><td>採用済み</td></tr>
+            <tr><th scope="row">REC-009</th><td>SLI計算式、SLO、外部依存障害時の縮退を確定</td><td><a href="HLD.html#HLD-SLO-001">HLD-SLO-001</a></td><td>採用済み</td></tr>
+            <tr><th scope="row">REC-010</th><td>Stripe署名Webhookに加え日次照合と利用権補正を採用</td><td><a href="HLD.html#HLD-BIL-001">HLD-BIL-001</a></td><td>採用済み</td></tr>
+            <tr><th scope="row">REC-011</th><td>60分支援grant、別承認者、利用者通知、緊急停止を確定</td><td><a href="HLD.html#HLD-SUP-001">HLD-SUP-001</a></td><td>採用済み</td></tr>
+            <tr><th scope="row">REC-012</th><td>保管層別の保持期間、法的保持、復元後再削除を統合</td><td><a href="HLD.html#HLD-DEL-001">HLD-DEL-001</a></td><td>採用済み</td></tr>
+            <tr><th scope="row">REC-013</th><td>expand／migrate／contractと互換期間を確定</td><td><a href="HLD.html#HLD-MIG-001">HLD-MIG-001</a></td><td>採用済み</td></tr>
+            <tr><th scope="row">REC-014</th><td>技術系列と本番パッチの責任・更新証拠を分離</td><td><a href="HLD.html#HLD-REL-001">HLD-REL-001</a></td><td>採用済み</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" id="decisions">
+      <div class="section__head">
+        <div><p class="section__label">05 / Decisions</p><h2>判断保留の確定</h2></div>
+        <p>旧レビューで保留されていた4項目は、次の採用判断へ置換した。再選定や裁量判断を実装工程へ持ち越さない。</p>
+      </div>
+      <div class="decision-grid">
+        <article class="decision" id="RSL-001"><span class="record__id">RSL-001 / 旧レビュー項目1</span><h3>オブジェクトストレージ</h3><p>Ceph Tentacle 20.2系列のRGWを採用する。主系master zone、副系read-only zoneの独立クラスタとする。関連：<a href="HLD.html#DEC-104">DEC-104</a>。</p></article>
+        <article class="decision" id="RSL-002"><span class="record__id">RSL-002 / 旧レビュー項目2</span><h3>直接添付上限</h3><p>最大4,000,000,000バイト、64MiB、最大60パート、署名15分、全体24時間とする。関連：<a href="HLD.html#HLD-FIL-002">HLD-FIL-002</a>。</p></article>
+        <article class="decision" id="RSL-003"><span class="record__id">RSL-003 / 旧レビュー項目3</span><h3>プレビュー対応</h3><p>画像、PDF、音声、動画、UTF-8テキストごとにツール、上限、出力、失敗時のdownload-only動作を固定する。関連：<a href="HLD.html#HLD-FIL-003">HLD-FIL-003</a>。</p></article>
+        <article class="decision" id="RSL-004"><span class="record__id">RSL-004 / 旧レビュー項目4</span><h3>物理配置と容量</h3><p>各拠点3台の同一構成、第三拠点witness、専用バックアップ、オフライン媒体を採用する。関連：<a href="HLD.html#HLD-DEP-001">HLD-DEP-001</a>。</p></article>
+      </div>
+    </section>
+
+    <section class="section" id="release">
+      <div class="section__head">
+        <div><p class="section__label">06 / Release</p><h2>本番投入条件</h2></div>
+        <p>以下は設計の選択肢ではなく、確定設計どおりに実装・運用できることを証明する実行条件である。証拠が一件でも欠けた場合、リリース判定はフェイルクローズする。</p>
+      </div>
+      <article class="record" id="PRO-201">
+        <header class="record__head">
+          <span class="record__id">PRO-201</span>
+          <h3>Production V1リリース証拠</h3>
+          <span class="status status--gate">承認済み</span>
+        </header>
+        <dl class="contract"><div><dt>種別</dt><dd>リリース制御</dd></div><div><dt>規範強度</dt><dd>必須</dd></div><div><dt>適用範囲</dt><dd>Production V1本番投入</dd></div><div><dt>状態</dt><dd>条件確定</dd></div></dl>
+        <p class="record__statement">次の証拠をすべて承認するまで本番公開を拒否し、一件でも不合格または欠落があればリリースを自動停止する。</p>
+        <ul>
+          <li><a href="HLD.html#HLD-TRC-001">HLD-TRC-001</a>の107試験IDすべてに、再現可能な合格証拠がある。</li>
+          <li>RPO・RTO、旧主系フェンシング、一貫復旧、全認証失効、削除再適用を隔離環境で訓練済みである。</li>
+          <li>4GB正常・悪性・破損・暗号化・停止・時間超過入力で、未検査ファイルが配布可能にならない。</li>
+          <li>脅威モデル、認可境界、供給網、秘密・鍵、法務・プライバシーの専門確認が完了している。</li>
+          <li>起動前検査、容量・時刻・複製遅延の自動停止、監査検証、ロールバックを運用担当者が実行できる。</li>
+        </ul>
+      </article>
+      <div class="callout">
+        <p><strong>最終状態：</strong>設計保留0件。概要設計レビューは閉鎖。本番投入は<code>PRO-201</code>の証拠承認後に限る。</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <p>HLDレビュー完了記録 1.0.0 · 対象 HLD.html 1.2.0 · 基準 REQUIREMENTS.html 1.2.0 · 全指摘解消 2026-08-03</p>
+  </footer>
+</body>
+</html>

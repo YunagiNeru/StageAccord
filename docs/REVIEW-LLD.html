@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Stage Accord Production V1 詳細設計書 LLD.html のレビュー結果と必須修正事項。">
+  <title>Stage Accord LLD レビュー</title>
+  <style>
+:root {
+  color-scheme: light;
+  --font-display: "Bahnschrift", "Arial Narrow", ui-sans-serif, sans-serif;
+  --font-body: "Aptos", "Segoe UI", "Yu Gothic UI", "Yu Gothic", ui-sans-serif, sans-serif;
+  --font-mono: "Cascadia Mono", "Consolas", ui-monospace, monospace;
+  --color-paper: oklch(97.5% 0.009 258);
+  --color-paper-raised: oklch(99% 0.006 258);
+  --color-paper-subtle: oklch(94.5% 0.014 258);
+  --color-ink: oklch(19% 0.025 258);
+  --color-ink-soft: oklch(37% 0.028 258);
+  --color-muted: oklch(49% 0.025 258);
+  --color-rule: oklch(82% 0.022 258);
+  --color-rule-strong: oklch(67% 0.035 258);
+  --color-accent: oklch(52% 0.19 258);
+  --color-accent-strong: oklch(42% 0.18 258);
+  --color-accent-soft: oklch(92% 0.045 258);
+  --color-positive: oklch(42% 0.11 151);
+  --color-positive-soft: oklch(93% 0.035 151);
+  --color-warning: oklch(47% 0.105 76);
+  --color-warning-soft: oklch(94% 0.045 76);
+  --color-danger: oklch(44% 0.16 28);
+  --color-danger-soft: oklch(93% 0.045 28);
+  --color-focus: oklch(56% 0.2 258);
+  --color-shadow: oklch(19% 0.025 258 / 0.09);
+  --space-3xs: .125rem;
+  --space-2xs: .25rem;
+  --space-xs: .5rem;
+  --space-sm: .75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+  --space-3xl: 6rem;
+  --text-xs: .75rem;
+  --text-sm: .875rem;
+  --text-base: 1rem;
+  --text-md: 1.25rem;
+  --text-lg: 1.5625rem;
+  --text-xl: 1.953rem;
+  --text-2xl: 2.441rem;
+  --text-3xl: 3.052rem;
+  --text-display: clamp(2.45rem, 5vw + .5rem, 5.25rem);
+  --leading-display: 1.08;
+  --leading-heading: 1.2;
+  --leading-body: 1.65;
+  --measure: 74ch;
+  --page-max: 100rem;
+  --rail-width: 13rem;
+  --radius-xs: .125rem;
+  --radius-sm: .25rem;
+  --radius-md: .5rem;
+  --border-hairline: .0625rem;
+  --border-strong: .125rem;
+  --shadow-whisper: 0 .125rem .5rem var(--color-shadow);
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { overflow-x: clip; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-body);
+  text-rendering: optimizeLegibility;
+}
+a { color: var(--color-accent-strong); text-underline-offset: .18em; }
+a:hover { color: var(--color-accent); }
+a:focus-visible, summary:focus-visible { outline: var(--border-strong) solid var(--color-focus); outline-offset: var(--space-2xs); }
+code, kbd, samp { font-family: var(--font-mono); font-size: .92em; font-variant-numeric: tabular-nums; }
+code { padding: var(--space-3xs) var(--space-2xs); background: var(--color-paper-subtle); border-radius: var(--radius-xs); overflow-wrap: anywhere; }
+h1, h2, h3, h4 { margin: 0; min-width: 0; font-family: var(--font-display); line-height: var(--leading-heading); letter-spacing: -.025em; overflow-wrap: anywhere; }
+h1 { max-width: 13ch; font-size: var(--text-display); line-height: var(--leading-display); }
+h2 { max-width: 30ch; font-size: clamp(var(--text-xl), 4vw, var(--text-3xl)); }
+h3 { font-size: var(--text-lg); }
+h4 { font-size: var(--text-base); }
+p, ul, ol, dl { margin: 0; }
+ul, ol { padding-inline-start: var(--space-lg); }
+li + li { margin-block-start: var(--space-xs); }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+caption { padding-block-end: var(--space-sm); color: var(--color-ink-soft); font-weight: 700; text-align: start; }
+th, td { padding: var(--space-sm) var(--space-md); border-block-end: var(--border-hairline) solid var(--color-rule); text-align: start; vertical-align: top; }
+th { background: var(--color-paper-subtle); font-weight: 700; }
+tbody tr:last-child > * { border-block-end: 0; }
+.skip-link { position: fixed; inset: var(--space-xs) auto auto var(--space-xs); z-index: 100; transform: translateY(-180%); padding: var(--space-sm) var(--space-md); background: var(--color-ink); color: var(--color-paper-raised); border-radius: var(--radius-sm); }
+.skip-link:focus { transform: none; }
+.document { width: min(100%, var(--page-max)); margin-inline: auto; }
+.rail { display: none; }
+.mobile-index { margin: var(--space-md); padding: var(--space-md); background: var(--color-paper-raised); border: var(--border-hairline) solid var(--color-rule); border-radius: var(--radius-sm); }
+.mobile-index summary { cursor: pointer; font-weight: 700; }
+.mobile-index ol { margin-block-start: var(--space-md); }
+.page { min-width: 0; }
+.hero { padding: var(--space-2xl) clamp(var(--space-md), 5vw, var(--space-3xl)) var(--space-3xl); border-block-end: var(--border-strong) solid var(--color-ink); }
+.eyebrow { margin-block-end: var(--space-lg); color: var(--color-accent-strong); font: 700 var(--text-xs)/1.2 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+.lede { max-width: 62ch; margin-block-start: var(--space-lg); color: var(--color-ink-soft); font-size: var(--text-md); }
+.document-contract { display: grid; gap: var(--space-md) var(--space-lg); margin-block-start: var(--space-xl); }
+.document-contract div { padding-block-start: var(--space-sm); border-block-start: var(--border-hairline) solid var(--color-rule); }
+.document-contract dt { color: var(--color-muted); font: 700 var(--text-xs)/1.2 var(--font-mono); }
+.document-contract dd { margin: var(--space-2xs) 0 0; font-weight: 650; }
+.section { max-width: var(--measure); margin-inline: auto; padding: var(--space-2xl) clamp(var(--space-md), 5vw, var(--space-3xl)); scroll-margin-block-start: var(--space-lg); }
+.section + .section { border-block-start: var(--border-hairline) solid var(--color-rule); }
+.section--wide { max-width: 90rem; }
+.section > * + * { margin-block-start: var(--space-lg); }
+.section__header { display: flex; flex-direction: column; gap: var(--space-sm); margin-block-end: var(--space-xl); }
+.section__label { color: var(--color-accent-strong); font: 700 var(--text-xs)/1.2 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+.section__lede { max-width: 62ch; color: var(--color-ink-soft); font-size: var(--text-md); }
+.verdict { padding: var(--space-xl); background: var(--color-danger-soft); border: var(--border-strong) solid var(--color-danger); border-radius: var(--radius-sm); }
+.verdict__label { color: var(--color-danger); font: 700 var(--text-xs)/1.2 var(--font-mono); text-transform: uppercase; letter-spacing: .08em; }
+.verdict h2 { margin-block-start: var(--space-sm); color: var(--color-danger); }
+.verdict p { margin-block-start: var(--space-md); max-width: 66ch; }
+.score-strip { display: grid; gap: var(--space-md); }
+.score { padding: var(--space-lg); background: var(--color-paper-raised); border-block-start: var(--border-strong) solid var(--color-rule-strong); }
+.score dt { color: var(--color-muted); font: 700 var(--text-xs)/1.2 var(--font-mono); }
+.score dd { margin: var(--space-xs) 0 0; font-family: var(--font-display); font-size: var(--text-2xl); font-weight: 700; }
+.score--danger { border-color: var(--color-danger); }
+.score--danger dd { color: var(--color-danger); }
+.score--warning { border-color: var(--color-warning); }
+.score--warning dd { color: var(--color-warning); }
+.diagram { margin: 0; padding: var(--space-lg); background: var(--color-paper-raised); border: var(--border-hairline) solid var(--color-rule); border-radius: var(--radius-sm); }
+.diagram svg { display: block; width: 100%; height: auto; }
+.diagram figcaption { margin-block-start: var(--space-md); color: var(--color-ink-soft); }
+.diagram .node { fill: var(--color-paper-raised); stroke: var(--color-rule-strong); stroke-width: 1.5; }
+.diagram .node--focus { fill: var(--color-accent-soft); stroke: var(--color-accent); }
+.diagram .node--danger { fill: var(--color-danger-soft); stroke: var(--color-danger); }
+.diagram .edge { fill: none; stroke: var(--color-rule-strong); stroke-width: 1.5; }
+.diagram text { fill: var(--color-ink); font-family: var(--font-body); font-size: 14px; }
+.table-wrap { overflow-x: auto; border-block: var(--border-hairline) solid var(--color-rule-strong); }
+.record-list { display: grid; gap: var(--space-lg); }
+.record { padding: var(--space-lg); background: var(--color-paper-raised); border: var(--border-hairline) solid var(--color-rule); border-inline-start-width: .3rem; border-radius: var(--radius-sm); }
+.record--danger { border-inline-start-color: var(--color-danger); }
+.record--warning { border-inline-start-color: var(--color-warning); }
+.record--info { border-inline-start-color: var(--color-accent); }
+.record:target { outline: var(--border-strong) solid var(--color-focus); outline-offset: var(--space-2xs); }
+.record__header { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm); }
+.record__id { color: var(--color-accent-strong); font: 700 var(--text-xs)/1.2 var(--font-mono); }
+.record__title { flex: 1 1 24rem; font-size: var(--text-md); }
+.record__meta { display: grid; gap: var(--space-xs) var(--space-md); margin-block-start: var(--space-md); }
+.record__meta div { display: grid; grid-template-columns: minmax(6rem, auto) minmax(0, 1fr); gap: var(--space-sm); padding-block: var(--space-xs); border-block-start: var(--border-hairline) solid var(--color-rule); }
+.record__meta dt { color: var(--color-muted); font: 700 var(--text-xs)/1.4 var(--font-mono); }
+.record__meta dd { margin: 0; }
+.record__statement { margin-block-start: var(--space-lg); font-size: var(--text-md); font-weight: 700; line-height: 1.5; }
+.record__body { display: grid; gap: var(--space-lg); margin-block-start: var(--space-lg); }
+.record__body div { padding-block-start: var(--space-md); border-block-start: var(--border-hairline) solid var(--color-rule); }
+.record__body h4 { margin-block-end: var(--space-xs); color: var(--color-ink-soft); }
+.record details { margin-block-start: var(--space-lg); padding-block-start: var(--space-md); border-block-start: var(--border-hairline) solid var(--color-rule); }
+.record summary { cursor: pointer; color: var(--color-accent-strong); font-weight: 700; }
+.record details p { margin-block-start: var(--space-md); }
+.status, .severity { display: inline-flex; align-items: center; min-height: 1.75rem; padding: var(--space-2xs) var(--space-sm); border: var(--border-hairline) solid currentColor; border-radius: var(--radius-sm); font: 700 var(--text-xs)/1 var(--font-mono); white-space: nowrap; }
+.status--open { color: var(--color-warning); background: var(--color-warning-soft); }
+.severity--danger { color: var(--color-danger); background: var(--color-danger-soft); }
+.severity--warning { color: var(--color-warning); background: var(--color-warning-soft); }
+.severity--info { color: var(--color-accent-strong); background: var(--color-accent-soft); }
+.trace-links { display: flex; flex-wrap: wrap; gap: var(--space-xs); }
+.trace-links a { text-decoration: none; }
+.callout { padding: var(--space-lg); background: var(--color-accent-soft); border: var(--border-hairline) solid var(--color-rule); border-radius: var(--radius-sm); }
+.callout--positive { background: var(--color-positive-soft); border-color: var(--color-positive); }
+.steps { padding: 0; list-style: none; counter-reset: stage; }
+.steps li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-md); padding-block: var(--space-lg); border-block-end: var(--border-hairline) solid var(--color-rule); counter-increment: stage; }
+.steps li::before { content: counter(stage, decimal-leading-zero); color: var(--color-accent-strong); font: 700 var(--text-sm)/1.3 var(--font-mono); }
+.steps li > div > * + * { margin-block-start: var(--space-sm); }
+.foot { padding: var(--space-lg) clamp(var(--space-md), 5vw, var(--space-3xl)); border-block-start: var(--border-hairline) solid var(--color-rule); color: var(--color-muted); font-size: var(--text-sm); }
+@media (min-width: 44rem) {
+  .document-contract { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .score-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .record__body { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (min-width: 64rem) {
+  .rail { position: fixed; inset: 0 auto 0 0; z-index: 20; display: flex; width: var(--rail-width); flex-direction: column; gap: var(--space-xl); padding: var(--space-lg); overflow-y: auto; background: var(--color-paper-raised); border-inline-end: var(--border-hairline) solid var(--color-rule); }
+  .rail__title { font-family: var(--font-display); font-weight: 700; line-height: 1.2; }
+  .rail ol { padding: 0; list-style: none; }
+  .rail li + li { margin-block-start: var(--space-sm); }
+  .rail a { color: var(--color-ink-soft); font-size: var(--text-sm); text-decoration: none; }
+  .rail a:hover { color: var(--color-accent); text-decoration: underline; }
+  .mobile-index { display: none; }
+  .page, .foot { margin-inline-start: var(--rail-width); }
+  .document-contract { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media print {
+  .rail, .mobile-index, .skip-link { display: none; }
+  .page, .foot { margin: 0; }
+  body { background: white; color: black; }
+  .section, .record, .diagram { break-inside: avoid; }
+  h2, h3 { break-after: avoid; }
+  a { color: inherit; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">本文へ移動</a>
+<div class="document">
+  <aside class="rail" aria-label="文書内索引">
+    <p class="rail__title">Stage Accord<br>LLD Review</p>
+    <nav aria-label="主要章"><ol>
+      <li><a href="#contract">文書契約</a></li>
+      <li><a href="#verdict">判定</a></li>
+      <li><a href="#strengths">成立している点</a></li>
+      <li><a href="#blockers">Blocker</a></li>
+      <li><a href="#major">Major</a></li>
+      <li><a href="#minor">Minor</a></li>
+      <li><a href="#sequence">修正順序</a></li>
+      <li><a href="#acceptance">再レビュー条件</a></li>
+    </ol></nav>
+  </aside>
+  <details class="mobile-index">
+    <summary>レビュー文書の目次</summary>
+    <nav aria-label="モバイル文書内索引"><ol>
+      <li><a href="#contract">文書契約</a></li><li><a href="#verdict">判定</a></li>
+      <li><a href="#strengths">成立している点</a></li><li><a href="#blockers">Blocker</a></li>
+      <li><a href="#major">Major</a></li><li><a href="#minor">Minor</a></li>
+      <li><a href="#sequence">修正順序</a></li><li><a href="#acceptance">再レビュー条件</a></li>
+    </ol></nav>
+  </details>
+  <main class="page" id="main">
+    <header class="hero" id="top">
+      <p class="eyebrow">Design Review / Production V1</p>
+      <h1>Stage Accord LLD レビュー</h1>
+      <p class="lede">詳細設計書を要件定義書と概要設計書へ照合し、実装開始前に解消すべき矛盾、欠落、曖昧な安全契約を、AIが修正へ直接利用できる形で記録する。</p>
+      <dl class="document-contract">
+        <div><dt>状態</dt><dd>レビュー完了・修正要求あり</dd></div>
+        <div><dt>対象</dt><dd>LLD.html 1.0.0</dd></div>
+        <div><dt>基準</dt><dd>REQUIREMENTS.html 1.2.0／HLD.html 1.2.0</dd></div>
+        <div><dt>判定</dt><dd>実装開始不可・修正後再レビュー</dd></div>
+        <div><dt>証拠レベル</dt><dd>文書静的確認済み</dd></div>
+        <div><dt>未確認</dt><dd>実装、実UI、実ログ、実機、本番環境</dd></div>
+        <div><dt>作成日</dt><dd>2026-08-03</dd></div>
+        <div><dt>成果物</dt><dd>REVIEW-LLD.html</dd></div>
+      </dl>
+    </header>
+
+    <section class="section" id="contract">
+      <header class="section__header">
+        <p class="section__label">01 / Contract</p>
+        <h2>文書契約</h2>
+        <p class="section__lede">本書はLLDの代替設計ではなく、LLDを承認可能な状態へ修正するためのレビュー正本である。</p>
+      </header>
+      <div class="table-wrap"><table>
+        <caption>レビュー対象と利用方法</caption>
+        <thead><tr><th scope="col">項目</th><th scope="col">内容</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">読者</th><td>LLD修正担当AI、バックエンド・フロントエンド・インフラ実装者、DB所有者、セキュリティ・運用レビュー担当者。</td></tr>
+          <tr><th scope="row">正本</th><td>各 <code>REQ-3xx</code> と <code>REC-3xx</code> レコードの正本本文、必須修正、解消条件。</td></tr>
+          <tr><th scope="row">優先関係</th><td>REQUIREMENTS.htmlの要求と受入条件、HLD.htmlの境界と設計判断、本レビュー、LLD.htmlの順に照合する。本レビューは上位文書を変更しない。</td></tr>
+          <tr><th scope="row">対象外</th><td>実装コードの品質、技術製品の最新互換性、負荷試験の実測値、法的妥当性、実環境のネットワーク・鍵・復旧証拠。</td></tr>
+          <tr><th scope="row">読了後の行動</th><td>Blockerを上から解消し、Major、Minorを反映し、追跡・機械監査・再レビューを実施する。</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section class="section section--wide" id="verdict">
+      <div class="verdict">
+        <p class="verdict__label">Review verdict</p>
+        <h2>実装開始不可</h2>
+        <p>文書の構造、モジュール境界、フェイルクローズ、復旧、要件追跡の基盤は良好である。一方、外部API、フロントエンド、状態機械、認可、認証ライフサイクル、ファイル配布、監査・削除・拠点fencingに実装を一意に決められない箇所が残る。Blockerを解消するまでProduction V1の実装基準として承認しない。</p>
+      </div>
+      <dl class="score-strip" aria-label="指摘件数">
+        <div class="score score--danger"><dt>Blocker</dt><dd>13</dd></div>
+        <div class="score score--warning"><dt>Major</dt><dd>7</dd></div>
+        <div class="score"><dt>Minor</dt><dd>2</dd></div>
+      </dl>
+      <figure class="diagram">
+        <svg viewBox="0 0 900 220" role="img" aria-labelledby="review-map-title review-map-desc">
+          <title id="review-map-title">レビューの判定経路</title>
+          <desc id="review-map-desc">107件の要求を追跡する要件定義書と30件の概要設計制御を、詳細設計書のAPI、データ、状態、認可、運用へ照合し、未解決指摘があるため実装開始不可と判定した。</desc>
+          <path class="edge" d="M210 110 H290 M500 110 H580 M760 110 H820"></path>
+          <rect class="node" x="20" y="60" width="190" height="100" rx="4"></rect>
+          <rect class="node node--focus" x="290" y="60" width="210" height="100" rx="4"></rect>
+          <rect class="node" x="580" y="60" width="180" height="100" rx="4"></rect>
+          <rect class="node node--danger" x="820" y="60" width="70" height="100" rx="4"></rect>
+          <text x="115" y="100" text-anchor="middle">REQUIREMENTS</text><text x="115" y="126" text-anchor="middle">107 requirements</text>
+          <text x="395" y="100" text-anchor="middle">HLD</text><text x="395" y="126" text-anchor="middle">30 controls</text>
+          <text x="670" y="100" text-anchor="middle">LLD</text><text x="670" y="126" text-anchor="middle">implementation contract</text>
+          <text x="855" y="100" text-anchor="middle">STOP</text><text x="855" y="126" text-anchor="middle">22</text>
+        </svg>
+        <figcaption>構造上の追跡は成立しているが、詳細契約の不足により実装開始ゲートを閉じる。</figcaption>
+      </figure>
+    </section>
+
+    <section class="section" id="strengths">
+      <header class="section__header">
+        <p class="section__label">03 / Strengths</p>
+        <h2>成立している点</h2>
+        <p class="section__lede">以下は維持すべき設計資産であり、修正時に削除または弱体化してはならない。</p>
+      </header>
+      <div class="callout callout--positive">
+        <ul>
+          <li>REQUIREMENTSのFR 83件・NFR 24件、計107件はHLD追跡表に重複・欠落なく存在する。</li>
+          <li>HLDの安定ID 30件はLLD追跡表に重複・欠落なく存在する。</li>
+          <li>三文書に重複IDと文書内リンク切れは見つからなかった。</li>
+          <li>モジュラーモノリス、内向き依存、schema所有権、Transactional Outbox、既定拒否の方向性は一貫している。</li>
+          <li>ファイルの隔離・全本文検査・副拠点照合、時刻劣化、二重fence、復元後の認証失効、削除再適用を設計対象に含めている。</li>
+          <li>正常系だけでなく、重複、逆順、期限、依存停止、復元後を試験観点へ含めている。</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section section--wide" id="blockers">
+      <header class="section__header"><p class="section__label">04 / Blocker</p><h2>実装を止める指摘</h2><p class="section__lede">一件でも未解決なら、API、DB、認証、ファイル、復旧の後戻りが大きいため実装開始を承認しない。</p></header>
+      <div class="record-list">
+<article class="record record--danger" id="REQ-301">
+  <header class="record__header">
+    <span class="record__id">REQ-301</span>
+    <h3 class="record__title">フロントエンド詳細設計を正本へ追加する</h3>
+    <span class="severity severity--danger">Blocker</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>要求</dd></div>
+    <div><dt>規範強度</dt><dd>必須</dd></div>
+    <div><dt>適用範囲</dt><dd>LLD 全体／web/src／公開・依頼者・クリエイター・運営画面</dd></div>
+    <div><dt>参照</dt><dd class="trace-links"><a href="LLD.html#architecture"><code>LLD 実装構造</code></a> <a href="LLD.html#verification"><code>LLD 検証</code></a> <a href="REQUIREMENTS.html#ux"><code>要件 UX</code></a> <a href="REQUIREMENTS.html#NFR-ACC-001"><code>NFR-ACC-001</code></a> <a href="REQUIREMENTS.html#NFR-UX-001"><code>NFR-UX-001</code></a></dd></div>
+  </dl>
+  <p class="record__statement">LLDは、Reactフロントエンドの実装境界、画面・ルート、状態管理、API連携、認証初期化、フォーム、アップロード、エラー・縮退表示、アクセシビリティ、およびフロントエンド試験を実装可能な契約として追加しなければならない。</p>
+  <div class="record__body">
+    <div><h4>影響</h4><p>要件のUI・アクセシビリティ・レスポンシブ・読取専用表示を、実装者が独自解釈する。画面とAPIの状態名が分岐し、権限拒否や検査中ファイルを安全状態と誤表示する可能性がある。</p></div>
+    <div><h4>必須修正</h4><p>最低限、ルート台帳、画面別ユースケース、サーバー状態と一時UI状態の分離、OpenAPI生成クライアント、認証・CSRFブートストラップ、フォーム検証、アップロード再開、エラーコード表示、縮退モード、公開DTO利用、アクセシビリティパターン、E2E試験を同じ文書へ追加する。</p></div>
+    <div><h4>解消条件</h4><p>NFR-ACC-001、NFR-UX-001および主要画面要件が、画面・コンポーネント・API・試験IDへ直接追跡でき、実装者が別の設計判断を作らず実装へ着手できる。</p></div>
+  </div>
+  <details>
+    <summary>根拠となる観測</summary>
+    <p>LLDはソース配置で web/src の責務を一行で示し、検証章でUI試験を列挙するが、画面構造、ルート、コンポーネント境界、状態遷移、APIキャッシュ、認証復帰、失敗表示の詳細契約がない。</p>
+  </details>
+</article>
+
+
+<article class="record record--danger" id="REQ-302">
+  <header class="record__header">
+    <span class="record__id">REQ-302</span>
+    <h3 class="record__title">外部操作と公開APIの対応を完全化する</h3>
+    <span class="severity severity--danger">Blocker</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>要求</dd></div>
+    <div><dt>規範強度</dt><dd>必須</dd></div>
+    <div><dt>適用範囲</dt><dd>LLD モジュール公開契約／REST endpoint台帳</dd></div>
+    <div><dt>参照</dt><dd class="trace-links"><a href="LLD.html#modules"><code>LLD モジュール・API</code></a> <a href="REQUIREMENTS.html#functional"><code>全機能要件</code></a> <a href="HLD.html#HLD-TRC-001"><code>HLD 要件追跡</code></a></dd></div>
+  </dl>
+  <p class="record__statement">「Production V1の公開HTTP面」とするendpoint台帳は、利用者または運営者が開始する全機能要件を、method、path、use case、許可主体、冪等性、競合、成功応答、失敗応答まで含めて完全に定義しなければならない。</p>
+  <div class="record__body">
+    <div><h4>影響</h4><p>AIまたは実装者がURI、権限、状態、エラーを補完するため、クライアントとサーバーの契約、監査、認可が分岐する。要件を実装済みと誤判定する。</p></div>
+    <div><h4>必須修正</h4><p>83件のFRを外部操作、内部同期処理、非同期処理に分類し、外部操作はendpoint台帳へ一対一または明示的な統合関係を追加する。内部処理は「HTTP非公開」と理由を明記する。</p></div>
+    <div><h4>解消条件</h4><p>83件のFRについて、外部開始点または内部開始条件が空欄なく追跡され、OpenAPI operationIdと親test IDの集合検査が成功する。</p></div>
+  </div>
+  <details>
+    <summary>根拠となる観測</summary>
+    <p>モジュール公開契約は82 use caseを列挙する一方、endpoint台帳は58行である。内部専用use caseを除いても、招待承諾、所有権移転、認証要素管理、復旧コード、受付上限・休止、サービス複製・休止・アーカイブ、workflow編集・公開、依頼一覧・確認依頼・取下げ、内部task、cancel、通知設定、通報・block、利用者データ出力・削除要求などの外部契約がない。</p>
+  </details>
+</article>
+
+
+<article class="record record--danger" id="REQ-303">
+  <header class="record__header">
+    <span class="record__id">REQ-303</span>
+    <h3 class="record__title">状態名と遷移を単一の正本へ統合する</h3>
+    <span class="severity severity--danger">Blocker</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>要求</dd></div>
+    <div><dt>規範強度</dt><dd>必須</dd></div>
+    <div><dt>適用範囲</dt><dd>Project、Checkpoint、FileVersion、Subscription、RuntimeMode</dd></div>
+    <div><dt>参照</dt><dd class="trace-links"><a href="LLD.html#states"><code>LLD 状態機械</code></a> <a href="LLD.html#files"><code>LLD ファイル</code></a> <a href="REQUIREMENTS.html#states"><code>要件 状態遷移</code></a> <a href="REQUIREMENTS.html#FR-PRJ-006"><code>FR-PRJ-006</code></a> <a href="REQUIREMENTS.html#FR-FIL-005"><code>FR-FIL-005</code></a></dd></div>
+  </dl>
+  <p class="record__statement">各集約の状態名、正当遷移、command、guard、DB CHECK、発行event、API表示状態は一つの状態機械から導出し、章や表の間で異なる状態名を使用してはならない。</p>
+  <div class="record__body">
+    <div><h4>影響</h4><p>同じファイルや案件がAPI、DB、worker、UIで異なる状態として扱われ、誤配布、解除不能、承認不能、削除不能が発生する。</p></div>
+    <div><h4>必須修正</h4><p>集約ごとに状態列挙表を置き、全状態の入口・出口・終端性・再試行可否・公開表示を定義する。Projectへキャンセルと紛争解消を追加し、FileVersionの preview_failed と download_only の関係を一意に決める。</p></div>
+    <div><h4>解消条件</h4><p>状態列挙、遷移表、DDL CHECK、OpenAPI schema、event type、UI表示の集合差分がゼロとなり、全不正遷移試験が定義される。</p></div>
+  </div>
+  <details>
+    <summary>根拠となる観測</summary>
+    <p>Project状態機械にキャンセル協議・キャンセル済みと紛争終了経路がなく、FileVersionは preview_failed を持つ一方、download grantは download_only を許可する。ファイル取込説明も変換失敗をdownload_onlyと記述しており、保存状態が確定していない。</p>
+  </details>
+</article>
+
+
+<article class="record record--danger" id="REQ-304">
+  <header class="record__header">
+    <span class="record__id">REQ-304</span>
+    <h3 class="record__title">HTTP DELETEと冪等性の適用範囲を分離する</h3>
+    <span class="severity severity--danger">Blocker</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>要求</dd></div>
+    <div><dt>規範強度</dt><dd>必須</dd></div>
+    <div><dt>適用範囲</dt><dd>HTTP共通契約／認証・メンバー・アップロード・削除API</dd></div>
+    <div><dt>参照</dt><dd class="trace-links"><a href="LLD.html#api"><code>LLD HTTP共通契約</code></a> <a href="LLD.html#modules"><code>LLD endpoint台帳</code></a></dd></div>
+  </dl>
+  <p class="record__statement">非同期データ削除、セッション失効、メンバー失効、multipart中止を同一のDELETE契約で扱わず、各操作の応答、冪等性、再試行、監査、秘密応答の保存可否を個別に定義しなければならない。</p>
+  <div class="record__body">
+    <div><h4>影響</h4><p>実装ごとに200、202、204が分岐し、単回tokenやsession応答が再配布される。クライアント再試行が失効操作や秘密発行を誤って再現する。</p></div>
+    <div><h4>必須修正</h4><p>HTTP操作を「即時失効」「冪等な中止」「非同期削除」「秘密発行」「一般command」に分類し、status code、応答body、Idempotency-Key要否、保存可能フィールド、保持期間を表で定義する。</p></div>
+    <div><h4>解消条件</h4><p>全endpointが一つの操作分類へ所属し、認証token、Cookie、署名URL、復旧情報をidempotency responseへ保存・再返却しない試験がある。</p></div>
+  </div>
+  <details>
+    <summary>根拠となる観測</summary>
+    <p>共通契約はDELETEを202とdeletionRequestIdを返す削除workflowと規定するが、endpoint台帳には logout、membership revoke、upload abort、file deletionが同じDELETEで存在する。また全POST commandへIdempotency-Keyを要求し、response bodyを保存する設計は、login、再認証、link redemption、download grantなど秘密を返す操作にも適用され得る。</p>
+  </details>
+</article>
+
+
+<article class="record record--danger" id="REQ-305">
+  <header class="record__header">
+    <span class="record__id">REQ-305</span>
+    <h3 class="record__title">権限表とendpoint許可主体の競合を解消する</h3>
+    <span class="severity severity--danger">Blocker</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>要求</dd></div>
+    <div><dt>規範強度</dt><dd>必須</dd></div>
+    <div><dt>適用範囲</dt><dd>Creator役割、Billing、Service、ExternalLink、Export</dd></div>
+    <div><dt>参照</dt><dd class="trace-links"><a href="REQUIREMENTS.html#permissions"><code>要件 権限</code></a> <a href="LLD.html#security"><code>LLD 権限行列</code></a> <a href="LLD.html#modules"><code>LLD endpoint許可主体</code></a></dd></div>
+  </dl>
+  <p class="record__statement">REQUIREMENTSの役割権限、LLDの認可行列、各endpointの許可主体は完全に一致し、広い総称で権限を拡大してはならない。</p>
+  <div class="record__body">
+    <div><h4>影響</h4><p>請求情報の過剰公開、正当な担当者の操作不能、viewerによる変更操作など、権限越境または機能欠落が生じる。</p></div>
+    <div><h4>必須修正</h4><p>役割×操作×条件の正本行列を一つ置き、endpointは行列IDを参照する。非機密な利用可能機能を全memberへ返す場合は、請求情報と分離したWorkspaceCapabilities DTOを定義する。</p></div>
+    <div><h4>解消条件</h4><p>Creator 5役割、Client 4役割、運営者、匿名のallow／deny集合が要件・API・policy testで一致する。</p></div>
+  </div>
+  <details>
+    <summary>根拠となる観測</summary>
+    <p>要件の請求権限はowner、billing admin、adminの閲覧に限定するが、LLDのGetEntitlementsはworkspace member全体を許可する。要件はmemberに割当範囲のサービス・テンプレート操作を認めるが、LLDのdraft・publication APIはownerとadminだけである。ExternalLinkの「案件参加者」もviewerを含むか確定しない。</p>
+  </details>
+</article>
+
+
+<article class="record record--danger" id="REQ-306">
+  <header class="record__header">
+    <span class="record__id">REQ-306</span>
+    <h3 class="record__title">DBによるモジュール所有権とテナント境界を実装可能にする</h3>
+    <span class="severity severity--danger">Blocker</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>要求</dd></div>
+    <div><dt>規範強度</dt><dd>必須</dd></div>
+    <div><dt>適用範囲</dt><dd>PostgreSQL schema、接続role、複合PK／FK、管理・worker経路</dd></div>
+    <div><dt>参照</dt><dd class="trace-links"><a href="LLD.html#DEC-204"><code>DEC-204</code></a> <a href="LLD.html#data"><code>LLD データ</code></a> <a href="LLD.html#runtime"><code>LLD 構成キー</code></a> <a href="HLD.html#HLD-TEN-001"><code>HLD-TEN-001</code></a> <a href="REQUIREMENTS.html#NFR-SEC-001"><code>NFR-SEC-001</code></a></dd></div>
+  </dl>
+  <p class="record__statement">DB権限でschema所有権を検査すると宣言する場合、application、worker、migration、audit writer、backup、運用の接続roleとGRANTを定義し、単一の共有DB資格情報へ全schema更新権限を与えてはならない。</p>
+  <div class="record__body">
+    <div><h4>影響</h4><p>コード上のArchUnitを迂回したSQL、batch、管理操作が他schemaや他workspaceを書き換えられる。複合FKによる越境防止が一部の表で成立しない。</p></div>
+    <div><h4>必須修正</h4><p>role設計と接続pool分離、またはDB境界をapplication検査だけに限定する明示的な決定を行う。tenant表を全件棚卸しし、workspace_idを含むPK、FK、unique、query条件を定義する。必要ならRLSを追加する。</p></div>
+    <div><h4>解消条件</h4><p>別module roleと別workspace IDによるSELECT／INSERT／UPDATE／DELETE越境試験がすべて拒否され、migrationと緊急CLIにも同じ境界が適用される。</p></div>
+  </div>
+  <details>
+    <summary>根拠となる観測</summary>
+    <p>DEC-204と検証章はDB権限による所有境界を要求するが、構成キーは単一のDB_USERNAME_FILE／DB_PASSWORD_FILEだけである。さらにiam.client_access_grantはprojectへ結合するtenantデータであるのにworkspace_idが必須フィールドへ含まれていない。</p>
+  </details>
+</article>
+
+
+<article class="record record--danger" id="REQ-307">
+  <header class="record__header">
+    <span class="record__id">REQ-307</span>
+    <h3 class="record__title">認証・招待・復旧の全ライフサイクルを定義する</h3>
+    <span class="severity severity--danger">Blocker</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>要求</dd></div>
+    <div><dt>規範強度</dt><dd>必須</dd></div>
+    <div><dt>適用範囲</dt><dd>Email確認、Passkey、Password、TOTP、Recovery Code、Client Link、Invitation</dd></div>
+    <div><dt>参照</dt><dd class="trace-links"><a href="LLD.html#security"><code>LLD 認証</code></a> <a href="LLD.html#modules"><code>LLD 認証API</code></a> <a href="REQUIREMENTS.html#FR-ACC-001"><code>FR-ACC-001</code></a> <a href="REQUIREMENTS.html#FR-ACC-007"><code>FR-ACC-007</code></a></dd></div>
+  </dl>
+  <p class="record__statement">認証手段の登録・追加・削除・再生成・失効、メール確認、招待承諾、所有権移転、client link発行・再発行・失効を、API、状態、token形式、通知、監査、失敗条件まで定義しなければならない。</p>
+  <div class="record__body">
+    <div><h4>影響</h4><p>実装者がセキュリティ上重要なtoken寿命、本人確認、全体失効を独自実装し、復旧・招待経路が主認証より弱くなる。</p></div>
+    <div><h4>必須修正</h4><p>認証要素ごとの状態機械とendpoint台帳を追加し、token digest、用途、対象、期限、単回性、再発行時失効、session rotation、通知、rate limit、再認証条件を固定する。</p></div>
+    <div><h4>解消条件</h4><p>FR-ACC-001〜007と所有権・招待操作の正常、期限切れ、再利用、競合、全体失効試験が全て定義される。</p></div>
+  </div>
+  <details>
+    <summary>根拠となる観測</summary>
+    <p>LLDはAuthenticate、Reauthenticate、RedeemClientLink、RecoverAccountを定義するが、メールchallengeの完了、Passkey／TOTPの追加削除、復旧コード10個の発行・再生成、招待承諾、所有権移転、client link発行・再発行のendpointがない。</p>
+  </details>
+</article>
+
+
+<article class="record record--danger" id="REQ-308">
+  <header class="record__header">
+    <span class="record__id">REQ-308</span>
+    <h3 class="record__title">公開・アップロード・プレビュー・配布のorigin境界を固定する</h3>
+    <span class="severity severity--danger">Blocker</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>要求</dd></div>
+    <div><dt>規範強度</dt><dd>必須</dd></div>
+    <div><dt>適用範囲</dt><dd>Nginx、session Cookie、upload ingress、preview、download、client link</dd></div>
+    <div><dt>参照</dt><dd class="trace-links"><a href="LLD.html#security"><code>LLD 認証・公開境界</code></a> <a href="LLD.html#files"><code>LLD ファイル</code></a> <a href="HLD.html#HLD-NET-001"><code>HLD-NET-001</code></a> <a href="REQUIREMENTS.html#NFR-SEC-002"><code>NFR-SEC-002</code></a></dd></div>
+  </dl>
+  <p class="record__statement">アプリ、アップロード、プレビュー、ダウンロードのhost／origin、Cookie送信範囲、CORS、CSP、HSTS、Referrer-Policy、frame-ancestors、nosniff、Content-Dispositionを明示し、未信頼コンテンツへsession Cookieまたは認証tokenを送信してはならない。</p>
+  <div class="record__body">
+    <div><h4>影響</h4><p>未信頼アップロード先へのCookie送信、tokenのアクセスログ・Referer流出、プレビュー内容によるXSSやclickjacking、MIME sniffingが起こり得る。</p></div>
+    <div><h4>必須修正</h4><p>origin台帳と各response headerを追加する。tokenを受け取る入口は即時にserver-side redemption後、tokenを含まないURLへ303 redirectする。upload／preview／downloadはsession hostと分離し、認証方式を専用短命grantへ限定する。</p></div>
+    <div><h4>解消条件</h4><p>ブラウザ実機でCookie、Origin、Referer、CORS、CSP、iframe、MIME、download headerを検査し、未信頼originへsession情報が一件も送信されない。</p></div>
+  </div>
+  <details>
+    <summary>根拠となる観測</summary>
+    <p>LLDは__Host-stageaccord-sessionをPath=/で使用し、upload ingressとpreview／download gatewayを置くが、同一hostか別hostかを定義しない。client linkの入口とURLからtokenを除去する手順、Referer漏えい防止、previewのsandbox headerもない。</p>
+  </details>
+</article>
+
+
+<article class="record record--danger" id="REQ-309">
+  <header class="record__header">
+    <span class="record__id">REQ-309</span>
+    <h3 class="record__title">ファイル配布方式と状態を一意に決める</h3>
+    <span class="severity severity--danger">Blocker</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>要求</dd></div>
+    <div><dt>規範強度</dt><dd>必須</dd></div>
+    <div><dt>適用範囲</dt><dd>DownloadGrant、PreviewGateway、RGW、FileVersion、object key</dd></div>
+    <div><dt>参照</dt><dd class="trace-links"><a href="LLD.html#files"><code>LLD ファイル配布</code></a> <a href="REQUIREMENTS.html#FR-FIL-001"><code>FR-FIL-001</code></a> <a href="HLD.html#HLD-FIL-001"><code>HLD-FIL-001</code></a></dd></div>
+  </dl>
+  <p class="record__statement">取得時再認可を要求するファイルは、直接RGWのpresigned URLへ委譲するのか、アプリ管理gatewayの短命tokenで配布するのかを決定し、失効後の取得拒否を実現できる方式を正本化しなければならない。</p>
+  <div class="record__body">
+    <div><h4>影響</h4><p>権限失効後もURL期限まで取得できる、gateway実装が性能要件を満たさない、内部識別子が外部へ露出する。</p></div>
+    <div><h4>必須修正</h4><p>gateway方式または直接S3方式を選び、要求する再認可水準と整合させる。gateway tokenの署名・単回性・range・キャッシュ・監査を定義し、browserに見えるobject keyは不透明な乱数へ変更する。</p></div>
+    <div><h4>解消条件</h4><p>grant発行後にmembership、project grant、auth generation、file visibilityを失効すると、その後のGETが直ちに拒否される実機試験を通過する。</p></div>
+  </div>
+  <details>
+    <summary>根拠となる観測</summary>
+    <p>LLDは5分の署名URLを発行すると同時に「発行時と取得時に関係を再検査」と記載する。直接S3 URLでは発行後の権限失効をアプリが再評価できない。一方、download gatewayのtoken、stream／redirect、range、負荷、失効確認は定義されていない。quarantine keyにはworkspaceIdとprojectIdが含まれ、browserへ内部IDが見える。</p>
+  </details>
+</article>
+
+
+<article class="record record--danger" id="REQ-310">
+  <header class="record__header">
+    <span class="record__id">REQ-310</span>
+    <h3 class="record__title">外部URLの非取得方針と検査方式を整合させる</h3>
+    <span class="severity severity--danger">Blocker</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>要求</dd></div>
+    <div><dt>規範強度</dt><dd>必須</dd></div>
+    <div><dt>適用範囲</dt><dd>ExternalLink、SSRF、redirect、DNS</dd></div>
+    <div><dt>参照</dt><dd class="trace-links"><a href="LLD.html#security"><code>LLD 外部URL</code></a> <a href="LLD.html#modules"><code>ExternalLink API</code></a> <a href="REQUIREMENTS.html#FR-FIL-003"><code>FR-FIL-003</code></a> <a href="HLD.html#HLD-NET-001"><code>HLD-NET-001</code></a></dd></div>
+  </dl>
+  <p class="record__statement">サーバーが外部URLを取得しない方針を維持する場合、HTTP redirect先の検査を要件から除き、登録文字列・scheme・userinfo・host・IP表現の検査と利用者向け安全な遷移だけを定義しなければならない。</p>
+  <div class="record__body">
+    <div><h4>影響</h4><p>実装者がsecretを持つserverからURLへ接続してSSRF面を作るか、実際には検査していないredirectを安全と表示する。</p></div>
+    <div><h4>必須修正</h4><p>非取得を維持する場合は、URL正規化、scheme、userinfo、literal IP、host allow／deny、interstitial、no-referrerを定義する。server fetchを採用する場合は専用隔離fetcher、egress deny、DNS rebinding、redirect回数、size、timeoutを別設計として承認する。</p></div>
+    <div><h4>解消条件</h4><p>選択した方式について、private／loopback／link-local／IPv6／数値IP／userinfo／redirect／DNS変化の試験結果が仕様と一致する。</p></div>
+  </div>
+  <details>
+    <summary>根拠となる観測</summary>
+    <p>LLDは「外部URLはserverから取得しない」としながら、「DNS解決後のprivate範囲、危険redirectを拒否」と記載する。redirect先を知るにはHTTP通信が必要であり、非取得方針と両立しない。</p>
+  </details>
+</article>
+
+
+<article class="record record--danger" id="REQ-311">
+  <header class="record__header">
+    <span class="record__id">REQ-311</span>
+    <h3 class="record__title">監査ハッシュ連鎖と劣化spoolの順序を定義する</h3>
+    <span class="severity severity--danger">Blocker</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>要求</dd></div>
+    <div><dt>規範強度</dt><dd>必須</dd></div>
+    <div><dt>適用範囲</dt><dd>audit_event、DailyCheckpoint、複数application／worker、DB停止</dd></div>
+    <div><dt>参照</dt><dd class="trace-links"><a href="LLD.html#runtime"><code>LLD 観測・復旧</code></a> <a href="LLD.html#async"><code>LLD Audit連携</code></a> <a href="HLD.html#HLD-AUD-001"><code>HLD-AUD-001</code></a> <a href="HLD.html#HLD-AUD-002"><code>HLD-AUD-002</code></a> <a href="REQUIREMENTS.html#FR-AUD-002"><code>FR-AUD-002</code></a></dd></div>
+  </dl>
+  <p class="record__statement">global sequence、previous_hash、event_hashを複数processから競合なく付与する原子的アルゴリズムと、複数hostのspoolを復旧後の連鎖へ統合する決定規則を定義しなければならない。</p>
+  <div class="record__body">
+    <div><h4>影響</h4><p>同時書込みで同じprevious_hashを参照する分岐連鎖、復旧時の順序非決定、監査欠落や誤検知が発生する。</p></div>
+    <div><h4>必須修正</h4><p>単一sequencer、DB advisory lock、専用append functionなど採用方式を決め、canonical bytes、hash式、transaction isolation、重複、spool envelope、merge order、checkpoint cutを詳細化する。</p></div>
+    <div><h4>解消条件</h4><p>並行append、process kill、DB停止、複数host spool、再取込、key rotation、挿入・削除・並替の試験で一意なterminal hashを再現できる。</p></div>
+  </div>
+  <details>
+    <summary>根拠となる観測</summary>
+    <p>LLDはsequence一意、previous_hash、日次署名、host署名spoolを規定するが、append時のlock、連番採番、transaction境界、host間merge順序、spool eventとDB chainの接続方法を定義しない。</p>
+  </details>
+</article>
+
+
+<article class="record record--danger" id="REQ-312">
+  <header class="record__header">
+    <span class="record__id">REQ-312</span>
+    <h3 class="record__title">削除台帳とObject Lockを削除SLAへ整合させる</h3>
+    <span class="severity severity--danger">Blocker</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>要求</dd></div>
+    <div><dt>規範強度</dt><dd>必須</dd></div>
+    <div><dt>適用範囲</dt><dd>DeletionLedger、Ceph Object Lock、稼働データ、backup、legal hold</dd></div>
+    <div><dt>参照</dt><dd class="trace-links"><a href="LLD.html#runtime"><code>LLD 削除再適用</code></a> <a href="HLD.html#HLD-DEL-001"><code>HLD-DEL-001</code></a> <a href="REQUIREMENTS.html#NFR-PRV-002"><code>NFR-PRV-002</code></a> <a href="REQUIREMENTS.html#NFR-BCP-001"><code>NFR-BCP-001</code></a></dd></div>
+  </dl>
+  <p class="record__statement">削除・失効台帳の保存形式、署名、順序、冪等性、複製、利用不能時の停止範囲を定義し、Object Lockのbucket、mode、retention期間が30日削除要件と競合しないことを証明しなければならない。</p>
+  <div class="record__body">
+    <div><h4>影響</h4><p>削除済み情報が復元・再公開される、またはWORM保持により約束した期限内に削除できない。台帳停止時に通常書込みだけ継続し、後で削除不能になる。</p></div>
+    <div><h4>必須修正</h4><p>台帳append契約と復元適用状態機械を追加し、各bucketのversioning、Object Lock mode、retention、legal hold、delete marker、backup期限を表にする。台帳へappendできない操作は確定しない。</p></div>
+    <div><h4>解消条件</h4><p>削除前backup復元、Object Lock有無、legal hold、台帳停止、重複append、複製遅延の試験で、公開再露出ゼロと期限説明が成立する。</p></div>
+  </div>
+  <details>
+    <summary>根拠となる観測</summary>
+    <p>LLDはDELETION_LEDGER_ENDPOINTと復元時再適用を定めるが、台帳のAPI・schema・event ID・ack・再試行・terminal hash生成を定義しない。Ceph bucketへObject Lockを要求する一方、稼働DB・オブジェクトを削除要求から30日以内に削除する要件との優先関係がない。</p>
+  </details>
+</article>
+
+
+<article class="record record--danger" id="REQ-313">
+  <header class="record__header">
+    <span class="record__id">REQ-313</span>
+    <h3 class="record__title">拠点昇格世代を全書込み経路でfencingする</h3>
+    <span class="severity severity--danger">Blocker</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>要求</dd></div>
+    <div><dt>規範強度</dt><dd>必須</dd></div>
+    <div><dt>適用範囲</dt><dd>etcd lease、PostgreSQL、RGW、application、worker、旧主系</dd></div>
+    <div><dt>参照</dt><dd class="trace-links"><a href="LLD.html#runtime"><code>LLD 復旧世代</code></a> <a href="HLD.html#HLD-DR-001"><code>HLD-DR-001</code></a> <a href="REQUIREMENTS.html#NFR-BCP-002"><code>NFR-BCP-002</code></a></dd></div>
+  </dl>
+  <p class="record__statement">APP_PROMOTION_GENERATIONの一致確認だけでなく、旧主系または古いworkerがPostgreSQL、RGW、Outboxへ書き込めないfencing tokenの適用点と失敗時挙動を定義しなければならない。</p>
+  <div class="record__body">
+    <div><h4>影響</h4><p>ネットワーク分断、遅延process、旧connection poolにより、二拠点または二世代の書込みが成立し、RPO、監査連鎖、object整合性を破壊する。</p></div>
+    <div><h4>必須修正</h4><p>昇格世代テーブル、transaction guard、DB role失効、RGW credential rotation、worker claim条件、旧世代拒否を定義する。物理fenceが確認できない場合は昇格不可を維持する。</p></div>
+    <div><h4>解消条件</h4><p>旧主系が生存した通信分断、古いconnection、遅延job、旧S3 credentialの試験で、新世代以外の書込みが一件も確定しない。</p></div>
+  </div>
+  <details>
+    <summary>根拠となる観測</summary>
+    <p>LLDはPDU・firewallの二重fenceとetcd leaseを規定するが、promotion generationがDB transaction、RGW operation、worker leaseへどう強制されるかはreadiness以外に示されない。</p>
+  </details>
+</article>
+</div>
+    </section>
+
+    <section class="section section--wide" id="major">
+      <header class="section__header"><p class="section__label">05 / Major</p><h2>本番設計として不足する指摘</h2><p class="section__lede">Blocker解消と同じ版で修正し、後続実装へ持ち越さない。</p></header>
+      <div class="record-list">
+<article class="record record--warning" id="REQ-314">
+  <header class="record__header">
+    <span class="record__id">REQ-314</span>
+    <h3 class="record__title">論理データ設計を全永続データへ拡張する</h3>
+    <span class="severity severity--warning">Major</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>要求</dd></div>
+    <div><dt>規範強度</dt><dd>必須</dd></div>
+    <div><dt>適用範囲</dt><dd>全module schema、Valkey、Object metadata、監査・台帳</dd></div>
+    <div><dt>参照</dt><dd class="trace-links"><a href="LLD.html#modules"><code>LLD 所有表</code></a> <a href="LLD.html#data"><code>LLD データ辞書</code></a> <a href="LLD.html#DEC-204"><code>DEC-204</code></a></dd></div>
+  </dl>
+  <p class="record__statement">「主要テーブル辞書」だけで実装を開始せず、全所有表について主キー、外部キー、nullability、default、CHECK、unique、index、更新可否、暗号化、保持、migration責任を定義しなければならない。</p>
+  <div class="record__body">
+    <div><h4>影響</h4><p>DDL、JPA mapping、削除、索引、越境防止が実装者ごとに分岐し、後続migrationで破壊的変更が必要になる。</p></div>
+    <div><h4>必須修正</h4><p>全表辞書、関連図、制約名、索引目的、immutable列、暗号化列、保持classを追加する。詳細DDLを別生成物にする場合も、本書に生成規則と完全性検査を置く。</p></div>
+    <div><h4>解消条件</h4><p>module所有表の集合とDDL manifestの集合差分がゼロで、全FKが同一workspaceを強制する。</p></div>
+  </div>
+  <details>
+    <summary>根拠となる観測</summary>
+    <p>module境界には多数の所有表が列挙されるが、データ辞書にはnotification、support、kill switch、report、deletion ledger projection、usage、entitlement、preview、download grantなどの詳細がない。既存行も必須フィールドの列挙に留まり、FKやnullabilityが不明なものが多い。</p>
+  </details>
+</article>
+
+
+<article class="record record--warning" id="REQ-315">
+  <header class="record__header">
+    <span class="record__id">REQ-315</span>
+    <h3 class="record__title">PII暗号化・digest・cursorの暗号契約を定義する</h3>
+    <span class="severity severity--warning">Major</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>要求</dd></div>
+    <div><dt>規範強度</dt><dd>必須</dd></div>
+    <div><dt>適用範囲</dt><dd>email_digest、email_ciphertext、TOTP、token digest、idempotency、cursor</dd></div>
+    <div><dt>参照</dt><dd class="trace-links"><a href="LLD.html#data"><code>LLD データ型</code></a> <a href="LLD.html#security"><code>LLD 認証保存</code></a> <a href="HLD.html#HLD-KEY-001"><code>HLD-KEY-001</code></a> <a href="REQUIREMENTS.html#NFR-SEC-003"><code>NFR-SEC-003</code></a></dd></div>
+  </dl>
+  <p class="record__statement">低エントロピー識別子のdigestは単純hashにせず、正規化、鍵付きdigest、暗号方式、nonce、AAD、鍵ID、rotation、再暗号化、検索移行を定義しなければならない。</p>
+  <div class="record__body">
+    <div><h4>影響</h4><p>メールの辞書攻撃、鍵更新不能、検索不能、cursor改変、応答キャッシュからの秘密・PII漏えいが発生する。</p></div>
+    <div><h4>必須修正</h4><p>用途別暗号profileを追加し、HMAC／AEAD、key version、AAD、normalization、dual-read／dual-write rotation、cursor署名と期限、idempotency保存禁止フィールドを定義する。</p></div>
+    <div><h4>解消条件</h4><p>鍵rotation中の旧新読取り、改変、誤AAD、辞書攻撃耐性、cursor期限、backup復元後の復号を試験する。</p></div>
+  </div>
+  <details>
+    <summary>根拠となる観測</summary>
+    <p>LLDはemail_digest、email_ciphertext、TOTP secret暗号化、token HMAC、base64url cursorを使用するが、algorithm、鍵ID、正規化、rotation、cursor改変検知、idempotency responseの暗号化を定義しない。</p>
+  </details>
+</article>
+
+
+<article class="record record--warning" id="REQ-316">
+  <header class="record__header">
+    <span class="record__id">REQ-316</span>
+    <h3 class="record__title">通知とアプリ内通知の詳細契約を追加する</h3>
+    <span class="severity severity--warning">Major</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>要求</dd></div>
+    <div><dt>規範強度</dt><dd>必須</dd></div>
+    <div><dt>適用範囲</dt><dd>NotificationPreference、NotificationDelivery、メール、アプリ内表示</dd></div>
+    <div><dt>参照</dt><dd class="trace-links"><a href="LLD.html#modules"><code>LLD schedule-notification</code></a> <a href="LLD.html#async"><code>LLD Mail</code></a> <a href="REQUIREMENTS.html#FR-NOT-001"><code>FR-NOT-001</code></a> <a href="REQUIREMENTS.html#FR-NOT-002"><code>FR-NOT-002</code></a></dd></div>
+  </dl>
+  <p class="record__statement">FR-NOT-001とFR-NOT-002を満たすため、通知eventからrecipient、channel、template version、集約、重複抑止、既読、設定、重要通知の強制配信までを定義しなければならない。</p>
+  <div class="record__body">
+    <div><h4>影響</h4><p>メールだけ実装されてアプリ内通知要件が欠落する、重要通知が停止される、同一eventが複数回表示される。</p></div>
+    <div><h4>必須修正</h4><p>通知種別台帳、必須／任意channel、recipient解決、dedupe key、delivery状態、retry、preference API、in-app cursor API、既読・集約仕様を追加する。</p></div>
+    <div><h4>解消条件</h4><p>同一event再送、設定変更、重要通知、複数role、locale、provider障害で期待する配送件数と表示が一致する。</p></div>
+  </div>
+  <details>
+    <summary>根拠となる観測</summary>
+    <p>schedule-notification moduleは通知use caseと表名を列挙するが、データ辞書、REST endpoint、アプリ内通知取得、既読、集約単位、重複キー、template／locale contractがない。</p>
+  </details>
+</article>
+
+
+<article class="record record--warning" id="REQ-317">
+  <header class="record__header">
+    <span class="record__id">REQ-317</span>
+    <h3 class="record__title">Valkey・rate limit・公開入口の障害方針を確定する</h3>
+    <span class="severity severity--warning">Major</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>要求</dd></div>
+    <div><dt>規範強度</dt><dd>必須</dd></div>
+    <div><dt>適用範囲</dt><dd>Login、public intake、client link、rate limit、session、cache</dd></div>
+    <div><dt>参照</dt><dd class="trace-links"><a href="LLD.html#runtime"><code>LLD Valkey guard</code></a> <a href="LLD.html#api"><code>LLD rate limit</code></a> <a href="REQUIREMENTS.html#FR-REQ-003"><code>FR-REQ-003</code></a> <a href="REQUIREMENTS.html#FR-ACC-002"><code>FR-ACC-002</code></a></dd></div>
+  </dl>
+  <p class="record__statement">Valkey利用不能時に、匿名閲覧、login、公開依頼、client link redemption、rate-limited操作をそれぞれ許可または拒否する条件を定義し、rate limiterを暗黙にfail openしてはならない。</p>
+  <div class="record__body">
+    <div><h4>影響</h4><p>障害時に総当たり・迷惑依頼防御が無効になるか、必要以上に全公開機能が停止する。</p></div>
+    <div><h4>必須修正</h4><p>入口別の依存台帳を作り、匿名GET、認証開始、token redemption、public POST、既存sessionのfail-close／local emergency limit／保守表示を定義する。</p></div>
+    <div><h4>解消条件</h4><p>Valkey停止・遅延・全消失時の各入口E2Eで、権限拡大と無制限送信が発生しない。</p></div>
+  </div>
+  <details>
+    <summary>根拠となる観測</summary>
+    <p>LLDはValkey障害時に匿名公開以外の認証済み操作を拒否するが、loginや公開intakeのrate limitが利用不能な場合の挙動を示さない。</p>
+  </details>
+</article>
+
+
+<article class="record record--warning" id="REQ-318">
+  <header class="record__header">
+    <span class="record__id">REQ-318</span>
+    <h3 class="record__title">要件からLLDへの直接追跡と安定IDを追加する</h3>
+    <span class="severity severity--warning">Major</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>要求</dd></div>
+    <div><dt>規範強度</dt><dd>必須</dd></div>
+    <div><dt>適用範囲</dt><dd>107要求、30 HLD制御、API、状態、データ、試験</dd></div>
+    <div><dt>参照</dt><dd class="trace-links"><a href="LLD.html#verification"><code>LLD 追跡</code></a> <a href="HLD.html#HLD-TRC-001"><code>HLD 107件追跡</code></a> <a href="REQUIREMENTS.html#functional"><code>要件 83 FR</code></a> <a href="REQUIREMENTS.html#nonfunctional"><code>要件 24 NFR</code></a></dd></div>
+  </dl>
+  <p class="record__statement">HLDを経由した追跡だけに依存せず、107要求からLLDの具体契約と親test IDへ直接到達できる追跡表を追加し、重大なAPI・状態・データ・安全契約へ安定したLLD IDを付与しなければならない。</p>
+  <div class="record__body">
+    <div><h4>影響</h4><p>要求変更時に影響する詳細契約を機械的に特定できず、AIが三文書を推論で結合する。表行の移動でレビュー参照が壊れる。</p></div>
+    <div><h4>必須修正</h4><p>一要求一行のREQ→HLD→LLD→OpenAPI operationId→DDL／event→test ID表を追加し、重要契約単位へLLD IDを付ける。</p></div>
+    <div><h4>解消条件</h4><p>107要求、30 HLD ID、LLD契約、OpenAPI、test manifestの集合差分・重複・空欄検査がCIで成功する。</p></div>
+  </div>
+  <details>
+    <summary>根拠となる観測</summary>
+    <p>HLDは107要求を全件追跡し、LLDは30 HLD IDを全件追跡しているが、LLD本文で要求IDの直接参照はほぼない。API表、状態機械、データ辞書、runtime guardの多くに安定IDがない。</p>
+  </details>
+</article>
+
+
+<article class="record record--warning" id="REQ-319">
+  <header class="record__header">
+    <span class="record__id">REQ-319</span>
+    <h3 class="record__title">前方互換性の実装規則を具体化する</h3>
+    <span class="severity severity--warning">Major</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>要求</dd></div>
+    <div><dt>規範強度</dt><dd>必須</dd></div>
+    <div><dt>適用範囲</dt><dd>status、OpenAPI、event、DB expand/migrate/contract、N/N-1</dd></div>
+    <div><dt>参照</dt><dd class="trace-links"><a href="LLD.html#data"><code>LLD status型</code></a> <a href="LLD.html#async"><code>LLD event envelope</code></a> <a href="LLD.html#runtime"><code>LLD rollback</code></a> <a href="HLD.html#HLD-MIG-001"><code>HLD-MIG-001</code></a></dd></div>
+  </dl>
+  <p class="record__statement">新しいstatus、event field、API fieldをN-1が受け取る場合のunknown値処理、feature flag、producer／consumer順序、rollback可能期間を定義しなければならない。</p>
+  <div class="record__body">
+    <div><h4>影響</h4><p>DB CHECKは通るが旧applicationがdeserializeに失敗し、rolling deploymentやimage rollbackが成立しない。</p></div>
+    <div><h4>必須修正</h4><p>互換変更の分類、tolerant reader、unknown表示、event schema version、consumer先行／producer後行、feature flag、contract gateを追加する。</p></div>
+    <div><h4>解消条件</h4><p>NとN-1を同時起動し、新status・新field・旧event・rollbackの互換試験が成功する。</p></div>
+  </div>
+  <details>
+    <summary>根拠となる観測</summary>
+    <p>LLDはstatusをvarchar＋CHECKとし、N/N-1共存を要求するが、Java enumやフロントエンドunionが未知値を受けた場合の扱いを定義しない。event versionの互換規則もeventTypeのv1表記以外にない。</p>
+  </details>
+</article>
+
+
+<article class="record record--warning" id="REQ-320">
+  <header class="record__header">
+    <span class="record__id">REQ-320</span>
+    <h3 class="record__title">未確定事項の宣言をレビュー結果と同期する</h3>
+    <span class="severity severity--warning">Major</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>要求</dd></div>
+    <div><dt>規範強度</dt><dd>必須</dd></div>
+    <div><dt>適用範囲</dt><dd>文書契約、record状態、open-items</dd></div>
+    <div><dt>参照</dt><dd class="trace-links"><a href="LLD.html#contract"><code>LLD 規範record</code></a> <a href="LLD.html#open-items"><code>LLD 未確定事項</code></a></dd></div>
+  </dl>
+  <p class="record__statement">本レビューの未解決BlockerとMajorをLLDの未確定事項として登録し、全ての主要recordを承認済みに更新するまで「実装判断を止める未確定事項はない」と記載してはならない。</p>
+  <div class="record__body">
+    <div><h4>影響</h4><p>AIが設計を確定済みと解釈して実装を開始し、後から破壊的なAPI・DB・セキュリティ変更が必要になる。</p></div>
+    <div><h4>必須修正</h4><p>本レビューIDをopen-itemsへ登録し、owner、解消条件、影響ID、再レビュー条件を付ける。解消後にrecordを承認済みへ更新し、版を上げる。</p></div>
+    <div><h4>解消条件</h4><p>未解決review findingがゼロで、record状態、文書状態、版、追跡表が同じcommitで更新される。</p></div>
+  </div>
+  <details>
+    <summary>根拠となる観測</summary>
+    <p>LLDの8規範recordは全て提案状態であり、open-itemsは未確定なしと宣言する。レビューによってAPI、状態、認可、監査、削除、復旧の判断不足が判明した。</p>
+  </details>
+</article>
+</div>
+    </section>
+
+    <section class="section section--wide" id="minor">
+      <header class="section__header"><p class="section__label">06 / Minor</p><h2>理解負債を減らす修正</h2><p class="section__lede">機能の成立を直接妨げないが、人間とAIの同義語解釈と差分確認を安定させる。</p></header>
+      <div class="record-list">
+<article class="record record--info" id="REC-301">
+  <header class="record__header">
+    <span class="record__id">REC-301</span>
+    <h3 class="record__title">用語と日本語・英語表記を統一する</h3>
+    <span class="severity severity--info">Minor</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>推奨</dd></div>
+    <div><dt>規範強度</dt><dd>推奨</dd></div>
+    <div><dt>適用範囲</dt><dd>LLD 全文</dd></div>
+    <div><dt>参照</dt><dd class="trace-links"><a href="LLD.html#states"><code>LLD 状態</code></a> <a href="LLD.html#runtime"><code>LLD runtime mode</code></a></dd></div>
+  </dl>
+  <p class="record__statement">同一概念に日本語と英語の表記揺れを作らず、domain用語、実装名、表示名を用語表で対応付けることを推奨する。</p>
+  <div class="record__body">
+    <div><h4>影響</h4><p>実装名と画面表示が混同され、AIが異なるenumやDTOを生成しやすい。</p></div>
+    <div><h4>必須修正</h4><p>用語表へ日本語表示、domain term、code identifier、使用禁止同義語を追加する。</p></div>
+    <div><h4>解消条件</h4><p>状態名・役割名・期限名・ファイル状態の表記が文書内検索で一意になる。</p></div>
+  </div>
+  <details>
+    <summary>根拠となる観測</summary>
+    <p>session、client、grant、freshness、normal、restricted、write_stopped、read-onlyなどが日本語文中で混在し、一部は表示状態、一部は内部enumとして使われる。</p>
+  </details>
+</article>
+
+
+<article class="record record--info" id="REC-302">
+  <header class="record__header">
+    <span class="record__id">REC-302</span>
+    <h3 class="record__title">自己評価コメントと実装に不要な文書ノイズを除去する</h3>
+    <span class="severity severity--info">Minor</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>推奨</dd></div>
+    <div><dt>規範強度</dt><dd>推奨</dd></div>
+    <div><dt>適用範囲</dt><dd>LLD style／文書メタ情報</dd></div>
+    <div><dt>参照</dt><dd class="trace-links"><a href="LLD.html#top"><code>LLD 文書先頭</code></a></dd></div>
+  </dl>
+  <p class="record__statement">文書生成過程の自己採点や内部評価コメントを成果物へ残さず、読者が必要とする契約・証拠だけを保持することを推奨する。</p>
+  <div class="record__body">
+    <div><h4>影響</h4><p>AIのコンテキストと差分を増やし、正式な品質判定と誤認される。</p></div>
+    <div><h4>必須修正</h4><p>コメントを削除し、品質結果はレビュー文書または検証ログの明示的な記録として管理する。</p></div>
+    <div><h4>解消条件</h4><p>HTML内に作成者専用の採点、隠し指示、本文と異なる要約がない。</p></div>
+  </div>
+  <details>
+    <summary>根拠となる観測</summary>
+    <p>style先頭にpre-emit critiqueの採点コメントが埋め込まれているが、設計判断や監査証拠ではない。</p>
+  </details>
+</article>
+</div>
+    </section>
+
+    <section class="section" id="sequence">
+      <header class="section__header"><p class="section__label">07 / Sequence</p><h2>修正順序</h2><p class="section__lede">下流のAPIやDDLを先に確定すると再作業になるため、境界から詳細へ進める。</p></header>
+      <ol class="steps">
+        <li><div><h3>外部境界を固定する</h3><p><a href="#REQ-301">REQ-301</a>、<a href="#REQ-302">REQ-302</a>、<a href="#REQ-308">REQ-308</a>、<a href="#REQ-309">REQ-309</a>、<a href="#REQ-310">REQ-310</a>を解消し、画面・API・origin・配布方式を決める。</p></div></li>
+        <li><div><h3>業務と認可を固定する</h3><p><a href="#REQ-303">REQ-303</a>、<a href="#REQ-304">REQ-304</a>、<a href="#REQ-305">REQ-305</a>、<a href="#REQ-307">REQ-307</a>を解消し、状態、HTTP、役割、認証を一意にする。</p></div></li>
+        <li><div><h3>永続化と信頼基盤を固定する</h3><p><a href="#REQ-306">REQ-306</a>、<a href="#REQ-311">REQ-311</a>、<a href="#REQ-312">REQ-312</a>、<a href="#REQ-313">REQ-313</a>、<a href="#REQ-314">REQ-314</a>、<a href="#REQ-315">REQ-315</a>を反映する。</p></div></li>
+        <li><div><h3>運用機能と互換性を閉じる</h3><p><a href="#REQ-316">REQ-316</a>、<a href="#REQ-317">REQ-317</a>、<a href="#REQ-319">REQ-319</a>を反映し、障害・通知・rolling deploymentを試験可能にする。</p></div></li>
+        <li><div><h3>追跡と文書状態を更新する</h3><p><a href="#REQ-318">REQ-318</a>、<a href="#REQ-320">REQ-320</a>、Minorを反映し、全recordを再審査する。</p></div></li>
+      </ol>
+    </section>
+
+    <section class="section" id="acceptance">
+      <header class="section__header"><p class="section__label">08 / Acceptance</p><h2>再レビューの合格条件</h2><p class="section__lede">文書の修正量ではなく、実装判断と安全判定が一意になったことを確認する。</p></header>
+      <div class="table-wrap"><table>
+        <caption>LLD再レビューゲート</caption>
+        <thead><tr><th scope="col">ゲート</th><th scope="col">合格条件</th><th scope="col">不合格時</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">指摘</th><td>Blocker 0件、Major 0件。Minorは対応または理由付きで明示承認。</td><td>実装開始不可。</td></tr>
+          <tr><th scope="row">追跡</th><td>107要求、30 HLD ID、LLD契約、OpenAPI、DDL／event、test IDの集合差分がゼロ。</td><td>欠落IDを復元して再監査。</td></tr>
+          <tr><th scope="row">契約</th><td>全外部操作、状態、役割、origin、永続表、障害モード、復旧世代が一意に決まる。</td><td>該当recordを未確定へ戻す。</td></tr>
+          <tr><th scope="row">文書</th><td>全規範recordが承認済み、内部リンク切れ・ID重複・正本重複がゼロ。</td><td>版を上げず修正を継続。</td></tr>
+          <tr><th scope="row">証拠</th><td>設計レビュー担当がbackend、web、DB、security、operationsの観点を記録する。</td><td>未確認分野を承認扱いにしない。</td></tr>
+        </tbody>
+      </table></div>
+      <aside class="callout">
+        <p><strong>本番判定との分離:</strong> LLDが再レビューに合格しても、本番投入可にはならない。実装、実UI、実ログ、実機、復元、負荷、脆弱性、運用訓練の証拠は別途必要である。</p>
+      </aside>
+    </section>
+  </main>
+  <footer class="foot"><p>レビュー完了・修正要求あり · 2026-08-03 · 正本 REVIEW-LLD.html</p></footer>
+</div>
+</body>
+</html>

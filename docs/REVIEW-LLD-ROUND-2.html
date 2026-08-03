@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Stage Accord LLD 1.1.0の再レビュー結果。前回22件の解消判定と、残存Blocker・Major・Minorを示す。">
+<title>Stage Accord LLD 再レビュー</title>
+<style>
+:root {
+  color-scheme: light;
+  --font-display: "Bahnschrift", "Arial Narrow", ui-sans-serif, sans-serif;
+  --font-body: "Aptos", "Segoe UI", "Yu Gothic UI", "Yu Gothic", ui-sans-serif, sans-serif;
+  --font-mono: "Cascadia Mono", "Consolas", ui-monospace, monospace;
+  --color-paper: oklch(97.5% 0.009 258);
+  --color-paper-raised: oklch(99% 0.006 258);
+  --color-paper-subtle: oklch(94.5% 0.014 258);
+  --color-ink: oklch(19% 0.025 258);
+  --color-ink-soft: oklch(37% 0.028 258);
+  --color-muted: oklch(49% 0.025 258);
+  --color-rule: oklch(82% 0.022 258);
+  --color-rule-strong: oklch(67% 0.035 258);
+  --color-accent: oklch(52% 0.19 258);
+  --color-accent-strong: oklch(42% 0.18 258);
+  --color-accent-soft: oklch(92% 0.045 258);
+  --color-positive: oklch(42% 0.11 151);
+  --color-positive-soft: oklch(93% 0.035 151);
+  --color-warning: oklch(47% 0.105 76);
+  --color-warning-soft: oklch(94% 0.045 76);
+  --color-danger: oklch(44% 0.16 28);
+  --color-danger-soft: oklch(93% 0.045 28);
+  --color-focus: oklch(56% 0.2 258);
+  --color-shadow: oklch(19% 0.025 258 / 0.09);
+  --space-3xs: .125rem;
+  --space-2xs: .25rem;
+  --space-xs: .5rem;
+  --space-sm: .75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+  --space-3xl: 6rem;
+  --text-xs: .75rem;
+  --text-sm: .875rem;
+  --text-base: 1rem;
+  --text-md: 1.25rem;
+  --text-lg: 1.5625rem;
+  --text-xl: 1.953rem;
+  --text-2xl: 2.441rem;
+  --text-3xl: 3.052rem;
+  --text-display: clamp(2.45rem, 5vw + .5rem, 5.25rem);
+  --leading-display: 1.08;
+  --leading-heading: 1.2;
+  --leading-body: 1.65;
+  --measure: 74ch;
+  --page-max: 100rem;
+  --rail-width: 13rem;
+  --radius-xs: .125rem;
+  --radius-sm: .25rem;
+  --radius-md: .5rem;
+  --border-hairline: .0625rem;
+  --border-strong: .125rem;
+  --shadow-whisper: 0 .125rem .5rem var(--color-shadow);
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { overflow-x: clip; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-body);
+  text-rendering: optimizeLegibility;
+}
+a { color: var(--color-accent-strong); text-underline-offset: .18em; }
+a:hover { color: var(--color-accent); }
+a:focus-visible, summary:focus-visible { outline: var(--border-strong) solid var(--color-focus); outline-offset: var(--space-2xs); }
+code, kbd, samp { font-family: var(--font-mono); font-size: .92em; font-variant-numeric: tabular-nums; }
+code { padding: var(--space-3xs) var(--space-2xs); background: var(--color-paper-subtle); border-radius: var(--radius-xs); overflow-wrap: anywhere; }
+h1, h2, h3, h4 { margin: 0; min-width: 0; font-family: var(--font-display); line-height: var(--leading-heading); letter-spacing: -.025em; overflow-wrap: anywhere; }
+h1 { max-width: 13ch; font-size: var(--text-display); line-height: var(--leading-display); }
+h2 { max-width: 30ch; font-size: clamp(var(--text-xl), 4vw, var(--text-3xl)); }
+h3 { font-size: var(--text-lg); }
+h4 { font-size: var(--text-base); }
+p, ul, ol, dl { margin: 0; }
+ul, ol { padding-inline-start: var(--space-lg); }
+li + li { margin-block-start: var(--space-xs); }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+caption { padding-block-end: var(--space-sm); color: var(--color-ink-soft); font-weight: 700; text-align: start; }
+th, td { padding: var(--space-sm) var(--space-md); border-block-end: var(--border-hairline) solid var(--color-rule); text-align: start; vertical-align: top; }
+th { background: var(--color-paper-subtle); font-weight: 700; }
+tbody tr:last-child > * { border-block-end: 0; }
+.skip-link { position: fixed; inset: var(--space-xs) auto auto var(--space-xs); z-index: 100; transform: translateY(-180%); padding: var(--space-sm) var(--space-md); background: var(--color-ink); color: var(--color-paper-raised); border-radius: var(--radius-sm); }
+.skip-link:focus { transform: none; }
+.document { width: min(100%, var(--page-max)); margin-inline: auto; }
+.rail { display: none; }
+.mobile-index { margin: var(--space-md); padding: var(--space-md); background: var(--color-paper-raised); border: var(--border-hairline) solid var(--color-rule); border-radius: var(--radius-sm); }
+.mobile-index summary { cursor: pointer; font-weight: 700; }
+.mobile-index ol { margin-block-start: var(--space-md); }
+.page { min-width: 0; }
+.hero { padding: var(--space-2xl) clamp(var(--space-md), 5vw, var(--space-3xl)) var(--space-3xl); border-block-end: var(--border-strong) solid var(--color-ink); }
+.eyebrow { margin-block-end: var(--space-lg); color: var(--color-accent-strong); font: 700 var(--text-xs)/1.2 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+.lede { max-width: 62ch; margin-block-start: var(--space-lg); color: var(--color-ink-soft); font-size: var(--text-md); }
+.document-contract { display: grid; gap: var(--space-md) var(--space-lg); margin-block-start: var(--space-xl); }
+.document-contract div { padding-block-start: var(--space-sm); border-block-start: var(--border-hairline) solid var(--color-rule); }
+.document-contract dt { color: var(--color-muted); font: 700 var(--text-xs)/1.2 var(--font-mono); }
+.document-contract dd { margin: var(--space-2xs) 0 0; font-weight: 650; }
+.section { max-width: var(--measure); margin-inline: auto; padding: var(--space-2xl) clamp(var(--space-md), 5vw, var(--space-3xl)); scroll-margin-block-start: var(--space-lg); }
+.section + .section { border-block-start: var(--border-hairline) solid var(--color-rule); }
+.section--wide { max-width: 90rem; }
+.section > * + * { margin-block-start: var(--space-lg); }
+.section__header { display: flex; flex-direction: column; gap: var(--space-sm); margin-block-end: var(--space-xl); }
+.section__label { color: var(--color-accent-strong); font: 700 var(--text-xs)/1.2 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+.section__lede { max-width: 62ch; color: var(--color-ink-soft); font-size: var(--text-md); }
+.verdict { padding: var(--space-xl); background: var(--color-danger-soft); border: var(--border-strong) solid var(--color-danger); border-radius: var(--radius-sm); }
+.verdict__label { color: var(--color-danger); font: 700 var(--text-xs)/1.2 var(--font-mono); text-transform: uppercase; letter-spacing: .08em; }
+.verdict h2 { margin-block-start: var(--space-sm); color: var(--color-danger); }
+.verdict p { margin-block-start: var(--space-md); max-width: 66ch; }
+.score-strip { display: grid; gap: var(--space-md); }
+.score { padding: var(--space-lg); background: var(--color-paper-raised); border-block-start: var(--border-strong) solid var(--color-rule-strong); }
+.score dt { color: var(--color-muted); font: 700 var(--text-xs)/1.2 var(--font-mono); }
+.score dd { margin: var(--space-xs) 0 0; font-family: var(--font-display); font-size: var(--text-2xl); font-weight: 700; }
+.score--danger { border-color: var(--color-danger); }
+.score--danger dd { color: var(--color-danger); }
+.score--warning { border-color: var(--color-warning); }
+.score--warning dd { color: var(--color-warning); }
+.diagram { margin: 0; padding: var(--space-lg); background: var(--color-paper-raised); border: var(--border-hairline) solid var(--color-rule); border-radius: var(--radius-sm); }
+.diagram svg { display: block; width: 100%; height: auto; }
+.diagram figcaption { margin-block-start: var(--space-md); color: var(--color-ink-soft); }
+.diagram .node { fill: var(--color-paper-raised); stroke: var(--color-rule-strong); stroke-width: 1.5; }
+.diagram .node--focus { fill: var(--color-accent-soft); stroke: var(--color-accent); }
+.diagram .node--danger { fill: var(--color-danger-soft); stroke: var(--color-danger); }
+.diagram .edge { fill: none; stroke: var(--color-rule-strong); stroke-width: 1.5; }
+.diagram text { fill: var(--color-ink); font-family: var(--font-body); font-size: 14px; }
+.table-wrap { overflow-x: auto; border-block: var(--border-hairline) solid var(--color-rule-strong); }
+.record-list { display: grid; gap: var(--space-lg); }
+.record { padding: var(--space-lg); background: var(--color-paper-raised); border: var(--border-hairline) solid var(--color-rule); border-inline-start-width: .3rem; border-radius: var(--radius-sm); }
+.record--danger { border-inline-start-color: var(--color-danger); }
+.record--warning { border-inline-start-color: var(--color-warning); }
+.record--info { border-inline-start-color: var(--color-accent); }
+.record:target { outline: var(--border-strong) solid var(--color-focus); outline-offset: var(--space-2xs); }
+.record__header { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm); }
+.record__id { color: var(--color-accent-strong); font: 700 var(--text-xs)/1.2 var(--font-mono); }
+.record__title { flex: 1 1 24rem; font-size: var(--text-md); }
+.record__meta { display: grid; gap: var(--space-xs) var(--space-md); margin-block-start: var(--space-md); }
+.record__meta div { display: grid; grid-template-columns: minmax(6rem, auto) minmax(0, 1fr); gap: var(--space-sm); padding-block: var(--space-xs); border-block-start: var(--border-hairline) solid var(--color-rule); }
+.record__meta dt { color: var(--color-muted); font: 700 var(--text-xs)/1.4 var(--font-mono); }
+.record__meta dd { margin: 0; }
+.record__statement { margin-block-start: var(--space-lg); font-size: var(--text-md); font-weight: 700; line-height: 1.5; }
+.record__body { display: grid; gap: var(--space-lg); margin-block-start: var(--space-lg); }
+.record__body div { padding-block-start: var(--space-md); border-block-start: var(--border-hairline) solid var(--color-rule); }
+.record__body h4 { margin-block-end: var(--space-xs); color: var(--color-ink-soft); }
+.record details { margin-block-start: var(--space-lg); padding-block-start: var(--space-md); border-block-start: var(--border-hairline) solid var(--color-rule); }
+.record summary { cursor: pointer; color: var(--color-accent-strong); font-weight: 700; }
+.record details p { margin-block-start: var(--space-md); }
+.status, .severity { display: inline-flex; align-items: center; min-height: 1.75rem; padding: var(--space-2xs) var(--space-sm); border: var(--border-hairline) solid currentColor; border-radius: var(--radius-sm); font: 700 var(--text-xs)/1 var(--font-mono); white-space: nowrap; }
+.status--open { color: var(--color-warning); background: var(--color-warning-soft); }
+.severity--danger { color: var(--color-danger); background: var(--color-danger-soft); }
+.severity--warning { color: var(--color-warning); background: var(--color-warning-soft); }
+.severity--info { color: var(--color-accent-strong); background: var(--color-accent-soft); }
+.trace-links { display: flex; flex-wrap: wrap; gap: var(--space-xs); }
+.trace-links a { text-decoration: none; }
+.callout { padding: var(--space-lg); background: var(--color-accent-soft); border: var(--border-hairline) solid var(--color-rule); border-radius: var(--radius-sm); }
+.callout--positive { background: var(--color-positive-soft); border-color: var(--color-positive); }
+.steps { padding: 0; list-style: none; counter-reset: stage; }
+.steps li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-md); padding-block: var(--space-lg); border-block-end: var(--border-hairline) solid var(--color-rule); counter-increment: stage; }
+.steps li::before { content: counter(stage, decimal-leading-zero); color: var(--color-accent-strong); font: 700 var(--text-sm)/1.3 var(--font-mono); }
+.steps li > div > * + * { margin-block-start: var(--space-sm); }
+.foot { padding: var(--space-lg) clamp(var(--space-md), 5vw, var(--space-3xl)); border-block-start: var(--border-hairline) solid var(--color-rule); color: var(--color-muted); font-size: var(--text-sm); }
+@media (min-width: 44rem) {
+  .document-contract { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .score-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .record__body { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (min-width: 64rem) {
+  .rail { position: fixed; inset: 0 auto 0 0; z-index: 20; display: flex; width: var(--rail-width); flex-direction: column; gap: var(--space-xl); padding: var(--space-lg); overflow-y: auto; background: var(--color-paper-raised); border-inline-end: var(--border-hairline) solid var(--color-rule); }
+  .rail__title { font-family: var(--font-display); font-weight: 700; line-height: 1.2; }
+  .rail ol { padding: 0; list-style: none; }
+  .rail li + li { margin-block-start: var(--space-sm); }
+  .rail a { color: var(--color-ink-soft); font-size: var(--text-sm); text-decoration: none; }
+  .rail a:hover { color: var(--color-accent); text-decoration: underline; }
+  .mobile-index { display: none; }
+  .page, .foot { margin-inline-start: var(--rail-width); }
+  .document-contract { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media print {
+  .rail, .mobile-index, .skip-link { display: none; }
+  .page, .foot { margin: 0; }
+  body { background: white; color: black; }
+  .section, .record, .diagram { break-inside: avoid; }
+  h2, h3 { break-after: avoid; }
+  a { color: inherit; }
+}
+
+.status--resolved { color: var(--color-positive); background: var(--color-positive-soft); }
+.status--partial { color: var(--color-warning); background: var(--color-warning-soft); }
+.status--unresolved { color: var(--color-danger); background: var(--color-danger-soft); }
+.status--minor { color: var(--color-muted); background: var(--color-paper-subtle); }
+.result-grid { display: grid; gap: var(--space-md); }
+.result-grid article { padding: var(--space-lg); border-block-start: var(--border-strong) solid var(--color-rule-strong); background: var(--color-paper-raised); }
+.result-grid strong { display: block; font-family: var(--font-display); font-size: var(--text-lg); }
+.result-grid span { color: var(--color-ink-soft); }
+.review-summary { display: grid; gap: var(--space-md); }
+.review-summary > div { padding: var(--space-lg); background: var(--color-paper-raised); border: var(--border-hairline) solid var(--color-rule); }
+.review-summary dt { color: var(--color-muted); font: 700 var(--text-xs)/1.3 var(--font-mono); }
+.review-summary dd { margin: var(--space-xs) 0 0; font-size: var(--text-md); font-weight: 700; }
+.finding-list { display: grid; gap: var(--space-lg); }
+.record__body { display: grid; gap: var(--space-lg); margin-block-start: var(--space-lg); }
+.record__body h4 { margin: 0 0 var(--space-xs); }
+.record__body p { color: var(--color-ink-soft); }
+.record__body ul { margin: 0; }
+.small { color: var(--color-muted); font-size: var(--text-sm); }
+.inline-code-list { display: flex; flex-wrap: wrap; gap: var(--space-xs); padding: 0; list-style: none; }
+.inline-code-list li { margin: 0; }
+@media (min-width: 44rem) {
+  .result-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .review-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">本文へ移動</a>
+<div class="document">
+  <aside class="rail" aria-label="文書内索引">
+    <p class="rail__title">Stage Accord<br>LLD Review R2</p>
+    <nav aria-label="主要章"><ol>
+      <li><a href="#contract">文書契約</a></li>
+      <li><a href="#verdict">再レビュー判定</a></li>
+      <li><a href="#progress">前回指摘の解消状況</a></li>
+      <li><a href="#strengths">改善された点</a></li>
+      <li><a href="#findings">残存・新規指摘</a></li>
+      <li><a href="#exposure">露出・障害連鎖</a></li>
+      <li><a href="#audit">機械照合</a></li>
+      <li><a href="#order">修正順序</a></li>
+    </ol></nav>
+  </aside>
+  <details class="mobile-index"><summary>再レビューの目次</summary><nav aria-label="モバイル文書内索引"><ol>
+    <li><a href="#contract">文書契約</a></li><li><a href="#verdict">再レビュー判定</a></li>
+    <li><a href="#progress">前回指摘の解消状況</a></li><li><a href="#strengths">改善された点</a></li>
+    <li><a href="#findings">残存・新規指摘</a></li><li><a href="#exposure">露出・障害連鎖</a></li>
+    <li><a href="#audit">機械照合</a></li><li><a href="#order">修正順序</a></li>
+  </ol></nav></details>
+
+  <main class="page" id="main">
+    <header class="hero" id="top">
+      <p class="eyebrow">Low-Level Design Review / Round 2</p>
+      <h1>Stage Accord LLD 再レビュー</h1>
+      <p class="lede">LLD 1.1.0を、REQUIREMENTS 1.2.0、HLD 1.2.0、前回REVIEW-LLDの22件と再照合した。記述追加の有無ではなく、実装者が一意に実装し、安全側へ失敗できるかを判定する。</p>
+      <dl class="document-contract">
+        <div><dt>判定</dt><dd>実装開始不可・修正後再レビュー</dd></div>
+        <div><dt>対象</dt><dd>LLD.html 1.1.0</dd></div>
+        <div><dt>上位正本</dt><dd>REQUIREMENTS.html 1.2.0／HLD.html 1.2.0</dd></div>
+        <div><dt>前回指摘</dt><dd>22件を解消・部分解消・未解消で再判定</dd></div>
+        <div><dt>残存指摘</dt><dd>Blocker 7／Major 5／Minor 2</dd></div>
+        <div><dt>証拠レベル</dt><dd>文書静的照合のみ。実装、実UI、実ログ、実機は未確認</dd></div>
+        <div><dt>情報基準日</dt><dd>2026-08-03</dd></div>
+        <div><dt>読了後の行動</dt><dd>BlockerとMajorを修正し、OpenAPI・DDL案とともに再提出</dd></div>
+      </dl>
+    </header>
+
+    <section class="section" id="contract">
+      <header class="section__header"><p class="section__label">01 / Contract</p><h2>文書契約</h2><p class="section__lede">本書は修正済みLLDの実装開始可否を判断するレビュー正本である。上位文書の要求を変更せず、LLDの解消状況と残存問題だけを扱う。</p></header>
+      <dl class="review-summary">
+        <div><dt>対象範囲</dt><dd>API、Web、状態、データ、認証、ファイル、監査、削除、DR、追跡、文書品質</dd></div>
+        <div><dt>対象外</dt><dd>ソースコード品質、実環境性能、実機配線、法的文言の適法性、第三者製品の実挙動</dd></div>
+        <div><dt>優先関係</dt><dd>REQUIREMENTS → HLD → LLD → 本レビュー。競合時はLLDを修正する</dd></div>
+      </dl>
+      <aside class="callout"><strong>レビュー方法</strong><p>前回22件の解消条件を一件ずつ照合し、107要求の集合、HLDリンク、endpoint、operationId、状態、DB role、暗号、権限、削除、復旧の内部整合を機械・目視で確認した。実装証拠がないため、「設計上成立」と「実装済み」を区別する。</p></aside>
+    </section>
+
+    <section class="section" id="verdict">
+      <header class="section__header"><p class="section__label">02 / Verdict</p><h2>実装開始不可</h2><p class="section__lede">前回版から大幅に改善されたが、安全性と外部契約の中核に7件のBlockerが残る。現時点での実装開始は、後からAPI・DDL・認証・DRを壊して作り直す可能性が高い。</p></header>
+      <div class="verdict"><span class="verdict__label">結論</span><strong>修正後なら実装開始可。現版のままでは不可。</strong></div>
+      <div class="result-grid">
+        <article><strong>7</strong><span>Blocker</span></article>
+        <article><strong>5</strong><span>Major</span></article>
+        <article><strong>2</strong><span>Minor</span></article>
+        <article><strong>107 / 107</strong><span>要求追跡</span></article>
+      </div>
+      <aside class="callout callout--positive"><strong>進展</strong><p>フロントエンド、origin分離、通知、Valkey縮退、直接追跡、N／N-1、物理配置は実装議論へ進める水準まで具体化された。再レビュー待ちを明示した文書状態も正しい。</p></aside>
+    </section>
+
+    <section class="section section--wide" id="progress">
+      <header class="section__header"><p class="section__label">03 / Resolution</p><h2>前回22件の解消状況</h2><p class="section__lede">前回IDを維持し、現版での状態を示す。現LLDのREVIEW-REGISTERからの内部リンク先としても機能する。</p></header>
+      <div class="table-wrap"><table>
+        <caption>前回指摘の再判定：解消9／部分解消9／未解消4</caption>
+        <thead><tr><th scope="col">ID／指摘</th><th scope="col">判定</th><th scope="col">再レビュー結果</th></tr></thead>
+        <tbody><tr id="REQ-301"><th scope="row"><code>REQ-301</code><br>フロントエンド詳細設計</th>
+<td><span class="status status--resolved">解消</span></td><td>フロントエンド章にroute、状態所有、認証初期化、入力、upload、障害表示、アクセシビリティ、試験が追加された。</td></tr>
+<tr id="REQ-302"><th scope="row"><code>REQ-302</code><br>公開APIの完全性</th>
+<td><span class="status status--partial">部分解消</span></td><td>endpointは大幅に増えたが、外部queryと一覧取得が残り、主台帳の成功status・主要error・操作分類も一意でない。</td></tr>
+<tr id="REQ-303"><th scope="row"><code>REQ-303</code><br>状態名と遷移の統合</th>
+<td><span class="status status--partial">部分解消</span></td><td>状態IDとPreviewAsset分離は追加されたが、download_onlyの位置付けとinfectedの終端性が章間で一致しない。</td></tr>
+<tr id="REQ-304"><th scope="row"><code>REQ-304</code><br>DELETE・冪等性分類</th>
+<td><span class="status status--partial">部分解消</span></td><td>API-CLASSは追加されたが、97 endpoint中59件は文書上で分類が明示されていない。</td></tr>
+<tr id="REQ-305"><th scope="row"><code>REQ-305</code><br>権限とendpoint主体</th>
+<td><span class="status status--partial">部分解消</span></td><td>permission IDは追加されたが、service draft、external link、client操作routeに不一致が残る。</td></tr>
+<tr id="REQ-306"><th scope="row"><code>REQ-306</code><br>DB所有権とtenant境界</th>
+<td><span class="status status--resolved">解消</span></td><td>共有runtime roleを正直に明記し、migration owner、DB role、複合tenant制約へ整理された。</td></tr>
+<tr id="REQ-307"><th scope="row"><code>REQ-307</code><br>認証・招待・復旧lifecycle</th>
+<td><span class="status status--unresolved">未解消</span></td><td>MFA要素の削除・再生成、追加Passkey、recovery code再生成がなく、password resetと回復code応答に新たな矛盾がある。</td></tr>
+<tr id="REQ-308"><th scope="row"><code>REQ-308</code><br>origin境界</th>
+<td><span class="status status--resolved">解消</span></td><td>app、upload、preview、filesのorigin、Cookie、CSP、CORS、nosniff、Content-Dispositionが追加された。</td></tr>
+<tr id="REQ-309"><th scope="row"><code>REQ-309</code><br>ファイル配布方式</th>
+<td><span class="status status--unresolved">未解消</span></td><td>gateway方式と署名URL方式が同居し、実際のdownload request契約とgrant token輸送が未確定。</td></tr>
+<tr id="REQ-310"><th scope="row"><code>REQ-310</code><br>外部URL非取得</th>
+<td><span class="status status--partial">部分解消</span></td><td>DEC-210と本文は非取得に統一されたが、endpoint台帳に「危険redirect拒否」が残る。</td></tr>
+<tr id="REQ-311"><th scope="row"><code>REQ-311</code><br>監査chainとspool</th>
+<td><span class="status status--partial">部分解消</span></td><td>原子appendとspool mergeが追加されたが、audit表への直接INSERT権限記述がchain bypassと競合する。</td></tr>
+<tr id="REQ-312"><th scope="row"><code>REQ-312</code><br>削除台帳とObject Lock</th>
+<td><span class="status status--unresolved">未解消</span></td><td>状態と期限は追加されたが、独立台帳の通信・冪等性・ackがなく、凍結成果物のcompliance複製が削除SLAと競合する。</td></tr>
+<tr id="REQ-313"><th scope="row"><code>REQ-313</code><br>promotion fencing</th>
+<td><span class="status status--partial">部分解消</span></td><td>世代検査点は増えたが、DBの全INSERTと既存connection、site別credentialをserver側で拒否する具体機構がない。</td></tr>
+<tr id="REQ-314"><th scope="row"><code>REQ-314</code><br>全永続データのDDL</th>
+<td><span class="status status--partial">部分解消</span></td><td>DDL manifestは追加されたが、型・NULL・default・多相参照・DeletionRequest正本が未確定。</td></tr>
+<tr id="REQ-315"><th scope="row"><code>REQ-315</code><br>暗号契約</th>
+<td><span class="status status--partial">部分解消</span></td><td>暗号profileは追加されたが、digest dual-readやkey versionを保持する実テーブル列へ落ちていない。</td></tr>
+<tr id="REQ-316"><th scope="row"><code>REQ-316</code><br>通知詳細契約</th>
+<td><span class="status status--resolved">解消</span></td><td>通知状態、recipient、template、dedupe、channel、既読、設定、必須通知が追加された。</td></tr>
+<tr id="REQ-317"><th scope="row"><code>REQ-317</code><br>Valkey障害方針</th>
+<td><span class="status status--resolved">解消</span></td><td>入口別の503・fail-close・公開GETの扱いが明確化された。</td></tr>
+<tr id="REQ-318"><th scope="row"><code>REQ-318</code><br>要求からLLDへの直接追跡</th>
+<td><span class="status status--resolved">解消</span></td><td>107要求が一件一行でLLD契約と親testへ結ばれ、集合差分は0である。</td></tr>
+<tr id="REQ-319"><th scope="row"><code>REQ-319</code><br>N／N-1互換</th>
+<td><span class="status status--resolved">解消</span></td><td>consumer先行、unknown値、event互換、rollback拒否条件が追加された。</td></tr>
+<tr id="REQ-320"><th scope="row"><code>REQ-320</code><br>未確定事項の同期</th>
+<td><span class="status status--resolved">解消</span></td><td>文書状態とレビュー台帳が実装開始不可を明示し、提案recordを未承認のまま保持している。</td></tr>
+<tr id="REC-301"><th scope="row"><code>REC-301</code><br>用語統一</th>
+<td><span class="status status--partial">部分解消</span></td><td>TERM-CATALOGは追加されたが、上位文書の「クリエイター」とLLDの「作成者／creator」、publicProjectIdとprojectAccessIdが揺れる。</td></tr>
+<tr id="REC-302"><th scope="row"><code>REC-302</code><br>文書ノイズ除去</th>
+<td><span class="status status--resolved">解消</span></td><td>pre-emit自己採点コメントは削除された。</td></tr></tbody>
+      </table></div>
+    </section>
+
+    <section class="section" id="strengths">
+      <header class="section__header"><p class="section__label">04 / Accepted improvements</p><h2>改善された点</h2><p class="section__lede">以下は今回の再レビューで設計改善として確認できた。残存Blockerを理由に、これらを巻き戻す必要はない。</p></header>
+      <ul>
+        <li>Web route、server state、局所state、Problem Details、upload、WCAG試験の責務が一章に集約された。</li>
+        <li>app、upload、preview、filesのoriginが分離され、session Cookieを未信頼contentへ送らない方針になった。</li>
+        <li>Valkey障害を401やlocal rate fallbackへ変換せず、入口別に503でfail closeする契約が追加された。</li>
+        <li>通知のrecipient、template、dedupe、channel、既読、必須通知が状態機械と保存表へ接続された。</li>
+        <li>107要求の直接追跡が完全化され、上位文書リンクと内部リンクの欠落は検出されなかった。</li>
+        <li>N／N-1互換、物理node、network allowlist、具体的な露出連鎖が追加された。</li>
+        <li>文書状態が「再レビュー待ち・実装開始不可」とされ、未承認recordを承認済みと偽っていない。</li>
+      </ul>
+    </section>
+
+    <section class="section section--wide" id="findings">
+      <header class="section__header"><p class="section__label">05 / Findings</p><h2>残存・新規指摘</h2><p class="section__lede">Blockerは実装開始を停止する。Majorは局所修正に見えても公開契約・安全性へ影響するため、実装前に全件閉じる。</p></header>
+      <div class="finding-list">
+<article class="record record--danger" id="REQ-321">
+  <header class="record__header">
+    <span class="record__id">REQ-321</span>
+    <h3 class="record__title">公開API台帳を実装可能な単一契約へ完成させる</h3>
+    <span class="severity severity--danger">Blocker</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>要求</dd></div>
+    <div><dt>規範強度</dt><dd>必須</dd></div>
+    <div><dt>適用範囲</dt><dd>HTTP／OpenAPI／Web route／要件追跡</dd></div>
+    <div><dt>関連</dt><dd>REQ-302、REQ-304、FR-REQ-004</dd></div>
+  </dl>
+  <p class="record__statement">Production V1の公開HTTP面は、全routeと利用者操作についてmethod、path、operationId、operation class、許可主体、成功status、主要error、冪等性、競合条件を一件一行で確定し、OpenAPI生成前に集合差分を0にしなければならない。</p>
+  <div class="record__body">
+    <section aria-label="REQ-321の観測"><h4>根拠となる観測</h4><ul><li>文書には97件のendpoint行があるが、操作分類を明記しているのは補完APIの38件であり、主台帳59件は分類が未記載である。</li>
+<li>`ListRequests`はmodule公開契約とFR-REQ-004の追跡開始点に存在するが、対応するGET endpointがない。</li>
+<li>Web routeが要求するcreator側のrequest一覧、service／workflow一覧・取得、creator project詳細などのquery契約が公開API台帳に揃っていない。</li>
+<li>主台帳は成功statusと主要error codeを列として持たず、「Production V1の公開HTTP面」という自己宣言を満たしていない。</li></ul></section>
+    <section aria-label="REQ-321の影響"><h4>影響</h4><p>OpenAPI、生成client、route loader、認可試験、冪等性middlewareが同じ契約から実装できず、実装者ごとにstatus codeと再試行条件が分岐する。</p></section>
+    <section aria-label="REQ-321の必須修正"><h4>必須修正</h4><p>全endpoint台帳を一つに統合し、`x-operation-class`を文書上にも表示する。Web route registry、module use case、107件追跡、OpenAPI operationIdの集合差分をCI対象にする。</p></section>
+    <section aria-label="REQ-321の解消条件"><h4>解消条件</h4><p>全外部route／操作が一意なoperationへ到達し、未分類0、重複0、開始点欠落0、成功status・主要error空欄0となること。</p></section>
+  </div>
+</article>
+
+<article class="record record--danger" id="REQ-322">
+  <header class="record__header">
+    <span class="record__id">REQ-322</span>
+    <h3 class="record__title">認証要素・password reset・recovery codeのlifecycleを安全に確定する</h3>
+    <span class="severity severity--danger">Blocker</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>要求</dd></div>
+    <div><dt>規範強度</dt><dd>必須</dd></div>
+    <div><dt>適用範囲</dt><dd>identityaccess／認証API／Account recovery</dd></div>
+    <div><dt>関連</dt><dd>REQ-307、FR-ACC-004、FR-ACC-005</dd></div>
+  </dl>
+  <p class="record__statement">メール単体でcredentialを変更できる経路を設けず、Passkey、TOTP、recovery codeの追加、確認、削除、再生成、最後の強要素保護、全体失効をAPI・状態・保存・通知・監査まで一意に定義しなければならない。</p>
+  <div class="record__body">
+    <section aria-label="REQ-322の観測"><h4>根拠となる観測</h4><ul><li>`CompletePasswordReset`は匿名のchallenge所持者だけを主体とし、既存Passkey、TOTP、recovery code、72時間手動審査のいずれも要求していない。</li>
+<li>`ConfirmMfaEnrollment`はHTTP 204としながら「回復codeを一度だけ発行」と記載し、bodyを持てないresponse契約と矛盾する。</li>
+<li>追加Passkey、Passkey削除、TOTP削除、recovery code再生成のendpointと状態がない。</li>
+<li>「active要素ゼロへの通常削除禁止」はDB辞書にあるが、どの要素を最後の強要素として数えるか、要素変更時の全session失効が公開契約にない。</li></ul></section>
+    <section aria-label="REQ-322の影響"><h4>影響</h4><p>メール侵害からpassword変更またはaccount lockoutが可能になり、回復codeを利用者へ安全に渡せず、端末紛失時の運用が実装者判断になる。</p></section>
+    <section aria-label="REQ-322の必須修正"><h4>必須修正</h4><p>password resetを強要素確認またはRecoveryCaseへ統合する。MFA確認responseを200／201のSECRET_ISSUEとして一回だけ返すか、別のrecovery-code issuance endpointへ分離する。要素一覧・追加・削除・再生成APIを追加する。</p></section>
+    <section aria-label="REQ-322の解消条件"><h4>解消条件</h4><p>メールだけではcredential変更・session成立ができず、全要素lifecycle、最後の要素保護、再認証、世代失効、通知、監査のE2Eが定義されること。</p></section>
+  </div>
+</article>
+
+<article class="record record--danger" id="REQ-323">
+  <header class="record__header">
+    <span class="record__id">REQ-323</span>
+    <h3 class="record__title">ファイル配布方式とFile／Preview状態を一つに統一する</h3>
+    <span class="severity severity--danger">Blocker</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>要求</dd></div>
+    <div><dt>規範強度</dt><dd>必須</dd></div>
+    <div><dt>適用範囲</dt><dd>filehandling／download gateway／状態機械／origin</dd></div>
+    <div><dt>関連</dt><dd>REQ-303、REQ-309、FR-FIL-001、FR-FIL-005</dd></div>
+  </dl>
+  <p class="record__statement">ファイル取得はgateway方式または直接署名URL方式のどちらか一つに固定し、grant secretの輸送、GET／HEAD／Range、期限、単回性、再認可、失効、Cache-Control、ログ秘匿、およびFileVersionとPreviewAssetの状態を同じ契約から実装できなければならない。</p>
+  <div class="record__body">
+    <section aria-label="REQ-323の観測"><h4>根拠となる観測</h4><ul><li>DEC-209とFILE-CONTROLは「browserへRGW署名URLを渡さずgatewayがstream」と定義する一方、取込手順のDistributeは「5分以内の署名URLを返す」と記載する。</li>
+<li>`files.example`で実行する実際のGET／HEAD path、grant tokenをheader・body・fragment・URLのどこで渡すか、Range再利用と単回性の関係がない。</li>
+<li>TERM-CATALOGとIssueDownloadGrantは`download_only`をFile状態のように扱うが、STATE-PREVIEWはPreview capabilityとして扱う。</li>
+<li>STATE-FILEは`infected`を終端と記載しつつ、同じ表で`* → deletion_pending → deleted`を許可している。</li></ul></section>
+    <section aria-label="REQ-323の影響"><h4>影響</h4><p>失効後も取得できる実装、secretのURL・履歴・Referer漏えい、APIとDBで異なるstate enum、悪性ファイルを削除できない状態が発生する。</p></section>
+    <section aria-label="REQ-323の必須修正"><h4>必須修正</h4><p>gatewayの公開interfaceを別表で定義し、grant token輸送とRange契約を固定する。FileVersionの安全状態とPreviewAssetの能力を別enumにし、`download_only`をcapabilityへ統一する。infected／scan_errorの削除遷移を明示する。</p></section>
+    <section aria-label="REQ-323の解消条件"><h4>解消条件</h4><p>配布方式の言い換えが全章で一致し、File／Preview状態集合差0、失効後GET 0件、secretのURL・log・history残存0件となること。</p></section>
+  </div>
+</article>
+
+<article class="record record--danger" id="REQ-324">
+  <header class="record__header">
+    <span class="record__id">REQ-324</span>
+    <h3 class="record__title">削除要求・独立台帳・Object Lockを原子的かつ期限内に成立させる</h3>
+    <span class="severity severity--danger">Blocker</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>要求</dd></div>
+    <div><dt>規範強度</dt><dd>必須</dd></div>
+    <div><dt>適用範囲</dt><dd>DeletionRequest／独立台帳／Ceph／backup</dd></div>
+    <div><dt>関連</dt><dd>REQ-312、NFR-PRV-002、HLD-DEL-001</dd></div>
+  </dl>
+  <p class="record__statement">削除要求の正本、独立台帳entry、ack、冪等キー、署名chain、複製、再試行、terminal receiptを定義し、Object Lock対象を30日・35日の削除期限と競合しない情報だけに限定しなければならない。</p>
+  <div class="record__body">
+    <section aria-label="REQ-324の観測"><h4>根拠となる観測</h4><ul><li>STATE-DELETIONは外部台帳append成功前に202を返さないとするが、DB transactionと独立endpointの間の二重書込みを整合させるprotocolがない。</li>
+<li>`DELETION_LEDGER_ENDPOINT`とprojectionはあるが、独立台帳のentry schema、sequence、idempotency、ack、署名、timeout後の判定がない。</li>
+<li>DeletionRequestの状態機械とAPIはあるが、workflow正本となる所有tableがDDL manifestにない。</li>
+<li>DEC-212は利用者fileに固定WORMを設定しない一方、FILE-CONTROLは「契約上の凍結成果物」をcompliance bucketへ複製するとし、削除要求から30日以内のlive object削除と競合する。</li></ul></section>
+    <section aria-label="REQ-324の影響"><h4>影響</h4><p>台帳だけ成功／DBだけ成功の孤児状態、削除完了の誤通知、削除期限超過、復元後の再露出が起きる。</p></section>
+    <section aria-label="REQ-324の必須修正"><h4>必須修正</h4><p>DeletionRequest所有module・tableを追加し、DB Outbox→独立ledgerの冪等append→ack→projectionのsagaを定義する。compliance bucket対象から利用者成果物を除くか、上位要件で法的保持対象と期限を明示的に変更する。</p></section>
+    <section aria-label="REQ-324の解消条件"><h4>解消条件</h4><p>通信切断の全位置で再実行してもentry一件、202後の追跡可能性100％、通常fileの30日削除、backup35日失効、復元後再露出0件となること。</p></section>
+  </div>
+</article>
+
+<article class="record record--danger" id="REQ-325">
+  <header class="record__header">
+    <span class="record__id">REQ-325</span>
+    <h3 class="record__title">監査eventをappend function以外から書けないようにする</h3>
+    <span class="severity severity--danger">Blocker</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>要求</dd></div>
+    <div><dt>規範強度</dt><dd>必須</dd></div>
+    <div><dt>適用範囲</dt><dd>audit schema／DB role／hash chain</dd></div>
+    <div><dt>関連</dt><dd>REQ-311、FR-AUD-002</dd></div>
+  </dl>
+  <p class="record__statement">audit_eventへの書込みはchain headをロックする単一のSECURITY DEFINER functionだけに限定し、application、worker、運用roleへtable直接INSERT・UPDATE・DELETE権限を与えてはならない。</p>
+  <div class="record__body">
+    <section aria-label="REQ-325の観測"><h4>根拠となる観測</h4><ul><li>監査手順とDB-ROLE表は`audit_append` function経由・直接INSERT拒否を定義する。</li>
+<li>一方、主要テーブル辞書の`audit.audit_event`は「app roleはINSERT/SELECTのみ」と記載し、functionを迂回する直接INSERTを許可している。</li>
+<li>直接INSERTではglobal sequence、previous_hash、event_hash、chain head lockを強制できない。</li></ul></section>
+    <section aria-label="REQ-325の影響"><h4>影響</h4><p>悪意または実装ミスでchainに接続しない監査eventを挿入でき、改変検知と日次署名の意味が崩れる。</p></section>
+    <section aria-label="REQ-325の必須修正"><h4>必須修正</h4><p>辞書をfunction-onlyへ修正し、base table権限を全runtime roleからREVOKEする。functionの固定search_path、所有者、入力上限、canonicalization、transaction rollbackを定義する。</p></section>
+    <section aria-label="REQ-325の解消条件"><h4>解消条件</h4><p>runtime roleによる直接INSERT／UPDATE／DELETEが全て拒否され、並行function appendだけが連続chainを生成すること。</p></section>
+  </div>
+</article>
+
+<article class="record record--danger" id="REQ-326">
+  <header class="record__header">
+    <span class="record__id">REQ-326</span>
+    <h3 class="record__title">promotion generationをDBとRGWのserver側強制へ落とす</h3>
+    <span class="severity severity--danger">Blocker</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>要求</dd></div>
+    <div><dt>規範強度</dt><dd>必須</dd></div>
+    <div><dt>適用範囲</dt><dd>DR／PostgreSQL／RGW／worker</dd></div>
+    <div><dt>関連</dt><dd>REQ-313、NFR-BCP-002、HLD-DR-001</dd></div>
+  </dl>
+  <p class="record__statement">旧site・旧generationのprocessがapplication codeを迂回しても書けないよう、site別DB role、全transactionのserver-side generation gate、既存session切断、site別RGW credential失効、worker fencing tokenを具体的に定義しなければならない。</p>
+  <div class="record__body">
+    <section aria-label="REQ-326の観測"><h4>根拠となる観測</h4><ul><li>DEC-213は全transactionとobject writeへ世代を要求すると述べるが、DB-ROLEにはsite／generation別roleがなく、設定も単一`DB_USERNAME_FILE`である。</li>
+<li>行UPDATEへgeneration条件を加えるだけでは新規INSERT、sequence採番、監査function、DDL外の副作用を止められない。</li>
+<li>`NOLOGIN`やGRANT取消だけでは既存connection poolを確実に終了する手順がなく、`pg_terminate_backend`相当の扱いがない。</li>
+<li>RGW credentialの世代、発行、旧key削除確認、失効不能時の昇格停止が構成台帳にない。</li></ul></section>
+    <section aria-label="REQ-326の影響"><h4>影響</h4><p>network fenceの一部失敗や旧process生存時にsplit-brain書込みが成立し、RPO、監査順序、削除台帳、object versionが破壊される。</p></section>
+    <section aria-label="REQ-326の必須修正"><h4>必須修正</h4><p>site-generationごとのDB login roleとRGW access keyを発行し、昇格transactionで旧role権限取消・NOLOGIN・session終了を確認する。DB guard table＋transaction設定／trigger／functionで全writeを検査し、worker leaseにもgenerationを含める。</p></section>
+    <section aria-label="REQ-326の解消条件"><h4>解消条件</h4><p>旧site生存、旧connection、旧worker、旧S3 keyを使った全write試験で確定副作用0件となり、失効確認不能時は昇格しないこと。</p></section>
+  </div>
+</article>
+
+<article class="record record--danger" id="REQ-327">
+  <header class="record__header">
+    <span class="record__id">REQ-327</span>
+    <h3 class="record__title">DDL辞書を実際にmigrationへ変換できる完全性へ上げる</h3>
+    <span class="severity severity--danger">Blocker</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>要求</dd></div>
+    <div><dt>規範強度</dt><dd>必須</dd></div>
+    <div><dt>適用範囲</dt><dd>全schema／Flyway／JPA</dd></div>
+    <div><dt>関連</dt><dd>REQ-314、REQ-315</dd></div>
+  </dl>
+  <p class="record__statement">全table・columnについてSQL型、NULL、default、PK、FK、unique、CHECK、index、immutable、暗号envelope、保持classを明示し、抽象参照やID配列でtenant境界を迂回してはならない。</p>
+  <div class="record__body">
+    <section aria-label="REQ-327の観測"><h4>根拠となる観測</h4><ul><li>DDL-RULEは任意列に`NULL`を明記するとするが、`consumed_at`、`revoked_at`、`completed_at`、`grace_until`など状態依存列が必須フィールド欄に無印で並ぶ。</li>
+<li>補完辞書はcolumn名中心で、SQL型とdefaultが多数未記載であり、そのままFlyway DDLへ変換できない。</li>
+<li>`eligible_party_ids`、`required_parties`、`context_ref`、`target_ref`等の多相・配列参照は複合tenant FKを張れない。</li>
+<li>DeletionRequest、通知要求、client action link発行履歴など状態機械・APIが依存する正本tableが不足する。</li></ul></section>
+    <section aria-label="REQ-327の影響"><h4>影響</h4><p>実装者ごとにNULLと型、cascade、参照整合性が変わり、workspace越境、状態不能、migration非互換が生じる。</p></section>
+    <section aria-label="REQ-327の必須修正"><h4>必須修正</h4><p>column-level manifestまたは実DDLを正本化し、多対多はjoin table、多相参照は型別tableまたは明示CHECK＋application guardへ分解する。JPA／OpenAPI／DDL集合検査を実際のcolumn単位にする。</p></section>
+    <section aria-label="REQ-327の解消条件"><h4>解消条件</h4><p>Flyway migrationが推測なしに生成可能で、nullable集合差0、FK未定義0、tenant FK欠落0、全state正本table存在となること。</p></section>
+  </div>
+</article>
+
+<article class="record record--warning" id="REQ-328">
+  <header class="record__header">
+    <span class="record__id">REQ-328</span>
+    <h3 class="record__title">permission IDとroute namespaceを全endpointへ一致させる</h3>
+    <span class="severity severity--warning">Major</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>要求</dd></div>
+    <div><dt>規範強度</dt><dd>必須</dd></div>
+    <div><dt>適用範囲</dt><dd>認可／client portal／creator API</dd></div>
+    <div><dt>関連</dt><dd>REQ-305、NFR-SEC-001</dd></div>
+  </dl>
+  <p class="record__statement">各endpointは安定permission ID、principal種別、resource relation、assignment scopeを一意に持ち、client principalへworkspace内部IDを要求するcreator namespaceを使用してはならない。</p>
+  <div class="record__body">
+    <section aria-label="REQ-328の観測"><h4>根拠となる観測</h4><ul><li>`AUTHZ-CATALOG-PUBLISH`はmemberの明示割当draft編集を認めるが、`SaveServiceDraft` endpointはowner／adminだけである。</li>
+<li>`RegisterExternalLink`の許可主体「案件参加者」はviewerを含み得る一方、client permission表はviewerにwrite権限を与えていない。</li>
+<li>client ownerが実行できるcancel／dispute endpointが`/workspaces/{workspaceId}/projects/{projectId}`に置かれ、client portalのopaque ID境界と一致しない。</li>
+<li>`UpdateNotificationPreference`はworkspace pathと「本人」を組み合わせ、workspace memberでないclientの契約が不明である。</li></ul></section>
+    <section aria-label="REQ-328の影響"><h4>影響</h4><p>UIとAPIで権限が異なり、内部ID露出、403の乱発、または過剰権限が発生する。</p></section>
+    <section aria-label="REQ-328の必須修正"><h4>必須修正</h4><p>endpoint台帳へpermission ID列を追加する。client操作は`/client` namespaceとopaque access IDへ分離し、memberのdraft編集とviewer禁止を明示する。</p></section>
+    <section aria-label="REQ-328の解消条件"><h4>解消条件</h4><p>9役割×全endpointのallow／deny matrixと台帳が一致し、曖昧主体0、client内部ID要求0となること。</p></section>
+  </div>
+</article>
+
+<article class="record record--warning" id="REQ-329">
+  <header class="record__header">
+    <span class="record__id">REQ-329</span>
+    <h3 class="record__title">暗号rotationを保存schemaとmigrationへ接続する</h3>
+    <span class="severity severity--warning">Major</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>要求</dd></div>
+    <div><dt>規範強度</dt><dd>必須</dd></div>
+    <div><dt>適用範囲</dt><dd>PII／token digest／cursor／backup</dd></div>
+    <div><dt>関連</dt><dd>REQ-315、NFR-SEC-003</dd></div>
+  </dl>
+  <p class="record__statement">CRYPTO-PROFILEで定義したkey version、dual-read、再暗号化状態を、対象tableの実columnとmigration状態へ反映し、旧鍵を破棄する条件を機械判定できなければならない。</p>
+  <div class="record__body">
+    <section aria-label="REQ-329の観測"><h4>根拠となる観測</h4><ul><li>email digestは`digest_v1／digest_v2` dual-readとする一方、`iam.account`は単一`email_digest`だけを持つ。</li>
+<li>PII本文はkey_version・nonce・tagを保存するとするが、各`*_ciphertext`列のenvelope型または付随列が辞書にない。</li>
+<li>token digestはactive key set検証とするが、各grant／invitation／session recordにdigest key IDがない。</li>
+<li>backup内の旧key version件数と再暗号化進捗を示すtable／metricがない。</li></ul></section>
+    <section aria-label="REQ-329の影響"><h4>影響</h4><p>rotation途中で検索不能・token検証不能となるか、旧鍵を永久保持して漏えい影響を閉じられない。</p></section>
+    <section aria-label="REQ-329の必須修正"><h4>必須修正</h4><p>共通crypto envelope型またはcolumn群、digest key version、rotation job／state／metricを定義し、expand→dual-read→backfill→single-read→key retireをmigration契約へ追加する。</p></section>
+    <section aria-label="REQ-329の解消条件"><h4>解消条件</h4><p>旧新鍵混在、rollback、backup restoreを含む試験で検索・復号・失効が維持され、旧鍵破棄対象件数0を証明できること。</p></section>
+  </div>
+</article>
+
+<article class="record record--warning" id="REQ-330">
+  <header class="record__header">
+    <span class="record__id">REQ-330</span>
+    <h3 class="record__title">利用上限のcounterを現在値と累積値へ分離する</h3>
+    <span class="severity severity--warning">Major</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>要求</dd></div>
+    <div><dt>規範強度</dt><dd>必須</dd></div>
+    <div><dt>適用範囲</dt><dd>billing／entitlement／usage</dd></div>
+    <div><dt>関連</dt><dd>FR-BIL-005</dd></div>
+  </dl>
+  <p class="record__statement">アクティブ案件数、メンバー数、保存容量、テンプレート数の現在利用量は増減可能な整合projectionとして管理し、累積課金meterと同じ「減少しないcounter」にしてはならない。</p>
+  <div class="record__body">
+    <section aria-label="REQ-330の観測"><h4>根拠となる観測</h4><ul><li>`billing.usage_counter`は`valueを減らさない`と定義する。</li>
+<li>FR-BIL-005の上限対象には案件終了、member削除、file削除、template archiveで減る現在量が含まれる。</li>
+<li>この定義のままでは一度上限へ達したworkspaceが削除・完了後も容量を回復できない。</li></ul></section>
+    <section aria-label="REQ-330の影響"><h4>影響</h4><p>正常な削除や案件完了後も新規作成・uploadが恒久停止し、請求とentitlementが誤る。</p></section>
+    <section aria-label="REQ-330の必須修正"><h4>必須修正</h4><p>累積meter ledgerとcurrent usage projectionを分離し、source event sequenceで増減deltaを冪等適用する。日次reconcileで正本件数・object sizeと一致させる。</p></section>
+    <section aria-label="REQ-330の解消条件"><h4>解消条件</h4><p>作成・削除・復元・重複event・逆順event後に現在量が正本と一致し、上限解除が正しく行われること。</p></section>
+  </div>
+</article>
+
+<article class="record record--warning" id="REQ-331">
+  <header class="record__header">
+    <span class="record__id">REQ-331</span>
+    <h3 class="record__title">外部URLのredirect安全性に関する矛盾を除去する</h3>
+    <span class="severity severity--warning">Major</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>要求</dd></div>
+    <div><dt>規範強度</dt><dd>必須</dd></div>
+    <div><dt>適用範囲</dt><dd>ExternalLink／endpoint台帳／security test</dd></div>
+    <div><dt>関連</dt><dd>REQ-310、FR-FIL-003</dd></div>
+  </dl>
+  <p class="record__statement">外部URLをserverから取得しない方針ではredirect先の安全性を検査済みと表現せず、字句検査と利用者主導の警告遷移だけを契約としなければならない。</p>
+  <div class="record__body">
+    <section aria-label="REQ-331の観測"><h4>根拠となる観測</h4><ul><li>DEC-210とCSRF・入力節はDNS解決・HTTP取得を行わず、redirect先を保証しないとする。</li>
+<li>一方、主endpoint台帳のRegisterExternalLinkは「危険redirect拒否」と記載している。</li>
+<li>HLD追跡の検証欄にもredirectが残り、実装者がserver fetchを追加する余地がある。</li></ul></section>
+    <section aria-label="REQ-331の影響"><h4>影響</h4><p>SSRF防止のための非取得方針が崩れるか、実施していない安全検査を利用者へ表示する。</p></section>
+    <section aria-label="REQ-331の必須修正"><h4>必須修正</h4><p>endpoint台帳と試験からredirect拒否を削除し、scheme、userinfo、literal IP、localhost／予約TLD、制御文字、interstitial、no-referrerの検証へ統一する。</p></section>
+    <section aria-label="REQ-331の解消条件"><h4>解消条件</h4><p>外部URLに関する全記述が非取得・非保証で一致し、server egressが0件であること。</p></section>
+  </div>
+</article>
+
+<article class="record record--warning" id="REQ-332">
+  <header class="record__header">
+    <span class="record__id">REQ-332</span>
+    <h3 class="record__title">private responseとsecret responseのcache契約を追加する</h3>
+    <span class="severity severity--warning">Major</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>要求</dd></div>
+    <div><dt>規範強度</dt><dd>必須</dd></div>
+    <div><dt>適用範囲</dt><dd>Web／Nginx／browser cache／download grant</dd></div>
+    <div><dt>関連</dt><dd>REQ-308、REQ-309、NFR-PRV-001</dd></div>
+  </dl>
+  <p class="record__statement">session、client project、agreement、support、billing、secret issuance、download grantを含むresponseはCache-ControlとVaryを明示し、browser・proxy・back-forward cacheへ機密情報を残さない契約を定義しなければならない。</p>
+  <div class="record__body">
+    <section aria-label="REQ-332の観測"><h4>根拠となる観測</h4><ul><li>ORIGIN-POLICYはCSP、nosniff、Referrer-Policyを定義するが、`Cache-Control`、`Pragma`、`Vary`、service worker cache除外を定義しない。</li>
+<li>`GetCurrentSession`、client portal、billing summary、support view、SECRET_ISSUE responseは個人情報または秘密を返す。</li>
+<li>download grantの輸送方式が未確定であるため、URL・response cache・browser historyの残存条件も未確定である。</li></ul></section>
+    <section aria-label="REQ-332の影響"><h4>影響</h4><p>共有端末、戻る操作、proxy、service worker、browser disk cacheから案件内容・権限・秘密が再露出する。</p></section>
+    <section aria-label="REQ-332の必須修正"><h4>必須修正</h4><p>public／private／secretのcache classを定義し、private・secretは`no-store`を既定とする。認証有無で内容が変わるresponseは適切なVaryを設定し、service workerの対象外にする。</p></section>
+    <section aria-label="REQ-332の解消条件"><h4>解消条件</h4><p>logout・権限失効・別account login・back navigation後にprivate本文とsecretがcacheから再表示されないこと。</p></section>
+  </div>
+</article>
+
+<article class="record record--info" id="REC-303">
+  <header class="record__header">
+    <span class="record__id">REC-303</span>
+    <h3 class="record__title">上位文書と表示用語を再統一する</h3>
+    <span class="severity severity--info">Minor</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>推奨</dd></div>
+    <div><dt>規範強度</dt><dd>推奨</dd></div>
+    <div><dt>適用範囲</dt><dd>用語／route ID／state display</dd></div>
+    <div><dt>関連</dt><dd>REC-301</dd></div>
+  </dl>
+  <p class="record__statement">利用者向け表示語は上位文書の「クリエイター」「依頼者」へ合わせ、内部codeのCreator／Clientと分離し、同一識別子をpublicProjectIdとprojectAccessIdの二名で呼ばないことを推奨する。</p>
+  <div class="record__body">
+    <section aria-label="REC-303の観測"><h4>根拠となる観測</h4><ul><li>TERM-CATALOGは日本語表示を「作成者」とするが、REQUIREMENTSとHLDの正式な利用者語は「クリエイター」である。</li>
+<li>Web routeは`publicProjectId`、APIは`projectAccessId`を使用し、同一または別IDかを説明しない。</li>
+<li>`download_only`も表示能力と内部状態の両方に使われている。</li></ul></section>
+    <section aria-label="REC-303の影響"><h4>影響</h4><p>画面文言、API field、support会話、AI実装で同じ概念が別物として扱われる。</p></section>
+    <section aria-label="REC-303の必須修正"><h4>推奨修正</h4><p>用語表を上位文書優先で修正し、表示語・domain term・code identifier・IDの公開範囲を一対一にする。</p></section>
+    <section aria-label="REC-303の解消条件"><h4>解消条件</h4><p>用語lintと文書検索で禁止語・同義IDの未説明使用が0件となること。</p></section>
+  </div>
+</article>
+
+<article class="record record--info" id="REC-304">
+  <header class="record__header">
+    <span class="record__id">REC-304</span>
+    <h3 class="record__title">HTML sourceに残った差分記号を除去する</h3>
+    <span class="severity severity--info">Minor</span>
+    <span class="status status--open">未確定</span>
+  </header>
+  <dl class="record__meta">
+    <div><dt>種別</dt><dd>推奨</dd></div>
+    <div><dt>規範強度</dt><dd>推奨</dd></div>
+    <div><dt>適用範囲</dt><dd>LLD.html source</dd></div>
+    <div><dt>関連</dt><dd>文書品質</dd></div>
+  </dl>
+  <p class="record__statement">`CI・deployment gate`見出しの前に残る文字`+`を削除し、成果物へpatch記号や編集残骸を残さないことを推奨する。</p>
+  <div class="record__body">
+    <section aria-label="REC-304の観測"><h4>根拠となる観測</h4><ul><li>HTML sourceの該当行は`+        &lt;h3&gt;CI・deployment gate&lt;/h3&gt;`であり、ブラウザ本文にも`+`が表示される。</li></ul></section>
+    <section aria-label="REC-304の影響"><h4>影響</h4><p>文書の正本性を下げ、機械差分またはAIが記号を意味のある規範として誤読する。</p></section>
+    <section aria-label="REC-304の必須修正"><h4>推奨修正</h4><p>先頭の`+`を削除し、行頭patch markerを監査する。</p></section>
+    <section aria-label="REC-304の解消条件"><h4>解消条件</h4><p>成果物内の行頭`+`／`-`編集残骸が0件となること。</p></section>
+  </div>
+</article></div>
+    </section>
+
+    <section class="section" id="exposure">
+      <header class="section__header"><p class="section__label">06 / Failure chain</p><h2>露出・障害連鎖</h2><p class="section__lede">残存問題が本番へ入った場合の多段階悪化経路を示す。単発のAPI不備ではなく、削除、復旧、公開、第三者保存まで連鎖する。</p></header>
+      <ol class="steps">
+        <li><div><h3>download grantの輸送が曖昧なまま実装される</h3><p>実装者がquery付きURLまたは直接RGW URLを採用し、browser履歴、Referer、access logへsecretが残る。</p></div></li>
+        <li><div><h3>権限失効後も取得される</h3><p>client roleやproject grantを失効しても、発行済みURLまたはcacheから成果物を取得できる。</p></div></li>
+        <li><div><h3>第三者へ保存・転載される</h3><p>取得者、画面共有、ブラウザ同期、スクリーンショット保持者がファイルやURLを外部へ複製する。</p></div></li>
+        <li><div><h3>削除要求後もcompliance objectが残る</h3><p>凍結成果物のObject Lockと30日削除が競合し、削除完了表示と実体が一致しない。</p></div></li>
+        <li><div><h3>障害復旧で再露出する</h3><p>独立台帳のack・正本が不明なため、古いbackupから復元した公開projectionやobjectへ削除が再適用されない。</p></div></li>
+        <li><div><h3>訂正で注目が増える</h3><p>公開後の説明・訂正がスクリーンショットやSNS投稿と結合され、削除済みと説明した情報が再燃する。</p></div></li>
+      </ol>
+      <aside class="callout"><strong>合格条件</strong><p>「通常は漏れない」ではなく、失効後取得不能、secret非残存、削除期限内、復元後再露出0件を試験で証明し、失敗時は配布・公開・昇格を停止すること。</p></aside>
+    </section>
+
+    <section class="section section--wide" id="audit">
+      <header class="section__header"><p class="section__label">07 / Machine checks</p><h2>機械照合結果</h2><p class="section__lede">HTML構造と集合関係は良好である。意味契約の矛盾は構文監査では検出できないため、上記指摘を別に扱う。</p></header>
+      <div class="table-wrap"><table>
+        <caption>静的検査</caption>
+        <thead><tr><th scope="col">検査</th><th scope="col">結果</th><th scope="col">評価</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">自己完結性</th><td>外部CSS 0、script 0</td><td>合格</td></tr>
+          <tr><th scope="row">HTML ID</th><td>208件、重複0、内部リンク切れ0</td><td>合格</td></tr>
+          <tr><th scope="row">図表</th><td>table 49件すべてcaptionあり、figure 2件すべてfigcaptionあり</td><td>合格</td></tr>
+          <tr><th scope="row">要求追跡</th><td>REQUIREMENTS 107件とTRACE 107件の集合差分0</td><td>合格</td></tr>
+          <tr><th scope="row">endpoint</th><td>97件、operationId重複0</td><td>件数は改善</td></tr>
+          <tr><th scope="row">operation class</th><td>明記38件／未明記59件</td><td>不合格</td></tr>
+          <tr><th scope="row">外部use case</th><td><code>ListRequests</code>がmodule・traceに存在するがendpointなし</td><td>不合格</td></tr>
+          <tr><th scope="row">source残骸</th><td>行頭patch marker「+」1件</td><td>要修正</td></tr>
+        </tbody>
+      </table></div>
+      <p class="small">検査は添付HTMLの静的解析であり、OpenAPI、Flyway、JPA、実ブラウザ、PostgreSQL role、Ceph policy、実ネットワークの動作確認ではない。</p>
+    </section>
+
+    <section class="section" id="order">
+      <header class="section__header"><p class="section__label">08 / Next actions</p><h2>修正順序</h2><p class="section__lede">先に契約の正本を決め、その後に表記と追跡を更新する。順序を逆にすると同じ矛盾を複数表へ再複製する。</p></header>
+      <ol class="steps">
+        <li><div><h3>認証とファイル配布を一意化する</h3><p>REQ-322、REQ-323を先に閉じる。secret発行、response、URL、cookie、cache、stateを確定する。</p></div></li>
+        <li><div><h3>削除・監査・昇格の強制点を決める</h3><p>REQ-324、REQ-325、REQ-326を閉じ、外部台帳、DB function、site credential、旧connection停止を実装可能にする。</p></div></li>
+        <li><div><h3>APIと権限を再生成する</h3><p>REQ-321、REQ-328、REQ-331、REQ-332を反映し、単一endpoint registryからOpenAPIと認可matrixを生成する。</p></div></li>
+        <li><div><h3>DDLと暗号・usageを完成させる</h3><p>REQ-327、REQ-329、REQ-330をcolumn-level schema、migration、reconcileへ落とす。</p></div></li>
+        <li><div><h3>文書の整合を閉じる</h3><p>REC-303、REC-304を修正し、107追跡、HLDリンク、endpoint分類、state集合、column集合を再監査する。</p></div></li>
+        <li><div><h3>再レビューへ提出する</h3><p>LLDだけでなく、生成予定のOpenAPI骨格、DDL manifest、認証state、download gateway interface、deletion ledger protocolを同時に提示する。</p></div></li>
+      </ol>
+      <aside class="callout"><strong>再レビュー合格条件</strong><p>Blocker 0、Major 0、前回未解消0、operation未分類0、外部操作欠落0、状態集合差0、DDL推測項目0を満たした時点で、LLD recordを承認済みへ更新し実装開始可を再判定する。</p></aside>
+    </section>
+  </main>
+  <footer class="foot"><p>Stage Accord LLD 再レビュー · Round 2 · 2026-08-03 · 文書静的照合</p></footer>
+</div>
+</body>
+</html>

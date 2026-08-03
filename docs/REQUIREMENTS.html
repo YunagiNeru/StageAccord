@@ -7,33 +7,29 @@
 <meta name="author" content="Stage Accord Project">
 <title>REQUIREMENTS | Stage Accord</title>
 <style>
-/* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V4 */
-/* Hallmark · macrostructure: Long Document · genre: editorial-reference · theme: Editorial
- * reveal: none · typography: roman headings · nav: N5 document TOC · footer: Ft1 statement
- * contrast: pass (40–41) · honest: pass (46) · chrome: pass (47) · tokens: pass (48)
- * responsive: pass (49) · icons: pass (30) · mobile: pass (34, 49, 50–57) · widths: 320/375/414/768/1440
- */
+/* Hallmark · macrostructure: Long Document / Map · genre: technical-reference · theme: adapted Cobalt · nav: N3 · footer: Ft2 */
 :root {
-  --color-paper: #f4f1ea;
-  --color-paper-raised: #fbfaf6;
-  --color-ink: #202321;
-  --color-muted: #626861;
-  --color-soft: #696f69;
-  --color-line: #d4d0c7;
-  --color-line-strong: #aaa79f;
-  --color-accent: #275f5a;
-  --color-accent-soft: #dfeae6;
-  --color-warm: #8b4d3f;
-  --color-warm-soft: #efe3de;
-  --color-blue: #3f5f79;
-  --color-blue-soft: #e1e8ee;
-  --color-gold: #775f2e;
-  --color-gold-soft: #eee7d4;
-  --color-focus: #0a70c7;
-  --color-code: #ebe8df;
-  --font-display: "Yu Mincho", "Hiragino Mincho ProN", "Noto Serif JP", serif;
-  --font-body: "Hiragino Sans", "Yu Gothic UI", "Yu Gothic", "Noto Sans JP", sans-serif;
-  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  color-scheme: light;
+  --color-paper: oklch(97.5% 0.009 258);
+  --color-paper-raised: oklch(99% 0.006 258);
+  --color-ink: oklch(19% 0.025 258);
+  --color-muted: oklch(49% 0.025 258);
+  --color-soft: oklch(42% 0.028 258);
+  --color-line: oklch(82% 0.022 258);
+  --color-line-strong: oklch(67% 0.035 258);
+  --color-accent: oklch(42% 0.18 258);
+  --color-accent-soft: oklch(92% 0.045 258);
+  --color-warm: oklch(44% 0.16 28);
+  --color-warm-soft: oklch(93% 0.045 28);
+  --color-blue: oklch(42% 0.18 258);
+  --color-blue-soft: oklch(92% 0.045 258);
+  --color-gold: oklch(47% 0.105 76);
+  --color-gold-soft: oklch(94% 0.045 76);
+  --color-focus: oklch(56% 0.2 258);
+  --color-code: oklch(94.5% 0.014 258);
+  --font-display: "Bahnschrift", "Arial Narrow", ui-sans-serif, sans-serif;
+  --font-body: "Aptos", "Segoe UI", "Yu Gothic UI", "Yu Gothic", ui-sans-serif, sans-serif;
+  --font-mono: "Cascadia Mono", "Consolas", ui-monospace, monospace;
   --measure: 68ch;
   --sidebar: 17rem;
   --space-1: .35rem;
@@ -44,9 +40,9 @@
   --space-6: 2.5rem;
   --space-7: 3.75rem;
   --space-8: 5.5rem;
-  --radius-sm: .35rem;
-  --radius-md: .7rem;
-  --shadow-paper: 0 1px 0 rgba(32,35,33,.04), 0 14px 40px rgba(32,35,33,.06);
+  --radius-sm: .25rem;
+  --radius-md: .5rem;
+  --shadow-paper: 0 .125rem .5rem oklch(19% 0.025 258 / .09);
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; min-height: 100%; overflow-x: clip; background: var(--color-paper); color: var(--color-ink); }
@@ -54,14 +50,13 @@ html { scroll-behavior: smooth; }
 body { font-family: var(--font-body); font-size: 1rem; line-height: 1.75; letter-spacing: .01em; }
 a { color: var(--color-accent); text-underline-offset: .18em; text-decoration-thickness: .08em; }
 a:hover { text-decoration-thickness: .13em; }
-a:focus-visible, button:focus-visible, summary:focus-visible { outline: .18rem solid var(--color-focus); outline-offset: .2rem; }
-button { font: inherit; }
+a:focus-visible, summary:focus-visible { outline: .18rem solid var(--color-focus); outline-offset: .2rem; }
 .skip-link { position: fixed; inset-block-start: .5rem; inset-inline-start: .5rem; z-index: 100; transform: translateY(-180%); padding: .65rem 1rem; background: var(--color-ink); color: var(--color-paper-raised); border-radius: var(--radius-sm); }
 .skip-link:focus { transform: none; }
 .document { width: min(100%, 104rem); margin-inline: auto; }
-.document-header { padding: clamp(2rem, 7vw, 6.5rem) clamp(1rem, 5vw, 5rem) clamp(2.5rem, 7vw, 5.5rem); border-block-end: 1px solid var(--color-line); }
+.document-header { padding: clamp(2rem, 7vw, 6.5rem) clamp(1rem, 5vw, 5rem) clamp(2.5rem, 7vw, 5.5rem); border-block-end: 2px solid var(--color-ink); }
 .kicker { margin: 0 0 var(--space-5); color: var(--color-accent); font-size: .76rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
-.document-title { margin: 0; max-width: 12ch; font-family: var(--font-display); font-size: clamp(3rem, 8vw, 7.2rem); font-style: normal; font-weight: 600; line-height: .94; letter-spacing: -.045em; overflow-wrap: anywhere; min-width: 0; }
+.document-title { margin: 0; max-width: 13ch; font-family: var(--font-display); font-size: clamp(2.45rem, 5vw + .5rem, 5.25rem); font-style: normal; font-weight: 700; line-height: 1.08; letter-spacing: -.035em; overflow-wrap: anywhere; min-width: 0; }
 .document-subtitle { margin: var(--space-5) 0 0; max-width: 45ch; color: var(--color-muted); font-size: clamp(1.05rem, 1.4vw, 1.35rem); line-height: 1.55; }
 .meta-strip { display: grid; grid-template-columns: 1fr; gap: var(--space-3) var(--space-5); margin: var(--space-6) 0 0; padding: var(--space-4) 0 0; border-block-start: 1px solid var(--color-line); max-width: 60rem; }
 .meta-item dt { color: var(--color-soft); font-size: .76rem; font-weight: 700; letter-spacing: .08em; }
@@ -80,7 +75,7 @@ button { font: inherit; }
 .section--wide > h2, .section--wide > h3, .section--wide > p, .section--wide > ul, .section--wide > ol, .section--wide > .lede { max-width: var(--measure); }
 .section-number { display: block; margin-block-end: var(--space-3); color: var(--color-accent); font-family: var(--font-mono); font-size: .78rem; font-weight: 700; letter-spacing: .08em; }
 h1,h2,h3,h4 { font-style: normal; overflow-wrap: anywhere; min-width: 0; }
-h2 { margin: 0 0 var(--space-5); font-family: var(--font-display); font-size: clamp(2rem, 4vw, 3.4rem); font-weight: 600; line-height: 1.18; letter-spacing: -.025em; }
+h2 { margin: 0 0 var(--space-5); font-family: var(--font-display); font-size: clamp(1.953rem, 4vw, 3.052rem); font-weight: 700; line-height: 1.2; letter-spacing: -.025em; }
 h3 { margin: var(--space-7) 0 var(--space-3); font-size: clamp(1.2rem, 2vw, 1.55rem); line-height: 1.4; }
 h4 { margin: var(--space-5) 0 var(--space-2); font-size: 1rem; }
 p { margin: 0 0 var(--space-4); }
@@ -95,10 +90,7 @@ p { margin: 0 0 var(--space-4); }
 .definition dt { color: var(--color-soft); font-size: .76rem; font-weight: 700; letter-spacing: .08em; }
 .definition dd { margin: .25rem 0 0; font-size: 1.03rem; }
 .principle-grid { display: grid; grid-template-columns: 1fr; gap: var(--space-4); margin-block: var(--space-5); }
-.principle { padding: var(--space-5); border-block-start: .22rem solid var(--color-accent); background: var(--color-paper-raised); }
-.principle:nth-child(2) { border-color: var(--color-blue); }
-.principle:nth-child(3) { border-color: var(--color-warm); }
-.principle:nth-child(4) { border-color: var(--color-gold); }
+.principle { padding: var(--space-5); border-block-start: .125rem solid var(--color-accent); background: var(--color-paper-raised); }
 .principle h3 { margin: 0 0 var(--space-2); font-family: var(--font-display); }
 .principle p:last-child { margin-bottom: 0; }
 ul, ol { padding-inline-start: 1.3rem; }
@@ -107,7 +99,7 @@ li + li { margin-block-start: .35rem; }
 .compact-list li + li { margin-block-start: .2rem; }
 .flow { list-style: none; padding: 0; margin: var(--space-6) 0; counter-reset: stage; }
 .flow li { position: relative; padding: 0 0 var(--space-5) 3.4rem; counter-increment: stage; }
-.flow li::before { content: counter(stage, decimal-leading-zero); position: absolute; inset-inline-start: 0; inset-block-start: .1rem; width: 2.4rem; height: 2.4rem; display: grid; place-items: center; border: 1px solid var(--color-line-strong); border-radius: 50%; color: var(--color-accent); background: var(--color-paper-raised); font-family: var(--font-mono); font-size: .72rem; font-weight: 700; }
+.flow li::before { content: counter(stage, decimal-leading-zero); position: absolute; inset-inline-start: 0; inset-block-start: .1rem; width: 2.4rem; height: 2.4rem; display: grid; place-items: center; border: 1px solid var(--color-line-strong); border-radius: var(--radius-sm); color: var(--color-accent); background: var(--color-paper-raised); font-family: var(--font-mono); font-size: .72rem; font-weight: 700; }
 .flow li:not(:last-child)::after { content: ""; position: absolute; inset-inline-start: 1.18rem; inset-block-start: 2.7rem; inset-block-end: .25rem; width: 1px; background: var(--color-line); }
 .flow strong { display: block; margin-block-end: .15rem; }
 .state-line, code { font-family: var(--font-mono); }
@@ -151,10 +143,6 @@ td p { margin: .2rem 0 0; color: var(--color-muted); font-size: .93rem; line-hei
 .ref-id { font-family: var(--font-mono); font-size: .75rem; color: var(--color-soft); }
 .footnote { color: var(--color-soft); font-size: .85rem; }
 .document-footer { padding: var(--space-6) clamp(1rem, 5vw, 5rem); border-block-start: 1px solid var(--color-line); color: var(--color-soft); font-size: .82rem; }
-.print-button { margin-block-start: var(--space-5); min-height: 2.8rem; padding: .55rem 1rem; border: 1px solid var(--color-ink); border-radius: var(--radius-sm); background: transparent; color: var(--color-ink); cursor: pointer; white-space: nowrap; }
-.print-button:hover { background: var(--color-ink); color: var(--color-paper-raised); }
-.print-button:active { background: var(--color-muted); color: var(--color-paper-raised); }
-.print-button:disabled { border-color: var(--color-line-strong); background: var(--color-paper); color: var(--color-muted); cursor: not-allowed; opacity: .55; }
 @media (min-width: 30rem) {
   .meta-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
@@ -209,7 +197,7 @@ td p { margin: .2rem 0 0; color: var(--color-muted); font-size: .93rem; line-hei
   .callout, .scope-card, .principle { box-shadow: none; break-inside: avoid; }
   table { font-size: 8pt; }
   tr, .flow li, .kpi { break-inside: avoid; }
-  .print-button, .skip-link { display: none; }
+  .skip-link { display: none; }
   a { color: inherit; text-decoration: none; }
   .document-footer { padding-inline: 0; }
 }
@@ -219,21 +207,21 @@ td p { margin: .2rem 0 0; color: var(--color-muted); font-size: .93rem; line-hei
 <a class="skip-link" href="#main">本文へ移動</a>
 <div class="document">
 <header class="document-header">
-  <p class="kicker">Product Requirements Document</p>
+  <p class="kicker">Product Requirements Document · 要求仕様承認済み／本番投入未承認</p>
   <h1 class="document-title">Stage Accord</h1>
   <p class="document-subtitle">クリエイターと依頼者のための制作フロー共有・段階承認プラットフォーム</p>
   <dl class="meta-strip">
-    <div class="meta-item"><dt>文書</dt><dd>Production V1 要求仕様書</dd></div>
+    <div class="meta-item"><dt>要求仕様</dt><dd>Production V1承認済み</dd></div>
+    <div class="meta-item"><dt>本番投入</dt><dd>未承認・リリース条件充足後に判定</dd></div>
     <div class="meta-item"><dt>ファイル</dt><dd>REQUIREMENTS.html</dd></div>
-    <div class="meta-item"><dt>版</dt><dd>1.0.0</dd></div>
-    <div class="meta-item"><dt>更新日</dt><dd>2026-08-02</dd></div>
+    <div class="meta-item"><dt>版</dt><dd>1.3.0</dd></div>
+    <div class="meta-item"><dt>日付</dt><dd>整理日 2026-08-03<br>情報基準日 2026-08-03</dd></div>
   </dl>
-  <button class="print-button" type="button" onclick="window.print()">印刷・PDF保存</button>
 </header>
 <div class="layout">
 <details class="toc-panel" open>
   <summary>目次</summary>
-  <ol><li><a href="#summary">1. 文書概要</a></li><li><a href="#product">2. プロダクト定義</a></li><li><a href="#principles">3. 設計原則</a></li><li><a href="#users">4. 対象ユーザーと役割</a></li><li><a href="#journey">5. 利用の流れ</a></li><li><a href="#rules">6. 中核業務ルール</a></li><li><a href="#functional">7. 機能要件</a></li><li><a href="#permissions">8. 権限</a></li><li><a href="#states">9. 状態遷移</a></li><li><a href="#data">10. 概念データ</a></li><li><a href="#ux">11. UX・アクセシビリティ</a></li><li><a href="#nonfunctional">12. 非機能要件</a></li><li><a href="#legal">13. 法令・取引支援</a></li><li><a href="#business">14. 料金と採算判定</a></li><li><a href="#architecture">15. 本番技術方針</a></li><li><a href="#release">16. Production V1リリース条件</a></li><li><a href="#decisions">17. 確定方針</a></li><li><a href="#risks">18. リスク</a></li><li><a href="#glossary">19. 用語</a></li><li><a href="#references">20. 参照資料</a></li></ol>
+  <ol><li><a href="#summary">1. 文書概要</a></li><li><a href="#product">2. プロダクト定義</a></li><li><a href="#principles">3. プロダクト原則</a></li><li><a href="#users">4. 対象ユーザーと役割</a></li><li><a href="#journey">5. 利用の流れ</a></li><li><a href="#rules">6. 中核業務ルール</a></li><li><a href="#functional">7. 機能要件</a></li><li><a href="#permissions">8. 権限</a></li><li><a href="#states">9. 状態遷移</a></li><li><a href="#data">10. 概念データ</a></li><li><a href="#ux">11. UX・アクセシビリティ</a></li><li><a href="#nonfunctional">12. 非機能要件</a></li><li><a href="#legal">13. 法令・取引支援</a></li><li><a href="#business">14. 料金と採算判定</a></li><li><a href="#architecture">15. 本番運用・技術制約</a></li><li><a href="#release">16. Production V1リリース条件</a></li><li><a href="#decisions">17. 確定方針</a></li><li><a href="#risks">18. リスク</a></li><li><a href="#glossary">19. 用語</a></li><li><a href="#references">20. 参照資料</a></li></ol>
 </details>
 <main class="main" id="main">
 
@@ -255,6 +243,14 @@ td p { margin: .2rem 0 0; color: var(--color-muted); font-size: .93rem; line-hei
     <li><strong>P0：</strong>本番投入前に実装、検証または運用手順の確立が必要なリリース阻害要件。</li>
     <li><strong>変更管理：</strong>確定要件の変更には、影響分析、承認、版更新、移行手順、ロールバック手順を必要とする。</li>
   </ul>
+  <h3>文書契約</h3>
+  <dl class="definition">
+    <div><dt>本書の正本範囲</dt><dd>プロダクトの目的、対象・対象外、業務規則、FR 83件、NFR 24件、受入条件、事業・法務・本番運用制約、DEC 24件、リリース条件。</dd></div>
+    <div><dt>概要設計書の正本範囲</dt><dd>実行時境界、モジュール、データ所有権、主要フロー、認証・認可、オンプレ配置、復旧、観測、要件の実現先。詳細は<a href="HLD.html">HLD.html</a>を正とする。</dd></div>
+    <div><dt>対象外の解釈</dt><dd>未実装の暫定措置ではない。責任境界、採算、安全性を理由にProduction V1へ含めない確定方針である。</dd></div>
+    <div><dt>確定性</dt><dd>Production V1の要求仕様に未確定事項はない。専門確認、試験、訓練、商標調査、容量実測は設計判断ではなく、本番公開前に証拠を提出するリリース条件である。</dd></div>
+    <div><dt>次の作業</dt><dd>本書とHLDを基準に詳細設計、実装、試験証拠、運用手順を作成し、リリース条件を一件ずつ閉じる。</dd></div>
+  </dl>
 </section>
 
 <section class="section" id="product">
@@ -292,7 +288,7 @@ td p { margin: .2rem 0 0; color: var(--color-muted); font-size: .93rem; line-hei
 
 <section class="section" id="principles">
   <span class="section-number">03</span>
-  <h2>設計原則</h2>
+  <h2>プロダクト原則</h2>
   <p class="lede">取引の予測可能性を高めながら、監視、権限集中、運用依存、固定費の増加を抑える。</p>
   <div class="principle-grid">
     <article class="principle"><h3>経済学</h3><p><strong>情報の非対称性と取引費用を減らす。</strong></p><p>公開フロー、合意スナップショット、修正境界、承認履歴により、確認・交渉・証明にかかる手間を減らす。</p></article>
@@ -393,10 +389,10 @@ td p { margin: .2rem 0 0; color: var(--color-muted); font-size: .93rem; line-hei
         <thead><tr><th scope="col">ID</th><th scope="col">要件</th><th scope="col">優先度</th><th scope="col">状態</th><th scope="col">受入条件</th></tr></thead>
         <tbody><tr>
           <td data-label="ID"><a class="req-id" id="FR-ACC-001" href="#FR-ACC-001">FR-ACC-001</a></td>
-          <td data-label="要件"><strong>クリエイター登録</strong><p>クリエイターは、確認済みメールアドレスを用いてアカウントを作成できる。</p></td>
+          <td data-label="要件"><strong>クリエイター登録</strong><p>クリエイターは、確認済みメールアドレスを連絡先として登録し、パスキー、またはパスワードとTOTPの組合せを認証手段として設定できる。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
-          <td data-label="受入条件">メール確認前は公開ページを公開できない。</td>
+          <td data-label="受入条件">メール確認と認証手段の登録が完了するまで、本番ワークスペースへのアクセスと公開ページの公開を許可しない。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="FR-ACC-002" href="#FR-ACC-002">FR-ACC-002</a></td>
           <td data-label="要件"><strong>安全なログインセッション</strong><p>ログイン状態はサーバー管理のセッションで保持し、ブラウザへ秘密情報を露出しない。</p></td>
@@ -411,16 +407,16 @@ td p { margin: .2rem 0 0; color: var(--color-muted); font-size: .93rem; line-hei
           <td data-label="受入条件">リンクトークンは15分で失効し、再発行時に旧トークンを無効化する。発行先と異なるメールアドレス、案件、役割では利用できない。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="FR-ACC-004" href="#FR-ACC-004">FR-ACC-004</a></td>
-          <td data-label="要件"><strong>アカウント復旧</strong><p>クリエイターは、確認済みメールアドレスを使って安全にアクセスを復旧できる。</p></td>
+          <td data-label="要件"><strong>アカウント復旧</strong><p>クリエイターは、登録済みパスキー、単回使用の復旧コード、または本人性を再確認する待機付き手動審査でアクセスを復旧できる。メール単体では復旧を成立させない。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
-          <td data-label="受入条件">復旧後は既存セッション、依頼者リンク、管理者昇格状態を一括失効できる。</td>
+          <td data-label="受入条件">復旧コードは10個を発行し、使用済みコードを再利用できない。手動審査は72時間待機、既存端末と登録メールへの通知、二者承認を必須とする。復旧成立時は全セッション、依頼者リンク、管理者昇格、短命URL、旧復旧コードを一括失効する。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="FR-ACC-005" href="#FR-ACC-005">FR-ACC-005</a></td>
-          <td data-label="要件"><strong>多要素認証</strong><p>クリエイター側の所有者、管理者、メンバー、請求管理者は、パスキーまたはTOTPによる多要素認証を必須とする。</p></td>
+          <td data-label="要件"><strong>多要素認証</strong><p>クリエイター側の全役割は、フィッシング耐性を持つパスキーを第一選択とする。代替経路はパスワードとTOTPの二要素とし、TOTPまたはメールだけでのログインを禁止する。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
-          <td data-label="受入条件">多要素認証の登録完了前は本番ワークスペースへアクセスできず、復旧コードの再生成で旧コードが失効する。</td>
+          <td data-label="受入条件">パスキー、パスワード＋TOTP、要素追加、要素削除、端末喪失、復旧の各経路で認証強度を記録する。要素変更には30分以内の再認証を要求し、復旧コードの再生成で旧コードを全失効する。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="FR-ACC-006" href="#FR-ACC-006">FR-ACC-006</a></td>
           <td data-label="要件"><strong>メンバー招待と役割</strong><p>所有者または管理者は、メールアドレスを指定してメンバーを招待し、許可された範囲で役割を変更または失効できる。</p></td>
@@ -432,7 +428,7 @@ td p { margin: .2rem 0 0; color: var(--color-muted); font-size: .93rem; line-hei
           <td data-label="要件"><strong>重要操作の再認証</strong><p>合意、再合意、最終受領、請求変更、権限変更、データ出力では、30分以内の認証を要求する。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
-          <td data-label="受入条件">認証時刻が古い場合は操作を確定せず、再認証後に対象版を再表示する。</td>
+          <td data-label="受入条件">認証時刻が古い場合は操作を確定せず、再認証後に対象版を再表示する。依頼者の合意、再合意、最終受領には、その操作用に新規発行した15分以内・単回使用の案件リンクを要求する。</td>
         </tr></tbody>
       </table>
     </div>
@@ -744,28 +740,28 @@ td p { margin: .2rem 0 0; color: var(--color-muted); font-size: .93rem; line-hei
           <td data-label="受入条件">ダウンロードURLは5分で失効し、発行時と取得時の両方で案件権限を検証する。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="FR-FIL-002" href="#FR-FIL-002">FR-FIL-002</a></td>
-          <td data-label="要件"><strong>アップロード検証</strong><p>拡張子だけでなくMIME、容量、マルウェア、危険な埋め込みを検証する。</p></td>
+          <td data-label="要件"><strong>アップロード検証</strong><p>拡張子だけでなくMIME、容量、本文全体のマルウェア、危険な埋め込みを検証する。部分検査、上限超過、タイムアウト、検査エラーを安全判定にしない。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
-          <td data-label="受入条件">ファイルは隔離領域でMIME、シグネチャ、容量、マルウェアを検査し、安全判定前は配信領域へ移動しない。</td>
+          <td data-label="受入条件">ファイルは隔離領域でMIME、マジックバイト、容量、SHA-256、本文全体のマルウェアを検査する。検査設定値と実読込バイト数が実サイズを覆い、かつ陰性の場合だけ検査済み領域へ昇格する。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="FR-FIL-003" href="#FR-FIL-003">FR-FIL-003</a></td>
           <td data-label="要件"><strong>外部URLの添付</strong><p>大容量動画、音声、ステージング環境、リポジトリ等を外部URLとして共有できる。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
-          <td data-label="受入条件">URLの種類と説明を付け、危険なスキーム、認証情報を含むURL、ローカルネットワーク宛てURLを拒否する。</td>
+          <td data-label="受入条件">URLの種類と説明を付ける。サーバーはDNS解決・HTTP取得を行わず、scheme、userinfo、literal IP、localhost／予約TLD、制御文字を字句検査で拒否する。外部遷移前に安全性を保証しない旨を表示し、利用者の明示操作とno-referrerで遷移する。到達先およびredirect先の安全性は保証しない。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="FR-FIL-004" href="#FR-FIL-004">FR-FIL-004</a></td>
-          <td data-label="要件"><strong>大容量アップロード</strong><p>1ファイル5GBまでの直接かつ分割アップロードを提供し、中断後に安全に再開できる。</p></td>
+          <td data-label="要件"><strong>大容量アップロード</strong><p>1ファイル4GB（4,000,000,000バイト）まで、専用アップロード入口を介した分割アップロードを提供し、中断後に安全に再開できる。上限を超える成果物は外部URLで共有する。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
-          <td data-label="受入条件">各パートと完成物のサイズ、整合性、権限を検証し、不完全なアップロードを期限後に削除する。</td>
+          <td data-label="受入条件">アプリが64MiB単位のパートごとに15分以内・案件限定・オブジェクト限定の署名付き権限を発行する。開始と完了はアプリが制御し、各パートと完成物のサイズ、ETag、SHA-256、権限を検証する。未完了アップロードは24時間で自動中止・削除する。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="FR-FIL-005" href="#FR-FIL-005">FR-FIL-005</a></td>
           <td data-label="要件"><strong>プレビューと拒否形式</strong><p>PNG、JPEG、WebP、PDF、MP3、M4A、WAV、MP4、WebM、UTF-8テキストをプレビュー対象とし、安全な非対応形式はダウンロード専用にする。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
-          <td data-label="受入条件">実行ファイル、スクリプト、HTML、危険なSVG、マクロ、パスワード付きまたは検査不能なアーカイブ、マルウェアを拒否する。</td>
+          <td data-label="受入条件">PNG・JPEG・WebPはlibvips、PDFはqpdf検査後にPoppler、音声・動画はffprobeで許可コーデックを検証し、UTF-8テキストはHTMLとして解釈せず表示する。変換処理はネットワークなし・非root・読取専用ルート・CPU 2コア・メモリ8GiB・一時領域12GiB・処理30分以内で実行する。実行ファイル、スクリプト、HTML、危険なSVG、マクロ、暗号化または検査不能なアーカイブ、マルウェアを拒否する。</td>
         </tr></tbody>
       </table>
     </div>
@@ -915,10 +911,10 @@ td p { margin: .2rem 0 0; color: var(--color-muted); font-size: .93rem; line-hei
           <td data-label="受入条件">通常の編集操作で過去イベントを上書きできない。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="FR-AUD-002" href="#FR-AUD-002">FR-AUD-002</a></td>
-          <td data-label="要件"><strong>監査記録の保全</strong><p>監査イベントを追記型で保存し、操作者、代理操作、対象、結果、理由、相関ID、信頼できる時刻を記録する。</p></td>
+          <td data-label="要件"><strong>監査記録の保全</strong><p>監査イベントを追記型で保存し、操作者、代理操作、対象、結果、理由、相関ID、順序、観測時刻、単調時刻、時刻差、時刻信頼状態を記録する。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
-          <td data-label="受入条件">アプリ管理者が監査イベントを更新または削除できず、出力時に欠落と改変を検知できる。</td>
+          <td data-label="受入条件">RFC 8785準拠の正規化JSON、SHA-256の前イベントハッシュとイベントハッシュ、鍵ID、日次Ed25519署名チェックポイントを使用する。アプリDBロールはUPDATE・DELETE不可とし、変更、削除、並べ替え、挿入を検証処理で検知する。時刻異常やDB停止中も追記専用ローカルバッファへ監査を継続する。</td>
         </tr></tbody>
       </table>
     </div>
@@ -943,7 +939,7 @@ td p { margin: .2rem 0 0; color: var(--color-muted); font-size: .93rem; line-hei
           <td data-label="要件"><strong>最小権限のサポート</strong><p>運営者が案件内容へアクセスする場合は、目的、対象、期間を限定し、監査する。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
-          <td data-label="受入条件">通常の管理画面から無理由に全案件を閲覧できない。</td>
+          <td data-label="受入条件">通常の管理画面から無理由に全案件を閲覧できない。対象案件、理由、チケット、60分以内の期限を指定し、申請者と異なる承認者の承認後だけ支援アクセスを発行する。利用者通知と全操作監査を残す。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="FR-ADM-004" href="#FR-ADM-004">FR-ADM-004</a></td>
           <td data-label="要件"><strong>緊急停止</strong><p>運営者は、認証、依頼受付、アップロード、重要な書き込みを機能単位で停止できる。</p></td>
@@ -962,7 +958,7 @@ td p { margin: .2rem 0 0; color: var(--color-muted); font-size: .93rem; line-hei
           <td data-label="要件"><strong>プラン契約</strong><p>ワークスペース所有者または請求管理者は、外部のStripe Checkoutを使って有料プランを契約できる。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
-          <td data-label="受入条件">カード情報を本システムへ保存せず、署名検証済みWebhookとStripe API照合後だけ契約状態を変更する。</td>
+          <td data-label="受入条件">カード情報を本システムへ保存せず、署名検証済みWebhookとStripe API照合後だけ契約状態を変更する。イベントIDを一意化し、再送・逆順を処理し、毎日Stripe APIの契約一覧と利用権を全件照合する。不一致中は利用権を拡大しない。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="FR-BIL-002" href="#FR-BIL-002">FR-BIL-002</a></td>
           <td data-label="要件"><strong>請求ポータル</strong><p>支払い方法、請求書、解約、プラン変更はStripe Customer Portalで管理する。</p></td>
@@ -1048,10 +1044,12 @@ td p { margin: .2rem 0 0; color: var(--color-muted); font-size: .93rem; line-hei
   ├→ 修正要求 → 修正中 → 再提出
   └→ 承認済み</span>
   <h3>ファイル</h3>
-  <span class="state-line">アップロード中 → 隔離 → 検査中
-  ├→ 安全 → 配信可能
-  ├→ 危険 → 拒否・隔離継続
-  └→ 検査不能 → 拒否</span>
+  <span class="state-line">開始済み → アップロード中 → 隔離確定 → 検査待ち → 検査中
+  ├→ 陰性 → 複製待ち → プレビュー待ち → 配信可能
+  ├→ 陰性 → 複製待ち → プレビュー失敗 → ダウンロード専用
+  ├→ 陽性 → 拒否 → 7日以内に削除
+  ├→ 検査エラー → 隔離継続 → 再検査または7日以内に削除
+  └→ 削除要求 → 法的保持判定 → 削除済み</span>
   <h3>サブスクリプション</h3>
   <span class="state-line">Free → 有効 → 支払い再試行中 → 読み取り専用
   ├→ 支払い回復 → 有効
@@ -1095,7 +1093,8 @@ Request
     <li>個人情報、案件データ、請求識別子、監査記録、運用ログを論理的に分離する。</li>
     <li>隔離ファイルと安全判定済みファイルを別バケットへ保存し、アプリケーションから隔離領域を配信しない。</li>
     <li>合意、承認、受領、監査イベントは追記型とし、訂正は元記録を残した新イベントで表す。</li>
-    <li>削除要求では本番データ、検索インデックス、キャッシュ、複製先、バックアップの保持期限を区別して処理する。</li>
+    <li>削除、非公開化、アクセス失効、法的保持は、主バックアップから独立した署名付き追記台帳へ記録し、古い復旧点の復元後にDB、検索、キャッシュ、オブジェクト、通知へ再適用する。</li>
+    <li>利用者削除はキャッシュと検索を24時間以内、稼働DB・オブジェクト・複製先を30日以内、通常バックアップを35日以内に失効する。合意・監査は契約終了後7年、運用・アクセスログは1年、クラッシュログは90日保持し、法的保持中は対象だけ削除を停止する。</li>
   </ul>
 </section>
 
@@ -1136,7 +1135,7 @@ Request
           <td data-label="要件"><strong>認可境界</strong><p>すべての非公開データは、画面表示だけでなくAPIとファイル配信でも案件単位の認可を行う。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
-          <td data-label="受入条件">他者の識別子を推測しても情報を取得・変更できない。</td>
+          <td data-label="受入条件">他者の識別子を推測しても情報を取得・変更できない。ワークスペースIDを主キー・一意制約・外部キーへ含め、API、バッチ、検索、管理操作のすべてで同じ境界を強制する。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="NFR-SEC-002" href="#NFR-SEC-002">NFR-SEC-002</a></td>
           <td data-label="要件"><strong>主要攻撃への防御</strong><p>CSRF、XSS、SQLインジェクション、SSRF、総当たり、危険なアップロード、権限昇格を設計とテストで防ぐ。</p></td>
@@ -1145,22 +1144,22 @@ Request
           <td data-label="受入条件">OWASP ASVS 5.0を基準に、リスクの高い要件をリリース判定へ組み込む。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="NFR-SEC-003" href="#NFR-SEC-003">NFR-SEC-003</a></td>
-          <td data-label="要件"><strong>秘密情報の分離</strong><p>DB認証情報、署名鍵、外部API秘密鍵をフロントエンド、コンテナイメージ、リポジトリ、ログへ含めない。</p></td>
+          <td data-label="要件"><strong>秘密情報と鍵階層の分離</strong><p>DB認証情報、署名鍵、外部API秘密鍵をフロントエンド、コンテナイメージ、リポジトリ、ログへ含めず、用途別・拠点別・ホスト別に鍵を分離する。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
-          <td data-label="受入条件">秘密情報は暗号化された設定とハードウェア鍵で管理し、ビルド成果物、ブラウザ通信、通常ログの検査で検出されない。</td>
+          <td data-label="受入条件">オフラインルート、拠点中間鍵、TPMに封印したホスト鍵、アプリ秘密、監査署名鍵、バックアップ暗号鍵を分離する。ルート復旧は3分割中2分割と二者立会いを必要とし、通常コンテナにはsecret mountで注入する。ビルド成果物、ブラウザ通信、通常ログに秘密が検出されず、漏えい訓練で対象鍵を失効・再発行できる。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="NFR-SEC-004" href="#NFR-SEC-004">NFR-SEC-004</a></td>
-          <td data-label="要件"><strong>ネットワーク境界</strong><p>公開はHTTPSだけとし、管理、SSH、DB、Valkey、MinIO、監視画面をインターネットへ公開しない。</p></td>
+          <td data-label="要件"><strong>ネットワーク境界</strong><p>公開はHTTPSだけとし、管理、SSH、DB、Valkey、Ceph管理面、監視画面をインターネットへ公開しない。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
           <td data-label="受入条件">管理接続はWireGuardとMFAを必須とし、IPv4とIPv6の両方で外部ポート検査に合格する。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="NFR-SEC-005" href="#NFR-SEC-005">NFR-SEC-005</a></td>
-          <td data-label="要件"><strong>ファイル検査のフェイルクローズ</strong><p>マルウェア検査が利用不能または定義更新から24時間を超えた場合、アップロードを安全領域へ移動しない。</p></td>
+          <td data-label="要件"><strong>ファイル検査のフェイルクローズ</strong><p>マルウェア検査が利用不能、定義更新から24時間超過、走査上限超過、本文未読込、タイムアウト、エラーのいずれかである場合、ファイルを安全領域へ移動しない。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
-          <td data-label="受入条件">検査停止時は隔離を維持し、定義期限超過時は新規アップロードを拒否して運用者へ通知する。</td>
+          <td data-label="受入条件">検査停止時は隔離を維持し、定義期限超過時は新規アップロードを拒否して運用者へ通知する。4GB、正常、悪性、破損、暗号化、上限超過、スキャナー停止の試験で、実読込バイト数が実サイズ未満のファイルはcleanへ遷移しない。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="NFR-SEC-006" href="#NFR-SEC-006">NFR-SEC-006</a></td>
           <td data-label="要件"><strong>脆弱性と供給網管理</strong><p>OS、コンテナ、依存関係、SBOM、署名、脆弱性情報を継続管理する。</p></td>
@@ -1178,7 +1177,7 @@ Request
           <td data-label="要件"><strong>削除と持ち出し</strong><p>利用者は自分の情報を確認、出力、削除要求できる。法令・不正対策上の保持が必要な場合は理由を示す。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
-          <td data-label="受入条件">削除要求の受付と処理状況を追跡し、複製、キャッシュ、バックアップから消える予定日と法的保持理由を説明できる。</td>
+          <td data-label="受入条件">削除要求の受付と処理状況を追跡し、複製、キャッシュ、バックアップから消える予定日と法的保持理由を説明できる。削除前バックアップの復元後も、独立削除・失効台帳の再適用が終わるまで公開しない。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="NFR-PRV-003" href="#NFR-PRV-003">NFR-PRV-003</a></td>
           <td data-label="要件"><strong>利用者データのAI学習禁止</strong><p>案件、ファイル、コメント、監査記録、利用統計を、利用者の明示的な別契約なしに生成AIの学習へ使用しない。</p></td>
@@ -1208,31 +1207,31 @@ Request
           <td data-label="要件"><strong>容量試験</strong><p>実測または保守的な利用予測の2倍の同時利用、データ量、アップロード量で性能を確認する。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
-          <td data-label="受入条件">p95応答、DB負荷、ディスク待ち、ネットワーク、キュー滞留、スキャン時間が閾値内であり、超過時の停止条件を検証する。</td>
+          <td data-label="受入条件">契約済み保存容量の合計をCeph各拠点の実効容量50％以内、平常時使用率を60％以内に保つ。想定2倍負荷と単一物理ノード停止時に、p95応答、DB負荷、ディスク待ち、ネットワーク、キュー滞留、スキャン時間が閾値内であり、超過時の停止条件を検証する。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="NFR-AVL-001" href="#NFR-AVL-001">NFR-AVL-001</a></td>
           <td data-label="要件"><strong>可用性</strong><p>初期オンプレ運用の月間サービスレベル目標を99.5％とする。契約上のSLAを提示する場合は、実測実績と補償条件を別途承認する。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
-          <td data-label="受入条件">外形監視で停止時間、性能劣化、機能制限、原因、復旧時刻を計測し、月次レビューを行う。</td>
+          <td data-label="受入条件">月間可用性は「1－利用者が主要機能を利用できなかった分数÷暦月総分数」で算出し、計画保守と外部依存障害も除外しない。公開閲覧、ログイン、案件閲覧、重要書込みを外形監視し、停止、性能劣化、機能制限、原因、復旧時刻を月次レビューする。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="NFR-AVL-002" href="#NFR-AVL-002">NFR-AVL-002</a></td>
           <td data-label="要件"><strong>段階的な機能制限</strong><p>資源不足または二次拠点同期停止時は、機密性と整合性を優先してアップロード、新規案件、重要書き込みを順に停止する。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
-          <td data-label="受入条件">停止順序、表示メッセージ、解除条件を自動試験でき、単なる警告だけで危険な書き込みを継続しない。</td>
+          <td data-label="受入条件">WAL遅延5分で警告、10分で新規アップロードと新規案件を停止、12分で合意・承認・納品・請求・監査対象業務の重要書き込みを停止し、15分到達を重大インシデントとする。停止順序、表示、解除条件を自動試験し、警告だけで危険な書き込みを継続しない。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="NFR-BCP-001" href="#NFR-BCP-001">NFR-BCP-001</a></td>
-          <td data-label="要件"><strong>バックアップと復旧</strong><p>データベース、オブジェクト、設定、監査記録を別建物の二次拠点とオフライン媒体へ暗号化して保全する。</p></td>
+          <td data-label="要件"><strong>バックアップと一貫復旧</strong><p>データベース、オブジェクト、設定、監査記録、削除・失効台帳を別建物の二次拠点とオフライン媒体へ暗号化して保全し、DBとオブジェクトを同じ復旧点として確定する。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
-          <td data-label="受入条件">RPO 15分、RTO 4時間を満たす。PostgreSQLは継続WAL転送、日次増分、週次差分、月次完全バックアップを行い、オブジェクトは版管理、削除マーカーを含む一方向複製、週次オフラインバックアップを行う。</td>
+          <td data-label="受入条件">RPO 15分、RTO 4時間を満たす。PostgreSQLのLSNとCeph RGWの複製ウォーターマークを復旧マニフェストへ5分ごとに記録する。ファイル記録はbucket、object key、version ID、SHA-256、サイズ、検査結果を保持し、復元時の欠落・余剰・ハッシュ不一致が一件でもあれば公開しない。PostgreSQLは継続WAL転送と日次増分・週次差分・月次完全バックアップ、オブジェクトは版管理・読み取り専用副ゾーンへの複製・週次オフラインバックアップを行う。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="NFR-BCP-002" href="#NFR-BCP-002">NFR-BCP-002</a></td>
           <td data-label="要件"><strong>復元検証</strong><p>バックアップの取得成功ではなく、隔離された環境での復元と整合性確認を成功条件とする。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
-          <td data-label="受入条件">日次検証、四半期ごとの復元試験、本番リリース前の完全復元を実施し、失敗中はデプロイを停止する。</td>
+          <td data-label="受入条件">日次検証、四半期ごとの完全復元・拠点切替試験、本番リリース前の完全復元を実施する。待機系昇格は第三地点を含む排他ロック、旧主系の電源・ネットワーク二重フェンシング、二者承認を必要とし、失敗中はデプロイと公開を停止する。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="NFR-BCP-003" href="#NFR-BCP-003">NFR-BCP-003</a></td>
           <td data-label="要件"><strong>復旧後の認証失効</strong><p>障害復旧、バックアップ復元、別拠点切替後は、復旧前の認証状態を引き継がない。</p></td>
@@ -1256,16 +1255,16 @@ Request
           <td data-label="要件"><strong>デプロイ停止条件</strong><p>テスト、脆弱性検査、構成検証、バックアップ検証、復元試験、ロールバック先検査のいずれかが失敗した場合はデプロイしない。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
-          <td data-label="受入条件">手作業の注意ではなく、CIまたはデプロイ前スクリプトが非ゼロ終了で反映を停止する。</td>
+          <td data-label="受入条件">手作業の注意ではなく、CIまたはデプロイ前スクリプトが非ゼロ終了で反映を停止する。コンテナはdigest固定、health/readiness、CPU・メモリ上限、読取専用ルート、tmpfs、非root、cap_drop ALL、no-new-privileges、seccomp/AppArmor、分離ネットワーク、ログ上限を満たす。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="NFR-OPS-002" href="#NFR-OPS-002">NFR-OPS-002</a></td>
-          <td data-label="要件"><strong>時刻と容量の安全制御</strong><p>時刻ずれと容量不足が、合意、監査、アップロード、DB整合性へ波及する前に書き込みを止める。</p></td>
+          <td data-label="要件"><strong>時刻と容量の安全制御</strong><p>時刻ずれと容量不足が、合意、承認、受領、アップロード、DB整合性へ波及する前に対象業務を書き込み停止する。異常の検知・拒否・復旧に関する監査は停止しない。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
-          <td data-label="受入条件">時刻差2秒超で合意、承認、監査操作を停止する。オブジェクト80％で警告、90％でアップロード停止、DB85％で新規案件作成停止とする。</td>
+          <td data-label="受入条件">時刻差2秒超で合意、承認、受領を停止する一方、sequence、単調時刻、観測wall clock、offset、time_trust=degradedを持つ監査記録を継続する。DB書込み不能時は暗号化されたローカル追記バッファへ保存し、復旧後に順序を保持して取り込む。オブジェクト80％で警告、90％でアップロード停止、DB85％で新規案件作成停止とする。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="NFR-PORT-001" href="#NFR-PORT-001">NFR-PORT-001</a></td>
-          <td data-label="要件"><strong>クラウド移植性</strong><p>中核アプリケーションを、特定の物理パス、MinIO固有API、単一ホスト識別子へ依存させない。</p></td>
+          <td data-label="要件"><strong>クラウド移植性</strong><p>中核アプリケーションを、特定の物理パス、Ceph固有管理API、単一ホスト識別子へ依存させない。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
           <td data-label="受入条件">OCIコンテナ、外部設定、標準PostgreSQL、S3互換API、Valkey互換プロトコル、OpenTelemetry、Outboxとアダプター境界で構成する。</td>
@@ -1349,8 +1348,8 @@ Request
 
 <section class="section" id="architecture">
   <span class="section-number">15</span>
-  <h2>本番技術方針</h2>
-  <p class="lede">Production V1の中核基盤は二拠点オンプレで運用する。単一サーバー、単一回線、同一建物内だけのバックアップを本番構成として認めない。</p>
+  <h2>本番運用・技術制約</h2>
+  <p class="lede">Production V1の中核基盤は二拠点オンプレで運用する。単一サーバー、単一回線、同一建物内だけのバックアップを本番構成として認めない。本節は必須制約を定め、構成と実現方法の正本は<a href="HLD.html">HLD.html</a>とする。</p>
   <h3>アプリケーション境界</h3>
   <ul>
     <li>バックエンドはJava、Spring Bootのモジュラーモノリスとする。</li>
@@ -1358,70 +1357,78 @@ Request
     <li>フロントエンドとバックエンドのソース、依存関係、ビルド、秘密情報を分離する。</li>
     <li>業務ルールと認可はSpring Bootを正とする。</li>
     <li>APIはRESTとOpenAPIで定義し、DB変更は前進可能なマイグレーションで管理する。</li>
-    <li>通知、ファイル検査、プレビュー生成、監査連携はTransactional Outboxと再実行可能なワーカーで処理する。</li>
+    <li>通知、ファイル検査、プレビュー生成、監査連携はTransactional Outboxと再実行可能なワーカーで処理する。配送保証はat-least-onceとし、集約内連番、60秒リース、送信先冪等キー、指数バックオフ、10回または24時間での隔離キュー、理由付き手動再送を持つ。</li>
   </ul>
   <h3>オンプレ構成</h3>
   <div class="architecture">Internet
   └─ External DNS / Public TLS certificate
        └─ Dual ISP / static address / failover router
             └─ Firewall / IDS / WireGuard administration
-                 └─ Nginx reverse proxy / WAF / rate limit
-                      ├─ React static assets
-                      └─ Spring Boot application
-                           ├─ background worker
-                           ├─ PostgreSQL primary
-                           ├─ Valkey session and short-lived cache
-                           ├─ MinIO quarantine / clean buckets
-                           └─ ClamAV
-
-Primary site monitoring
-  └─ Prometheus / Grafana / Loki / Alertmanager
+                 ├─ Nginx reverse proxy / WAF / rate limit
+                 │    ├─ React static assets / Spring Boot API
+                 │    └─ dedicated multipart upload ingress
+                 └─ Primary site: three hyperconverged nodes
+                      ├─ application / isolated worker / Valkey
+                      ├─ PostgreSQL primary + synchronous local standby
+                      ├─ Ceph Tentacle cluster + RGW primary zone
+                      ├─ ClamAV / preview sandbox
+                      └─ Prometheus / Grafana / Loki / Alertmanager
 
 Encrypted site-to-site VPN
-  └─ Secondary site
-       ├─ PostgreSQL standby and WAL archive
-       ├─ MinIO replication target and backup repository
-       ├─ encrypted configuration and container cache
-       └─ recovery monitoring</div>
+  └─ Secondary site: three hyperconverged nodes
+       ├─ PostgreSQL asynchronous standbys and WAL archive
+       ├─ independent Ceph cluster + read-only RGW secondary zone
+       ├─ signed images / encrypted configuration / recovery services
+       └─ dedicated backup repository and offline media
+
+Third failure domain
+  └─ quorum witness only: no business data, no public endpoint</div>
   <h3>物理構成</h3>
   <ul>
-    <li><strong>主拠点：</strong>x86_64 12コア以上、ECCメモリ64GB以上、OSとDB用のエンタープライズNVMeミラー、オブジェクト用エンタープライズHDD 4本以上、TPM 2.0、30分以上維持できるUPS、遠隔監視、予備ディスクを備える。</li>
-    <li><strong>副拠点：</strong>別建物、別電源、別回線に置き、x86_64 8コア以上、ECCメモリ32GB以上、同等以上のバックアップ容量、UPSを備える。通常時は公開エンドポイントを持たない。</li>
-    <li><strong>回線：</strong>異なる通信事業者の二回線と固定アドレスを使用し、切替、IPv4、IPv6、DNS、証明書更新を定期試験する。</li>
+    <li><strong>主拠点：</strong>同一障害ドメインに置かないx86_64ノード3台で構成する。各ノードは24コア以上、ECCメモリ128GB以上、OS・DB用エンタープライズNVMe 1.92TBのミラー、Ceph OSD用エンタープライズHDD 8TBを4本、TPM 2.0、冗長電源を備える。拠点全体は30分以上維持できるUPS、監視可能PDU、冷却、予備ディスクを持つ。</li>
+    <li><strong>副拠点：</strong>別建物、別電源、別回線に主拠点と同仕様のノード3台を置く。独立Cephクラスタ、PostgreSQL待機系、休止状態のアプリ・ワーカー・公開入口を保持し、平常時は利用者向け書き込みを受けない。</li>
+    <li><strong>第三地点：</strong>4コア、ECCメモリ8GB、暗号化SSD、TPM 2.0、UPSを持つ監視ノード1台を置き、主・副・第三地点の3ノードetcdで昇格世代と排他リースだけを管理する。業務データ、秘密の正本、利用者向け入口は置かない。</li>
+    <li><strong>バックアップ：</strong>副拠点に実効32TB以上の専用暗号化リポジトリを1台置き、週次完全バックアップを暗号化したオフライン媒体2組へ交互保存する。一方は第三の物理保管場所へ移す。</li>
+    <li><strong>回線：</strong>異なる通信事業者の二回線と固定アドレスを使用し、切替、IPv4、IPv6、DNS、証明書更新を月次試験する。拠点間複製と管理はWireGuardで分離する。</li>
+    <li><strong>容量：</strong>Cephは各拠点で生容量96TB、3複製後の実効約32TBを基準とし、契約済み容量は実効容量50％、平常時使用率60％を上限とする。単一ノード停止と再均衡中も90％停止閾値を超えない。</li>
   </ul>
   <h3>ソフトウェア基準</h3>
   <ul>
     <li>OSはUbuntu Server 26.04 LTS、コンテナ実行はDocker EngineとDocker Composeを使用する。</li>
-    <li>初期候補はOpenJDK 25 LTS、Spring Boot 4.1、PostgreSQL 18、React 19.2、Node.js 24 LTSとする。</li>
+    <li>技術系列はOpenJDK 25 LTS、Spring Boot 4.1、PostgreSQL 18、React 19、Node.js 24 LTS、Ceph Tentacle 20.2、ClamAV 1.5とする。</li>
     <li>ビルドはMaven Wrapperとpnpmを使用し、パッチ版と依存関係はSBOM、互換試験、セキュリティ情報を確認してリリースごとに固定する。</li>
-    <li>Nginx、ModSecurityとOWASP CRS、Valkey、MinIO、ClamAV、pgBackRest、restic、Prometheus、Grafana、Loki、Alertmanager、Ansible、SOPSとageを運用構成へ含める。</li>
-    <li>Kubernetesは初期構成へ導入しない。二拠点の小規模運用では制御面と障害切り分けの負担が利益を上回るためであり、OCIコンテナによる移植性は維持する。</li>
+    <li>Nginx、ModSecurityとOWASP CRS、Valkey、Ceph RGW、ClamAV、libvips、qpdf、Poppler、FFmpeg、pgBackRest、restic、Prometheus、Grafana、Loki、Alertmanager、Ansible、SOPSとageを運用構成へ含める。</li>
+    <li>アプリ、ワーカー、監視はDocker Compose、Cephはcephadmで管理する。Kubernetesは初期構成へ導入せず、OCIコンテナによる移植性を維持する。</li>
+    <li>本番イメージは可変タグを禁止し、承認したパッチ版、OCI digest、依存ロック、SBOM、署名をリリース単位で固定する。サポート終了日の90日前までに後継系列への移行計画を承認する。</li>
   </ul>
   <h3>公開面と管理面</h3>
   <ul>
     <li>公開ポートは443だけとし、80はHTTPSへのリダイレクトだけに使う。</li>
-    <li>SSH、DB、Valkey、MinIO、監視、バックアップ、コンテナ管理を公開しない。管理操作はWireGuard、MFA、個人別アカウント、監査を必須とする。</li>
+    <li>SSH、DB、Valkey、Ceph管理面、監視、バックアップ、コンテナ管理を公開しない。管理操作はWireGuard、MFA、個人別アカウント、監査を必須とする。</li>
+    <li>公開入口はアプリ用443、分割アップロード用443、ファイル配布用443、Stripe Webhook用443をホストとパスで分離する。アップロード入口は署名済みのPUTパートだけを隔離バケットへ転送し、ListBucket、管理API、検査済みバケットへ到達させない。ファイル配布はアプリで発行した短命grantをPOST bodyで専用originへ交換し、gatewayがGET、HEAD、各Rangeを再認可してstreamする。利用者へRGW URL、RGW credential、アプリsession cookieを渡さない。</li>
+    <li>外向き通信はメール中継、Stripe API、DNS、NTP、承認済み更新リポジトリだけをプロキシ許可リスト化する。外部URL添付はサーバーからDNS解決・HTTP取得せず、字句検査と利用者主導の警告遷移だけを行う。到達先およびredirect先の安全性を検査済みと表示しない。</li>
     <li>オンプレ回線で吸収できないDDoSでは、サービス継続より機密性を優先し、依頼受付、アップロード、認証または公開を停止できる。</li>
     <li>DNS、公開証明書、トランザクションメール中継、Stripeは外部専門サービスを利用できる。中核データの保管と処理はクラウド移行条件を満たすまでオンプレに置く。</li>
   </ul>
   <h3>バックアップと復旧</h3>
   <ul>
     <li>PostgreSQLはWALを継続的に副拠点へ転送し、日次増分、週次差分、月次完全バックアップを暗号化する。日次で検証し、四半期と本番前に復元する。</li>
-    <li>MinIOは版管理と一方向複製を使い、削除マーカーと旧版も副拠点へ保全する。必要なバケットはオブジェクトロックを使い、週次で暗号化オフラインバックアップを取得する。</li>
-    <li>副拠点への切替後はデータ件数、オブジェクトハッシュ、版、監査連続性を確認し、全認証状態を失効させる。</li>
+    <li>Ceph RGWは主拠点を書込み可能なmaster zone、副拠点をread-only zoneとする。版管理、マルチサイト同期、転送後ETag検証を有効化し、旧版と削除マーカーを副拠点へ保全する。利用者ファイル、プレビュー、納品成果物に固定WORM retentionを設定せず、承認済み法的保持だけを個別適用する。Object Lockは業務本文を含まない監査固定点、削除台帳固定点、通常バックアップに限定し、稼働系30日・通常バックアップ35日の削除期限を妨げない。週次で専用リポジトリとオフライン媒体へ暗号化バックアップを取得する。</li>
+    <li>検査済みオブジェクトは、副拠点で同一version ID・サイズ・SHA-256を確認した後だけ配信可能へ遷移する。DB LSNとRGW複製ウォーターマークを5分ごとの復旧マニフェストへ記録する。</li>
+    <li>副拠点への切替は、障害宣言、旧主系のPDU電源遮断とファイアウォール経路剥奪、etcd昇格リース取得、PostgreSQL昇格、RGW master zone切替、認証世代更新、DNS切替、限定公開、旧主系再構築の順で行う。二者承認と、同時に書込み可能な拠点が一つであることを必須とする。</li>
   </ul>
   <h3>自動停止閾値</h3>
   <ul>
-    <li>WAL遅延15分で警告、60分で重要書き込みを読み取り専用へ移行する。</li>
-    <li>MinIO使用率80％で警告と上限通知、90％で新規アップロードを停止する。</li>
+    <li>WAL遅延5分で警告、10分で新規アップロードと新規案件を停止、12分で重要書き込みを停止し、15分到達で重大インシデントを宣言する。</li>
+    <li>Ceph使用率80％で警告と上限通知、90％で新規アップロードを停止する。</li>
     <li>DB使用率85％で新規案件作成を停止する。</li>
-    <li>時刻差2秒超で合意、承認、受領、監査操作を停止する。</li>
+    <li>時刻差2秒超で合意、承認、受領を停止する。異常の検知、拒否、管理対応、復旧の監査は劣化時刻情報付きで継続する。</li>
     <li>UPS残量が安全停止閾値を下回った場合は新規書き込みを止め、整合性を保ってシャットダウンする。</li>
     <li>バックアップ検証失敗、証明書更新失敗、マルウェア定義期限超過では、該当するデプロイ、平文公開、アップロードを許可しない。</li>
   </ul>
   <h3>クラウド移行とロールバック</h3>
   <p>クラウド移行時はDNS TTLを事前に短縮し、DBとファイルを事前同期する。保守時間中に最終WALと差分を適用し、件数、ハッシュ、版、監査連続性を確認してからクラウドを読み取り専用で検証する。切替後7日間はオンプレを読み取り専用で保持する。クラウド側に書き込みが発生した後は、逆同期を完了しない限りオンプレへ戻さない。</p>
-  <p class="footnote">版情報は2026-08-02時点の公式情報を基にした採用候補であり、各リリースではサポート中の安定パッチ版へ固定する。参照：<a href="#R-14">R-14</a>〜<a href="#R-25">R-25</a>。</p>
+  <p class="footnote">技術系列は2026-08-03時点の公式情報で確定した。各本番リリースは系列内のサポート中パッチ版とOCI digestへ固定し、可変タグを使用しない。Ceph RGWのマルチサイト、S3、運用要件は<a href="#R-26">R-26</a>〜<a href="#R-30">R-30</a>を参照する。</p>
 </section>
 
 <section class="section" id="release">
@@ -1447,9 +1454,12 @@ Encrypted site-to-site VPN
     <li>案件横断、役割横断、版差し替え、期限切れ、再発行、再接続、ロールバック後の認可試験が通る。</li>
     <li>CSRF、XSS、SQLインジェクション、SSRF、総当たり、危険なアップロード、権限昇格、署名検証を確認する。</li>
     <li>320、375、414、768、1440ピクセルで主要画面と状態を撮影し、担当者が画像を目視確認する。</li>
-    <li>主拠点障害、副拠点切替、DB復元、オブジェクト復元、セッション失効、元拠点への復帰を実行する。</li>
+    <li>主系が生存した通信分断を含む主拠点障害で、PDU・ネットワークフェンシング、第三地点の昇格ロック、副拠点切替、DB・オブジェクト一貫復元、全認証失効、元拠点再構築を実行し、同時書込み拠点が一つだけであることを確認する。</li>
     <li>外部公開ポート、IPv4とIPv6、VPN、MFA、TLS更新、WAF、レート制限を本番相当環境で確認する。</li>
-    <li>容量、WAL遅延、時刻ずれ、UPS、マルウェア定義、バックアップ失敗の各停止条件を実際に発火させる。</li>
+    <li>4GB分割アップロード、全本文検査、許可形式ごとのプレビュー、破損・暗号化・巨大・悪性入力、Ceph副ゾーン複製、復旧を本番相当環境で実行する。</li>
+    <li>容量、WAL遅延5・10・12・15分、時刻ずれ、Valkey全消失、UPS、マルウェア定義、監査DB停止、バックアップ失敗の各停止・劣化条件を実際に発火させる。</li>
+    <li>監査イベントの変更、削除、並べ替え、挿入、署名鍵ローテーション、時刻劣化中の記録、日次チェックポイント検証に合格する。</li>
+    <li>削除前バックアップを復元し、独立台帳から削除、非公開化、アクセス失効、法的保持を再適用して再露出しないことを確認する。</li>
     <li>利用規約、プライバシー、法的表示、契約画面、権利条件、商標を専門家が確認し、実画面と一致する。</li>
     <li>ロールバック対象のイメージ、DBスキーマ、設定、秘密情報、移行手順を検証し、危険な旧設定へ戻らない。</li>
   </ul>
@@ -1465,113 +1475,149 @@ Encrypted site-to-site VPN
       <caption>意思決定一覧</caption>
       <thead><tr><th scope="col">ID</th><th scope="col">決定対象</th><th scope="col">確定方針</th><th scope="col">根拠</th><th scope="col">変更条件</th></tr></thead>
       <tbody><tr>
-          <td data-label="ID"><span class="req-id">DEC-001</span></td>
+          <td data-label="ID"><a class="req-id" id="DEC-001" href="#DEC-001">DEC-001</a></td>
           <td data-label="決定対象"><strong>初期対象分野</strong></td>
           <td data-label="確定方針">Production V1の公開テンプレートと訴求は音楽、イラスト、映像に限定する。</td>
           <td data-label="根拠">段階提出とレビューが分かりやすく、実利用を観察しやすい。</td>
           <td data-label="変更条件">別分野の法務、ファイル、工程、サポート要件を追加して承認した場合</td>
         </tr><tr>
-          <td data-label="ID"><span class="req-id">DEC-002</span></td>
+          <td data-label="ID"><a class="req-id" id="DEC-002" href="#DEC-002">DEC-002</a></td>
           <td data-label="決定対象"><strong>マーケットプレイス</strong></td>
           <td data-label="確定方針">製品範囲外とし、クリエイターが自分の顧客を受付ページへ誘導する。</td>
           <td data-label="根拠">売り手と買い手を同時に集める難易度を避け、個人開発でも検証できる。</td>
           <td data-label="変更条件">二面市場、審査、検索順位、不正対策の独立事業計画を承認した場合</td>
         </tr><tr>
-          <td data-label="ID"><span class="req-id">DEC-003</span></td>
+          <td data-label="ID"><a class="req-id" id="DEC-003" href="#DEC-003">DEC-003</a></td>
           <td data-label="決定対象"><strong>収益方式</strong></td>
           <td data-label="確定方針">月額と年額のフリーミアムを採用し、依頼代金の預かり、分配、取引手数料を扱わない。</td>
           <td data-label="根拠">依頼金の預かり、本人確認、返金、チャージバック対応を初期範囲から外せる。</td>
           <td data-label="変更条件">資金移動、本人確認、返金、紛争、規制対応を含む別事業として承認した場合</td>
         </tr><tr>
-          <td data-label="ID"><span class="req-id">DEC-004</span></td>
+          <td data-label="ID"><a class="req-id" id="DEC-004" href="#DEC-004">DEC-004</a></td>
           <td data-label="決定対象"><strong>依頼者認証</strong></td>
           <td data-label="確定方針">通常アカウントを必須にせず、確認済みメールへ案件限定のワンタイムリンクを送る。</td>
           <td data-label="根拠">依頼者側の導入摩擦を最小化できる。</td>
           <td data-label="変更条件">導入摩擦、安全性、複数案件管理の実測で通常アカウントが優位になった場合</td>
         </tr><tr>
-          <td data-label="ID"><span class="req-id">DEC-005</span></td>
+          <td data-label="ID"><a class="req-id" id="DEC-005" href="#DEC-005">DEC-005</a></td>
           <td data-label="決定対象"><strong>修正受付</strong></td>
           <td data-label="確定方針">指定チェックポイントで正式な修正を一括提出するゲート型を採用する。</td>
           <td data-label="根拠">依頼者の安心と、制作中断の抑制を両立できる。</td>
           <td data-label="変更条件">テンプレート単位の明示設定として追加する場合</td>
         </tr><tr>
-          <td data-label="ID"><span class="req-id">DEC-006</span></td>
+          <td data-label="ID"><a class="req-id" id="DEC-006" href="#DEC-006">DEC-006</a></td>
           <td data-label="決定対象"><strong>自動承認</strong></td>
           <td data-label="確定方針">採用しない。期限超過は通知、確認待ち、日程再計算案として扱う。</td>
           <td data-label="根拠">未操作を合意とみなす誤解と紛争を避ける。</td>
           <td data-label="変更条件">未操作を合意とみなす法務根拠と紛争対策を個別に承認した場合</td>
         </tr><tr>
-          <td data-label="ID"><span class="req-id">DEC-007</span></td>
+          <td data-label="ID"><a class="req-id" id="DEC-007" href="#DEC-007">DEC-007</a></td>
           <td data-label="決定対象"><strong>対象年齢</strong></td>
           <td data-label="確定方針">18歳以上だけを対象とする。</td>
           <td data-label="根拠">未成年契約、保護者同意、取消し、決済の追加要件を初期から抱えない。</td>
           <td data-label="変更条件">未成年者契約、保護者同意、取消し、本人確認を設計して専門家確認を完了した場合</td>
         </tr><tr>
-          <td data-label="ID"><span class="req-id">DEC-008</span></td>
+          <td data-label="ID"><a class="req-id" id="DEC-008" href="#DEC-008">DEC-008</a></td>
           <td data-label="決定対象"><strong>提供地域</strong></td>
           <td data-label="確定方針">日本国内、日本語、日本円を対象とする。</td>
           <td data-label="根拠">法令、決済、サポート、表示要件を限定して検証できる。</td>
           <td data-label="変更条件">対象国の法務、税務、決済、データ移転、サポートを承認した場合</td>
         </tr><tr>
-          <td data-label="ID"><span class="req-id">DEC-009</span></td>
+          <td data-label="ID"><a class="req-id" id="DEC-009" href="#DEC-009">DEC-009</a></td>
           <td data-label="決定対象"><strong>ファイル運用</strong></td>
-          <td data-label="確定方針">1ファイル5GBまでの検査付き直接添付と外部URLを併用し、独自動画変換は製品範囲外とする。</td>
-          <td data-label="根拠">ストレージ原価とメディア処理の複雑性を抑えられる。</td>
+          <td data-label="確定方針">1ファイル4GB（4,000,000,000バイト）までの完全検査付き分割添付と外部URLを併用し、独自動画変換は製品範囲外とする。</td>
+          <td data-label="根拠">ClamAVの走査上限内で本文全体の検査をフェイルクローズにし、上限超過を安全と誤判定しない。</td>
           <td data-label="変更条件">容量原価、処理能力、権利、安全性を満たす独立メディア基盤を承認した場合</td>
         </tr><tr>
-          <td data-label="ID"><span class="req-id">DEC-010</span></td>
+          <td data-label="ID"><a class="req-id" id="DEC-010" href="#DEC-010">DEC-010</a></td>
           <td data-label="決定対象"><strong>データベース</strong></td>
           <td data-label="確定方針">PostgreSQL 18系を採用し、パッチ版をリリースごとに固定する。</td>
           <td data-label="根拠">関係整合性、監査、版スナップショット、JSONデータを一つの基盤で扱いやすい。</td>
           <td data-label="変更条件">データ移行、整合性、復旧、運用費を比較したADRを承認した場合</td>
         </tr><tr>
-          <td data-label="ID"><span class="req-id">DEC-011</span></td>
+          <td data-label="ID"><a class="req-id" id="DEC-011" href="#DEC-011">DEC-011</a></td>
           <td data-label="決定対象"><strong>本番配信</strong></td>
           <td data-label="確定方針">ソースとビルドを分離し、Nginx配下の同一オリジンでReactとAPIを配信する。</td>
           <td data-label="根拠">秘密情報の境界を保ちつつ、Cookie、CORS、CSRF、運用を単純化できる。</td>
           <td data-label="変更条件">認証、CORS、CSRF、キャッシュ、運用の同等性を検証した場合</td>
         </tr><tr>
-          <td data-label="ID"><span class="req-id">DEC-012</span></td>
+          <td data-label="ID"><a class="req-id" id="DEC-012" href="#DEC-012">DEC-012</a></td>
           <td data-label="決定対象"><strong>AI機能</strong></td>
           <td data-label="確定方針">法的判断、修正判定、利用者データ学習を製品範囲外とする。</td>
           <td data-label="根拠">中核価値の検証前に、誤判定、説明責任、費用、信頼問題を増やさない。</td>
           <td data-label="変更条件">目的、精度、説明責任、費用、同意、削除を独立審査した場合</td>
         </tr><tr>
-          <td data-label="ID"><span class="req-id">DEC-013</span></td>
+          <td data-label="ID"><a class="req-id" id="DEC-013" href="#DEC-013">DEC-013</a></td>
           <td data-label="決定対象"><strong>料金額</strong></td>
           <td data-label="確定方針">Free 0円、Creator Pro月額1,980円または年額19,800円、Studio月額5,980円または年額59,800円とする。</td>
           <td data-label="根拠">機能、安全性、容量、チーム利用を明示した継続課金として検証できる。</td>
           <td data-label="変更条件">税、原価、支払い意欲、解約率、粗利の実績を基に価格改定を承認した場合</td>
         </tr><tr>
-          <td data-label="ID"><span class="req-id">DEC-014</span></td>
+          <td data-label="ID"><a class="req-id" id="DEC-014" href="#DEC-014">DEC-014</a></td>
           <td data-label="決定対象"><strong>商標と名称</strong></td>
           <td data-label="確定方針">本番公開前に文字商標、称呼類似、主要ドメイン、SNS名を専門調査する。</td>
           <td data-label="根拠">名称の使用可能性を予備検索だけで断定できない。</td>
           <td data-label="変更条件">専門調査と必要な出願または名称変更が完了した場合だけ公開可能</td>
         </tr><tr>
-          <td data-label="ID"><span class="req-id">DEC-015</span></td>
+          <td data-label="ID"><a class="req-id" id="DEC-015" href="#DEC-015">DEC-015</a></td>
           <td data-label="決定対象"><strong>チームと承認者</strong></td>
           <td data-label="確定方針">クリエイター側5役割、依頼者側4役割、複数承認規則をProduction V1へ含める。</td>
           <td data-label="根拠">公開後に単一操作者へ限定すると、権限モデルと監査を作り直す必要が生じる。</td>
           <td data-label="変更条件">権限削減は既存データと契約の移行を承認した場合</td>
         </tr><tr>
-          <td data-label="ID"><span class="req-id">DEC-016</span></td>
+          <td data-label="ID"><a class="req-id" id="DEC-016" href="#DEC-016">DEC-016</a></td>
           <td data-label="決定対象"><strong>初期本番基盤</strong></td>
           <td data-label="確定方針">主拠点と別建物の副拠点によるオンプレ運用とし、単一サーバーを認めない。</td>
           <td data-label="根拠">クラウド固定費を負う前に採算を確認しながら、RPOとRTOを満たす。</td>
           <td data-label="変更条件">DEC-017の全条件を満たした場合</td>
         </tr><tr>
-          <td data-label="ID"><span class="req-id">DEC-017</span></td>
+          <td data-label="ID"><a class="req-id" id="DEC-017" href="#DEC-017">DEC-017</a></td>
           <td data-label="決定対象"><strong>クラウド移行</strong></td>
           <td data-label="確定方針">3か月実績、クラウド費25％MRR以下、粗利65％以上、回収12か月以内、6か月現金余力などの全条件を満たす場合だけ許可する。</td>
           <td data-label="根拠">技術的な利便性だけで、赤字またはデータ統制の悪化を受け入れない。</td>
           <td data-label="変更条件">全条件、移行試験、逆同期を含むロールバック手順を承認した場合</td>
         </tr><tr>
-          <td data-label="ID"><span class="req-id">DEC-018</span></td>
+          <td data-label="ID"><a class="req-id" id="DEC-018" href="#DEC-018">DEC-018</a></td>
           <td data-label="決定対象"><strong>コンテナオーケストレーション</strong></td>
           <td data-label="確定方針">Docker Composeを採用し、Kubernetesは初期構成へ導入しない。</td>
           <td data-label="根拠">現行規模では制御面、更新、監視、復旧の運用負担が利益を上回る。</td>
           <td data-label="変更条件">複数ノードの自動配置が必要となり、運用要員と障害訓練を確保した場合</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="DEC-019" href="#DEC-019">DEC-019</a></td>
+          <td data-label="決定対象"><strong>オブジェクトストレージ</strong></td>
+          <td data-label="確定方針">Ceph Tentacle系列の独立3ノードクラスタを各拠点へ配置し、RGWマルチサイトを主系書込み・副系読取り専用で運用する。</td>
+          <td data-label="根拠">S3 multipart、版管理、Object Lock、二つの独立クラスタ間複製、手順化された副ゾーン昇格を同じ基盤で実現できる。</td>
+          <td data-label="変更条件">代替製品が同じS3契約、二拠点復旧、保守、ライセンス、供給再現性を満たし、完全復元試験を通過した場合</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="DEC-020" href="#DEC-020">DEC-020</a></td>
+          <td data-label="決定対象"><strong>認証と復旧</strong></td>
+          <td data-label="確定方針">パスキーを第一選択、パスワード＋TOTPを代替とし、メール単体認証を禁止する。復旧はコードまたは72時間待機付き二者審査で行う。</td>
+          <td data-label="根拠">日常認証、要素変更、端末喪失、重要操作、災害復旧を同じ認証強度と全体失効規則で扱える。</td>
+          <td data-label="変更条件">同等以上のフィッシング耐性、二要素性、復旧時の乗っ取り防止をE2E試験で証明した場合</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="DEC-021" href="#DEC-021">DEC-021</a></td>
+          <td data-label="決定対象"><strong>監査と鍵</strong></td>
+          <td data-label="確定方針">RFC 8785正規化、SHA-256連鎖、Ed25519日次署名、2-of-3オフラインルート、用途別鍵階層を採用する。</td>
+          <td data-label="根拠">時刻劣化、DB停止、鍵更新、バックアップ復元を跨いで改変と欠落を検知できる。</td>
+          <td data-label="変更条件">暗号方式の危殆化、標準廃止、または同等以上の検証可能性を持つ方式への移行計画を承認した場合</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="DEC-022" href="#DEC-022">DEC-022</a></td>
+          <td data-label="決定対象"><strong>災害復旧排他</strong></td>
+          <td data-label="確定方針">主・副・第三地点のetcd昇格ロック、PDUとファイアウォールの二重フェンシング、二者承認を待機系昇格の必須条件とする。</td>
+          <td data-label="根拠">通信分断時のスプリットブレインと、旧主系の復活によるDB・オブジェクト・監査の分岐を防ぐ。</td>
+          <td data-label="変更条件">同時書込み可能拠点が常に一つであることを障害注入試験で証明できる別方式を承認した場合</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="DEC-023" href="#DEC-023">DEC-023</a></td>
+          <td data-label="決定対象"><strong>削除と保持</strong></td>
+          <td data-label="確定方針">主バックアップから独立した署名付き削除・失効台帳を維持し、復元後の公開前に再適用する。保持期間はデータ種別ごとに固定する。</td>
+          <td data-label="根拠">古い復旧点から削除済みデータ、旧リンク、旧権限、非公開情報が復活する経路を閉じる。</td>
+          <td data-label="変更条件">法令、契約、保全命令の変更を専門家が確認し、移行と再露出防止を承認した場合</td>
+        </tr><tr>
+          <td data-label="ID"><a class="req-id" id="DEC-024" href="#DEC-024">DEC-024</a></td>
+          <td data-label="決定対象"><strong>物理構成と容量</strong></td>
+          <td data-label="確定方針">各拠点3台の24コア・128GB ECCノード、各拠点生容量96TB、第三地点の監視ノード、専用バックアップを本番基準とする。</td>
+          <td data-label="根拠">Ceph quorum、単一ノード故障、4GB検査、二拠点復旧を、契約容量50％以内の余裕を保って実行できる。</td>
+          <td data-label="変更条件">想定2倍負荷、単一ノード停止、完全復元を満たす容量モデルを再計算し、縮小または増強を承認した場合</td>
         </tr></tbody>
     </table>
   </div>
@@ -1590,7 +1636,7 @@ Encrypted site-to-site VPN
         <tr><td data-label="リスク"><strong>透明性が監視へ変わる</strong></td><td data-label="影響">クリエイターの自律性と心理的安全性を損なう</td><td data-label="対応">公開チェックポイント方式、内部タスク非公開、時間とオンライン状態の追跡禁止</td></tr>
         <tr><td data-label="リスク"><strong>無制限修正</strong></td><td data-label="影響">採算悪化と制作中断が起こる</td><td data-label="対応">ゲート型、修正ラウンド、追加変更の再合意を使う</td></tr>
         <tr><td data-label="リスク"><strong>法的効力の過大表示</strong></td><td data-label="影響">利用者が契約支援と法的保証を取り違える</td><td data-label="対応">入力と記録支援に限定し、実画面を専門家が確認するまで公開しない</td></tr>
-        <tr><td data-label="リスク"><strong>ファイル原価と容量不足</strong></td><td data-label="影響">利益圧迫からアップロード、DB、バックアップへ障害が波及する</td><td data-label="対応">プラン別容量、80％警告、90％停止、外部URL、独自変換の対象外化</td></tr>
+        <tr><td data-label="リスク"><strong>ファイル原価と容量不足</strong></td><td data-label="影響">利益圧迫からアップロード、DB、バックアップへ障害が波及する</td><td data-label="対応">契約容量50％、平常使用60％、80％警告、90％停止、4GB上限、外部URL、独自動画変換の対象外化</td></tr>
         <tr><td data-label="リスク"><strong>権限不備と情報漏えい</strong></td><td data-label="影響">成果物、依頼内容、識別子が第三者へ露出し、ログとバックアップに残る</td><td data-label="対応">既定拒否、関係性認可、短期URL、運営者一時アクセス、監査、再起動と復元後の逆方向検証</td></tr>
         <tr><td data-label="リスク"><strong>マルウェア検査停止</strong></td><td data-label="影響">危険な成果物が利用者、運用者、バックアップへ広がる</td><td data-label="対応">隔離領域、定義期限、検査不能時の拒否、アップロード停止を機械化する</td></tr>
         <tr><td data-label="リスク"><strong>単一拠点障害</strong></td><td data-label="影響">火災、停電、回線、盗難でサービスとバックアップを同時に失う</td><td data-label="対応">別建物、別電源、別回線の副拠点、オフラインバックアップ、四半期復元試験</td></tr>
@@ -1655,34 +1701,27 @@ Encrypted site-to-site VPN
     <li id="R-18"><span class="ref-id">R-18</span><a href="https://react.dev/versions" target="_blank" rel="noreferrer">React「Versions」</a></li>
     <li id="R-19"><span class="ref-id">R-19</span><a href="https://ubuntu.com/about/release-cycle?product=ubuntu&amp;release=ubuntu&amp;version=26.04+LTS" target="_blank" rel="noreferrer">Ubuntu「Release cycle 26.04 LTS」</a></li>
     <li id="R-20"><span class="ref-id">R-20</span><a href="https://docs.docker.com/compose/how-tos/production/" target="_blank" rel="noreferrer">Docker Docs「Use Compose in production」</a></li>
-    <li id="R-21"><span class="ref-id">R-21</span><a href="https://min.io/docs/minio/linux/administration/object-management/object-versioning.html" target="_blank" rel="noreferrer">MinIO Docs「Object Versioning」</a></li>
-    <li id="R-22"><span class="ref-id">R-22</span><a href="https://min.io/docs/minio/linux/administration/bucket-replication/bucket-replication-requirements.html" target="_blank" rel="noreferrer">MinIO Docs「Bucket Replication Requirements」</a></li>
+    <li id="R-21"><span class="ref-id">R-21</span><a href="https://github.com/minio/minio" target="_blank" rel="noreferrer">MinIO公式GitHub「アーカイブ状態とSource-Only Distribution」</a></li>
+    <li id="R-22"><span class="ref-id">R-22</span><a href="https://docs.min.io/aistor/operations/licenses/" target="_blank" rel="noreferrer">MinIO AIStor Documentation「Licenses」</a></li>
     <li id="R-23"><span class="ref-id">R-23</span><a href="https://pgbackrest.org/user-guide.html" target="_blank" rel="noreferrer">pgBackRest「User Guide」</a></li>
     <li id="R-24"><span class="ref-id">R-24</span><a href="https://docs.clamav.net/manual/Usage/Scanning.html" target="_blank" rel="noreferrer">ClamAV Documentation「Scanning」</a></li>
     <li id="R-25"><span class="ref-id">R-25</span><a href="https://valkey.io/topics/installation/" target="_blank" rel="noreferrer">Valkey「Installation」</a></li>
+    <li id="R-26"><span class="ref-id">R-26</span><a href="https://docs.ceph.com/en/latest/releases/" target="_blank" rel="noreferrer">Ceph Foundation「Active Releases」</a></li>
+    <li id="R-27"><span class="ref-id">R-27</span><a href="https://docs.ceph.com/en/tentacle/radosgw/multisite/" target="_blank" rel="noreferrer">Ceph Documentation「RGW Multi-Site」</a></li>
+    <li id="R-28"><span class="ref-id">R-28</span><a href="https://docs.ceph.com/en/tentacle/radosgw/s3/" target="_blank" rel="noreferrer">Ceph Documentation「Object Gateway S3 API」</a></li>
+    <li id="R-29"><span class="ref-id">R-29</span><a href="https://docs.ceph.com/en/latest/start/hardware-recommendations/" target="_blank" rel="noreferrer">Ceph Documentation「Hardware Recommendations」</a></li>
+    <li id="R-30"><span class="ref-id">R-30</span><a href="https://docs.ceph.com/en/tentacle/rados/configuration/mon-config-ref/" target="_blank" rel="noreferrer">Ceph Documentation「Monitor quorum」</a></li>
+    <li id="R-31"><span class="ref-id">R-31</span><a href="https://docs.clamav.net/manual/Usage/ClamdProtocol.html" target="_blank" rel="noreferrer">ClamAV Documentation「ClamD Protocol limits」</a></li>
+    <li id="R-32"><span class="ref-id">R-32</span><a href="https://pages.nist.gov/800-63-4/sp800-63b.html" target="_blank" rel="noreferrer">NIST SP 800-63B「Authentication and lifecycle management」</a></li>
+    <li id="R-33"><span class="ref-id">R-33</span><a href="https://www.rfc-editor.org/rfc/rfc8785" target="_blank" rel="noreferrer">RFC 8785「JSON Canonicalization Scheme」</a></li>
   </ol>
 </section>
 
 </main>
 </div>
 <footer class="document-footer">
-  <p>Stage Accord Requirements · Version 1.0.0 · Production V1 baseline</p>
+  <p>Stage Accord Requirements · Version 1.3.0 · 要求仕様承認済み／本番投入未承認 · <a href="HLD.html">概要設計書</a> · 整理日 2026-08-03 · 情報基準日 2026-08-03</p>
 </footer>
 </div>
-<script>
-(() => {
-  const links = [...document.querySelectorAll('.toc-panel a')];
-  const sections = links.map(link => document.querySelector(link.getAttribute('href'))).filter(Boolean);
-  if (!('IntersectionObserver' in window)) return;
-  const observer = new IntersectionObserver((entries) => {
-    const visible = entries.filter(entry => entry.isIntersecting).sort((a,b) => b.intersectionRatio - a.intersectionRatio)[0];
-    if (!visible) return;
-    links.forEach(link => link.removeAttribute('aria-current'));
-    const active = links.find(link => link.getAttribute('href') === '#' + visible.target.id);
-    if (active) active.setAttribute('aria-current', 'location');
-  }, { rootMargin: '-15% 0px -70% 0px', threshold: [0, .2, .5] });
-  sections.forEach(section => observer.observe(section));
-})();
-</script>
 </body>
 </html>
