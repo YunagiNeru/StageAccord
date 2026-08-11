@@ -1,0 +1,41 @@
+spring:
+  config:
+    activate:
+      on-profile: production
+  datasource:
+    url: ${DB_URL}
+    username: ${db-username}
+    password: ${db-password}
+    hikari:
+      auto-commit: false
+      connection-timeout: 5000
+      validation-timeout: 3000
+      initialization-fail-timeout: 1
+      maximum-pool-size: ${DB_MAXIMUM_POOL_SIZE:30}
+      minimum-idle: ${DB_MINIMUM_IDLE:5}
+  data:
+    redis:
+      url: ${VALKEY_URL}
+      username: ${valkey-username}
+      password: ${valkey-password}
+      ssl:
+        enabled: true
+      timeout: 2s
+      connect-timeout: 2s
+  flyway:
+    enabled: false
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate.jdbc.time_zone: UTC
+
+stage-accord:
+  mail:
+    from-address: ${MAIL_FROM_ADDRESS}
+  stripe:
+    mode: live
+  runtime-guard:
+    reject-local-endpoints: true
+    reject-test-credentials: true
