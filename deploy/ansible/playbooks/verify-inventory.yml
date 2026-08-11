@@ -1,0 +1,30 @@
+---
+- name: Verify single production host inventory
+  hosts: application_host
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Require exactly one application host
+      ansible.builtin.assert:
+        that:
+          - groups['application_host'] | length == 1
+          - "'__REQUIRED_' not in (ansible_host | string)"
+        fail_msg: Production inventory must contain one resolved application host.
+    - name: Require Linux resource baseline
+      ansible.builtin.assert:
+        that:
+          - ansible_system == 'Linux'
+          - ansible_architecture == stageaccord_expected_architecture
+          - ansible_processor_vcpus | int >= stageaccord_minimum_cpu_cores
+          - ansible_memtotal_mb | int >= stageaccord_minimum_memory_mb
+        fail_msg: Application host does not satisfy the provisional baseline.
+    - name: Require synchronized time
+      ansible.builtin.command:
+        argv: [timedatectl, show, --property=NTPSynchronized, --value]
+      changed_when: false
+      register: stageaccord_ntp
+      failed_when: stageaccord_ntp.stdout | trim != 'yes'
+    - name: Require Docker server
+      ansible.builtin.command:
+        argv: [docker, version, --format, "{{ '{{.Server.Version}}' }}"]
+      changed_when: false

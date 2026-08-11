@@ -1,0 +1,12 @@
+stageaccord_expected_architecture: x86_64
+stageaccord_minimum_cpu_cores: 8
+stageaccord_minimum_memory_mb: 32768
+stageaccord_runtime_root: /opt/stageaccord
+stageaccord_configuration_root: /etc/stageaccord/config
+stageaccord_secrets_root: /etc/stageaccord/secrets
+stageaccord_release_evidence_root: /var/lib/stageaccord/release-evidence
+stageaccord_runtime_gid: 10400
+stageaccord_configuration_group: stageaccord-runtime
+stageaccord_configuration_mode: "0640"
+stageaccord_secret_directory_mode: "0750"
+stageaccord_secret_file_mode: "0640"

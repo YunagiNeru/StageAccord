@@ -1,0 +1,27 @@
+---
+- name: Prepare production application host directories
+  hosts: application_host
+  gather_facts: false
+  become: true
+  tasks:
+    - name: Create runtime group
+      ansible.builtin.group:
+        name: stageaccord-runtime
+        gid: "{{ stageaccord_runtime_gid }}"
+        system: true
+        state: present
+    - name: Create persistent roots
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: directory
+        owner: root
+        group: stageaccord-runtime
+        mode: "{{ item.mode }}"
+      loop:
+        - {path: "{{ stageaccord_runtime_root }}", mode: "0750"}
+        - {path: "{{ stageaccord_configuration_root }}", mode: "0750"}
+        - {path: "{{ stageaccord_secrets_root }}", mode: "0750"}
+        - {path: "{{ stageaccord_secrets_root }}/application", mode: "0750"}
+        - {path: "{{ stageaccord_secrets_root }}/worker", mode: "0750"}
+        - {path: "{{ stageaccord_secrets_root }}/edge", mode: "0750"}
+        - {path: "{{ stageaccord_release_evidence_root }}", mode: "0750"}

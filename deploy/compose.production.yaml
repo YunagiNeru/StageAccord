@@ -1,0 +1,102 @@
+name: stage-accord-production
+
+x-hardening: &hardening
+  restart: unless-stopped
+  read_only: true
+  cap_drop: [ALL]
+  init: true
+  security_opt: [no-new-privileges:true]
+  logging:
+    driver: local
+    options: {max-size: "50m", max-file: "5", compress: "true"}
+
+services:
+  edge:
+    <<: *hardening
+    image: ${EDGE_IMAGE:?EDGE_IMAGE must be digest-pinned}
+    user: "10101:10101"
+    depends_on:
+      application: {condition: service_healthy}
+    environment:
+      APP_PUBLIC_HOST: ${APP_PUBLIC_HOST:?}
+      FILES_PUBLIC_HOST: ${FILES_PUBLIC_HOST:?}
+    ports:
+      - "443:8443"
+      - "80:8080"
+    volumes:
+      - ./nginx/nginx.conf.template:/etc/nginx/templates/nginx.conf.template:ro
+      - ${SECRETS_ROOT:?}/edge:/run/secrets/edge:ro
+    tmpfs:
+      - /var/cache/nginx:rw,noexec,nosuid,nodev,size=256m,uid=10101,gid=10101
+      - /var/run:rw,noexec,nosuid,nodev,size=16m,uid=10101,gid=10101
+      - /tmp:rw,noexec,nosuid,nodev,size=64m,uid=10101,gid=10101
+    networks: [frontend]
+    healthcheck:
+      test: [CMD, /opt/stageaccord/bin/healthcheck]
+      interval: 15s
+      timeout: 5s
+      retries: 4
+    cpus: 2.0
+    mem_limit: 2g
+    pids_limit: 256
+
+  application:
+    <<: *hardening
+    image: ${APP_IMAGE:?APP_IMAGE must be digest-pinned}
+    user: "10201:10201"
+    command: [application]
+    env_file: [/etc/stageaccord/config/production.env]
+    environment:
+      RUNTIME_ROLE: application
+      SPRING_PROFILES_ACTIVE: production,app
+    expose: ["8080"]
+    volumes:
+      - ${SECRETS_ROOT:?}/application:/run/secrets/application:ro
+      - ${SECRETS_ROOT:?}/worker:/run/secrets/worker:ro
+      - ${RELEASE_EVIDENCE_ROOT:?}:/opt/stageaccord/release-evidence:ro
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=512m,uid=10201,gid=10201
+    networks: [frontend, egress]
+    healthcheck:
+      test: [CMD, /opt/stageaccord/bin/healthcheck]
+      interval: 15s
+      timeout: 5s
+      retries: 4
+      start_period: 45s
+    cpus: 4.0
+    mem_limit: 8g
+    pids_limit: 512
+
+  worker:
+    <<: *hardening
+    image: ${APP_IMAGE:?APP_IMAGE must be digest-pinned}
+    user: "10202:10202"
+    command: [worker]
+    env_file: [/etc/stageaccord/config/production.env]
+    environment:
+      RUNTIME_ROLE: worker
+      SPRING_PROFILES_ACTIVE: production,worker
+    volumes:
+      - ${SECRETS_ROOT:?}/application:/run/secrets/application:ro
+      - ${SECRETS_ROOT:?}/worker:/run/secrets/worker:ro
+      - ${RELEASE_EVIDENCE_ROOT:?}:/opt/stageaccord/release-evidence:ro
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=12g,uid=10202,gid=10202
+    networks: [egress]
+    healthcheck:
+      test: [CMD, /opt/stageaccord/bin/healthcheck]
+      interval: 15s
+      timeout: 5s
+      retries: 4
+      start_period: 60s
+    cpus: 2.0
+    mem_limit: 8g
+    pids_limit: 384
+
+networks:
+  frontend:
+    driver: bridge
+    internal: true
+  egress:
+    driver: bridge
+

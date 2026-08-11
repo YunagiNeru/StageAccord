@@ -1,0 +1,9 @@
+all:
+  vars:
+    ansible_user: __REQUIRED_AUTOMATION_USER__
+    ansible_port: 22
+  children:
+    application_host:
+      hosts:
+        application-host-01:
+          ansible_host: __REQUIRED_MANAGEMENT_ADDRESS__
