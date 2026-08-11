@@ -215,7 +215,7 @@ td p { margin: .2rem 0 0; color: var(--color-muted); font-size: .93rem; line-hei
     <div class="meta-item"><dt>本番投入</dt><dd>未承認・リリース条件充足後に判定</dd></div>
     <div class="meta-item"><dt>ファイル</dt><dd>REQUIREMENTS.html</dd></div>
     <div class="meta-item"><dt>版</dt><dd>1.3.0</dd></div>
-    <div class="meta-item"><dt>日付</dt><dd>整理日 2026-08-03<br>情報基準日 2026-08-03</dd></div>
+    <div class="meta-item"><dt>日付</dt><dd>整理日 2026-08-11<br>情報基準日 2026-08-11</dd></div>
   </dl>
 </header>
 <div class="layout">
@@ -228,7 +228,7 @@ td p { margin: .2rem 0 0; color: var(--color-muted); font-size: .93rem; line-hei
 <section class="section" id="summary">
   <span class="section-number">01</span>
   <h2>文書概要</h2>
-  <p class="lede">本書は、Stage AccordのProduction V1を設計、実装、検証し、本番投入を判定するための要求仕様ベースラインである。試作品向けの省略を認めず、機能、運用、安全性、法務、採算、復旧を一つのリリース条件として扱う。</p>
+  <p class="lede">本書は、Stage AccordのProduction V1を設計、実装、検証し、本番投入を判定するための要求仕様ベースラインである。単一オンプレミスホスト、既存オンプレミス基盤、Amazon S3を前提とし、機能、運用、安全性、法務、採算、復旧を一つのリリース条件として扱う。</p>
   <div class="callout callout--plain">
     <p class="tagline">依頼から納品まで、同じ工程を見て進む。</p>
   </div>
@@ -295,8 +295,8 @@ td p { margin: .2rem 0 0; color: var(--color-muted); font-size: .93rem; line-hei
     <article class="principle"><h3>事業運営</h3><p><strong>マーケットプレイス化を前提にしない。</strong></p><p>クリエイターが自分のSNSや既存顧客へ受付URLを共有する。個人利用と制作チーム利用を同じ権限基盤で扱う。</p></article>
     <article class="principle"><h3>心理学</h3><p><strong>予測可能性を高め、監視は増やさない。</strong></p><p>依頼者には次の予定を示す。一方で、作業時間、オンライン状態、内部タスクは見せず、クリエイターの自律性を守る。</p></article>
     <article class="principle"><h3>社会学</h3><p><strong>発注者が制作者を一方的に監督する構造にしない。</strong></p><p>双方の行動待ちを同じ基準で表示し、ランキングや速度評価を作らず、対等な合意を中心に据える。</p></article>
-    <article class="principle"><h3>安全性</h3><p><strong>危険な状態では処理を止める。</strong></p><p>認可、マルウェア検査、バックアップ、容量、時刻同期、証明書、複製の検証に失敗した場合は、公開、アップロード、重要操作、デプロイを継続しない。</p></article>
-    <article class="principle"><h3>移植性</h3><p><strong>初期運用はオンプレに置き、技術的な移行可能性は維持する。</strong></p><p>標準プロトコル、OCIコンテナ、PostgreSQL、S3互換API、Valkey互換プロトコルを使い、採算条件を満たすまで中核処理をクラウドへ置かない。</p></article>
+    <article class="principle"><h3>安全性</h3><p><strong>危険な状態では処理を止める。</strong></p><p>認可、バックアップ、容量、時刻同期、証明書、外部依存の検証に失敗した場合は、公開、アップロード、重要操作、デプロイを継続しない。マルウェア検査だけは、運用者が明示した検査モードに従い、暗黙の迂回を禁止する。</p></article>
+    <article class="principle"><h3>移植性</h3><p><strong>アプリケーション処理はオンプレに置き、外部オブジェクト保管を境界化する。</strong></p><p>標準プロトコル、OCIコンテナ、PostgreSQL、Amazon S3 API、Valkey互換プロトコルを使い、アプリケーションを特定ホストの物理構成へ依存させない。</p></article>
   </div>
   <p class="footnote">制作過程の可視化は価値認識を高め得る一方、過剰な監視は逆効果になり得るため、本プロダクトでは「常時公開」ではなく「合意したチェックポイントでの公開」を採用する。参照：<a href="#R-05">R-05</a>、<a href="#R-06">R-06</a>。</p>
 </section>
@@ -1144,22 +1144,22 @@ Request
           <td data-label="受入条件">OWASP ASVS 5.0を基準に、リスクの高い要件をリリース判定へ組み込む。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="NFR-SEC-003" href="#NFR-SEC-003">NFR-SEC-003</a></td>
-          <td data-label="要件"><strong>秘密情報と鍵階層の分離</strong><p>DB認証情報、署名鍵、外部API秘密鍵をフロントエンド、コンテナイメージ、リポジトリ、ログへ含めず、用途別・拠点別・ホスト別に鍵を分離する。</p></td>
+          <td data-label="要件"><strong>秘密情報と設定ファイルの分離</strong><p>DB認証情報、署名鍵、外部API秘密鍵をフロントエンド、コンテナイメージ、リポジトリ、ログへ含めず、用途別・サービス別のGit管理外ファイルへ平文で保存する。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
-          <td data-label="受入条件">オフラインルート、拠点中間鍵、TPMに封印したホスト鍵、アプリ秘密、監査署名鍵、バックアップ暗号鍵を分離する。ルート復旧は3分割中2分割と二者立会いを必要とし、通常コンテナにはsecret mountで注入する。ビルド成果物、ブラウザ通信、通常ログに秘密が検出されず、漏えい訓練で対象鍵を失効・再発行できる。</td>
+          <td data-label="受入条件">秘密値は運用者がホスト上の正本ファイルへ直接記載し、対象サービスだけへ読み取り専用でマウントする。所有者、グループ、権限、追跡状態、空値、プレースホルダーを起動前に検査する。ビルド成果物、ブラウザ通信、通常ログ、Git追跡ファイルに秘密が検出されず、漏えい時に対象資格情報を失効・再発行できる。平文ファイルを暗号化バックアップの対象とし、SOPS、age、環境変数への秘密値格納を使用しない。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="NFR-SEC-004" href="#NFR-SEC-004">NFR-SEC-004</a></td>
-          <td data-label="要件"><strong>ネットワーク境界</strong><p>公開はHTTPSだけとし、管理、SSH、DB、Valkey、Ceph管理面、監視画面をインターネットへ公開しない。</p></td>
+          <td data-label="要件"><strong>ネットワーク境界</strong><p>公開はHTTPSだけとし、管理、SSH、DB、Valkey、ClamAV、監視画面をインターネットへ公開しない。Amazon S3との通信はTLSを必須とする。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
           <td data-label="受入条件">管理接続はWireGuardとMFAを必須とし、IPv4とIPv6の両方で外部ポート検査に合格する。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="NFR-SEC-005" href="#NFR-SEC-005">NFR-SEC-005</a></td>
-          <td data-label="要件"><strong>ファイル検査のフェイルクローズ</strong><p>マルウェア検査が利用不能、定義更新から24時間超過、走査上限超過、本文未読込、タイムアウト、エラーのいずれかである場合、ファイルを安全領域へ移動しない。</p></td>
+          <td data-label="要件"><strong>マルウェア検査モード</strong><p>運用者は起動時設定で<code>required</code>または<code>bypass</code>を明示選択する。未設定、空値、未知の値、自動フォールバックを禁止する。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
-          <td data-label="受入条件">検査停止時は隔離を維持し、定義期限超過時は新規アップロードを拒否して運用者へ通知する。4GB、正常、悪性、破損、暗号化、上限超過、スキャナー停止の試験で、実読込バイト数が実サイズ未満のファイルはcleanへ遷移しない。</td>
+          <td data-label="受入条件"><code>required</code>ではClamAV利用不能、定義期限超過、上限超過、本文未読込、タイムアウト、エラー時に隔離を維持する。<code>bypass</code>ではClamAVへ接続せず、容量、MIME、マジックバイト、SHA-256、許可形式の検証後に後続処理を許可するが、結果を<code>bypassed</code>として永続化し<code>clean</code>と区別する。モード、変更、バイパス件数をログ、監査、メトリクスで確認できる。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="NFR-SEC-006" href="#NFR-SEC-006">NFR-SEC-006</a></td>
           <td data-label="要件"><strong>脆弱性と供給網管理</strong><p>OS、コンテナ、依存関係、SBOM、署名、脆弱性情報を継続管理する。</p></td>
@@ -1207,34 +1207,34 @@ Request
           <td data-label="要件"><strong>容量試験</strong><p>実測または保守的な利用予測の2倍の同時利用、データ量、アップロード量で性能を確認する。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
-          <td data-label="受入条件">契約済み保存容量の合計をCeph各拠点の実効容量50％以内、平常時使用率を60％以内に保つ。想定2倍負荷と単一物理ノード停止時に、p95応答、DB負荷、ディスク待ち、ネットワーク、キュー滞留、スキャン時間が閾値内であり、超過時の停止条件を検証する。</td>
+          <td data-label="受入条件">Amazon S3の使用量、リクエスト量、転送量、オンプレミスホストのCPU、メモリ、ディスク待ち、ネットワーク、キュー滞留、検査時間を測定する。想定2倍負荷で性能目標と停止条件を検証し、単一ホストの停止は可用性試験ではなく復旧試験として扱う。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="NFR-AVL-001" href="#NFR-AVL-001">NFR-AVL-001</a></td>
-          <td data-label="要件"><strong>可用性</strong><p>初期オンプレ運用の月間サービスレベル目標を99.5％とする。契約上のSLAを提示する場合は、実測実績と補償条件を別途承認する。</p></td>
+          <td data-label="要件"><strong>可用性</strong><p>月間可用性の目標値は本番相当環境と本番運用の実測後に確定する。単一アプリケーションホストは単一障害点であり、ホスト停止中の継続提供を保証しない。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
           <td data-label="受入条件">月間可用性は「1－利用者が主要機能を利用できなかった分数÷暦月総分数」で算出し、計画保守と外部依存障害も除外しない。公開閲覧、ログイン、案件閲覧、重要書込みを外形監視し、停止、性能劣化、機能制限、原因、復旧時刻を月次レビューする。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="NFR-AVL-002" href="#NFR-AVL-002">NFR-AVL-002</a></td>
-          <td data-label="要件"><strong>段階的な機能制限</strong><p>資源不足または二次拠点同期停止時は、機密性と整合性を優先してアップロード、新規案件、重要書き込みを順に停止する。</p></td>
+          <td data-label="要件"><strong>段階的な機能制限</strong><p>ホスト資源不足、PostgreSQL、Valkey、Amazon S3、ClamAVその他の外部依存異常時は、機密性と整合性を優先して影響する機能を停止する。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
-          <td data-label="受入条件">WAL遅延5分で警告、10分で新規アップロードと新規案件を停止、12分で合意・承認・納品・請求・監査対象業務の重要書き込みを停止し、15分到達を重大インシデントとする。停止順序、表示、解除条件を自動試験し、警告だけで危険な書き込みを継続しない。</td>
+          <td data-label="受入条件">依存先ごとに影響機能、停止条件、利用者表示、解除条件を定義する。PostgreSQL書込み不能では業務書込み、Amazon S3書込み不能ではアップロードと派生生成、Valkey異常では認証・レート制限依存処理を安全側へ停止する。ClamAV異常は<code>required</code>で隔離を維持し、<code>bypass</code>では明示設定どおり処理する。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="NFR-BCP-001" href="#NFR-BCP-001">NFR-BCP-001</a></td>
-          <td data-label="要件"><strong>バックアップと一貫復旧</strong><p>データベース、オブジェクト、設定、監査記録、削除・失効台帳を別建物の二次拠点とオフライン媒体へ暗号化して保全し、DBとオブジェクトを同じ復旧点として確定する。</p></td>
+          <td data-label="要件"><strong>バックアップと一貫復旧</strong><p>PostgreSQL、Amazon S3オブジェクト、平文設定ファイル、監査記録、削除・失効台帳を暗号化して保全し、交換ホストへ復元できる状態を維持する。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
-          <td data-label="受入条件">RPO 15分、RTO 4時間を満たす。PostgreSQLのLSNとCeph RGWの複製ウォーターマークを復旧マニフェストへ5分ごとに記録する。ファイル記録はbucket、object key、version ID、SHA-256、サイズ、検査結果を保持し、復元時の欠落・余剰・ハッシュ不一致が一件でもあれば公開しない。PostgreSQLは継続WAL転送と日次増分・週次差分・月次完全バックアップ、オブジェクトは版管理・読み取り専用副ゾーンへの複製・週次オフラインバックアップを行う。</td>
+          <td data-label="受入条件">RPOとRTOは本番相当の完全復元試験で実測し、測定条件、開始時刻、復旧時刻、データ損失範囲を記録してから目標値を承認する。ファイル記録はbucket、object key、version ID、SHA-256、サイズ、検査結果を保持し、欠落、余剰、ハッシュ不一致、検査状態不一致が一件でもあれば公開しない。PostgreSQLと設定ファイルのバックアップ方式は既存オンプレミス運用と統合し、Amazon S3はバージョニングとライフサイクルを有効化する。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="NFR-BCP-002" href="#NFR-BCP-002">NFR-BCP-002</a></td>
           <td data-label="要件"><strong>復元検証</strong><p>バックアップの取得成功ではなく、隔離された環境での復元と整合性確認を成功条件とする。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
-          <td data-label="受入条件">日次検証、四半期ごとの完全復元・拠点切替試験、本番リリース前の完全復元を実施する。待機系昇格は第三地点を含む排他ロック、旧主系の電源・ネットワーク二重フェンシング、二者承認を必要とし、失敗中はデプロイと公開を停止する。</td>
+          <td data-label="受入条件">バックアップの定期検証、本番リリース前と四半期ごとの交換ホストへの完全復元を実施する。復元後はDB、S3、設定、認証失効、削除台帳、<code>bypassed</code>状態の整合性確認が完了するまで公開しない。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="NFR-BCP-003" href="#NFR-BCP-003">NFR-BCP-003</a></td>
-          <td data-label="要件"><strong>復旧後の認証失効</strong><p>障害復旧、バックアップ復元、別拠点切替後は、復旧前の認証状態を引き継がない。</p></td>
+          <td data-label="要件"><strong>復旧後の認証失効</strong><p>障害復旧、バックアップ復元、交換ホストへの移行後は、復旧前の認証状態を引き継がない。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
           <td data-label="受入条件">すべてのセッション、依頼者リンク、管理者昇格、ダウンロードURLを失効させ、再認証を要求する。</td>
@@ -1243,7 +1243,7 @@ Request
           <td data-label="要件"><strong>監視</strong><p>構造化ログ、メトリクス、エラー追跡、監査ログを分離して運用する。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
-          <td data-label="受入条件">認証失敗、5xx増加、通知失敗、WAL遅延、複製停止、バックアップ検証失敗、容量、時刻ずれ、UPS、証明書、マルウェア定義を検知できる。</td>
+          <td data-label="受入条件">認証失敗、5xx増加、通知失敗、PostgreSQL、Valkey、Amazon S3、ClamAVの接続異常、バックアップ検証失敗、容量、時刻ずれ、UPS、証明書、マルウェア定義、検査バイパス有効状態を検知できる。ホスト停止は別のオンプレミス監視基盤から外形監視する。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="NFR-OBS-002" href="#NFR-OBS-002">NFR-OBS-002</a></td>
           <td data-label="要件"><strong>ログの秘匿と保持</strong><p>運用ログ、監査ログ、クラッシュログへ本文、認証情報、署名付きURL、不要な個人情報を記録しない。</p></td>
@@ -1261,10 +1261,10 @@ Request
           <td data-label="要件"><strong>時刻と容量の安全制御</strong><p>時刻ずれと容量不足が、合意、承認、受領、アップロード、DB整合性へ波及する前に対象業務を書き込み停止する。異常の検知・拒否・復旧に関する監査は停止しない。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
-          <td data-label="受入条件">時刻差2秒超で合意、承認、受領を停止する一方、sequence、単調時刻、観測wall clock、offset、time_trust=degradedを持つ監査記録を継続する。DB書込み不能時は暗号化されたローカル追記バッファへ保存し、復旧後に順序を保持して取り込む。オブジェクト80％で警告、90％でアップロード停止、DB85％で新規案件作成停止とする。</td>
+          <td data-label="受入条件">時刻差2秒超で合意、承認、受領を停止する一方、sequence、単調時刻、観測wall clock、offset、time_trust=degradedを持つ監査記録を継続する。DB書込み不能時は暗号化されたローカル追記バッファへ保存し、復旧後に順序を保持して取り込む。ホストのディスク使用率80％で警告、90％で書込みを停止し、Amazon S3は予算・利用量アラートとAPIエラー率で制御する。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="NFR-PORT-001" href="#NFR-PORT-001">NFR-PORT-001</a></td>
-          <td data-label="要件"><strong>クラウド移植性</strong><p>中核アプリケーションを、特定の物理パス、Ceph固有管理API、単一ホスト識別子へ依存させない。</p></td>
+          <td data-label="要件"><strong>実行基盤の移植性</strong><p>中核アプリケーションを、特定の物理パス、単一ホスト識別子、Amazon S3の管理コンソール操作へ依存させない。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
           <td data-label="受入条件">OCIコンテナ、外部設定、標準PostgreSQL、S3互換API、Valkey互換プロトコル、OpenTelemetry、Outboxとアダプター境界で構成する。</td>
@@ -1349,7 +1349,7 @@ Request
 <section class="section" id="architecture">
   <span class="section-number">15</span>
   <h2>本番運用・技術制約</h2>
-  <p class="lede">Production V1の中核基盤は二拠点オンプレで運用する。単一サーバー、単一回線、同一建物内だけのバックアップを本番構成として認めない。本節は必須制約を定め、構成と実現方法の正本は<a href="HLD.html">HLD.html</a>とする。</p>
+  <p class="lede">Production V1のアプリケーションはオンプレミスの単一ホストで稼働する。PostgreSQL、Valkey、ClamAV、監視はオンプレミス、オブジェクトストレージはAmazon S3を使用する。本節は必須制約を定め、構成と実現方法の正本は<a href="HLD.html">HLD.html</a>とする。</p>
   <h3>アプリケーション境界</h3>
   <ul>
     <li>バックエンドはJava、Spring Bootのモジュラーモノリスとする。</li>
@@ -1359,76 +1359,73 @@ Request
     <li>APIはRESTとOpenAPIで定義し、DB変更は前進可能なマイグレーションで管理する。</li>
     <li>通知、ファイル検査、プレビュー生成、監査連携はTransactional Outboxと再実行可能なワーカーで処理する。配送保証はat-least-onceとし、集約内連番、60秒リース、送信先冪等キー、指数バックオフ、10回または24時間での隔離キュー、理由付き手動再送を持つ。</li>
   </ul>
-  <h3>オンプレ構成</h3>
+  <h3>本番構成</h3>
   <div class="architecture">Internet
   └─ External DNS / Public TLS certificate
-       └─ Dual ISP / static address / failover router
-            └─ Firewall / IDS / WireGuard administration
+       └─ Firewall / IDS / WireGuard administration
+            └─ Single on-premises application host
                  ├─ Nginx reverse proxy / WAF / rate limit
-                 │    ├─ React static assets / Spring Boot API
-                 │    └─ dedicated multipart upload ingress
-                 └─ Primary site: three hyperconverged nodes
-                      ├─ application / isolated worker / Valkey
-                      ├─ PostgreSQL primary + synchronous local standby
-                      ├─ Ceph Tentacle cluster + RGW primary zone
-                      ├─ ClamAV / preview sandbox
-                      └─ Prometheus / Grafana / Loki / Alertmanager
+                 ├─ React static assets / Spring Boot API
+                 ├─ application / worker / upload ingress
+                 └─ Prometheus / Grafana / Loki / Alertmanager
 
-Encrypted site-to-site VPN
-  └─ Secondary site: three hyperconverged nodes
-       ├─ PostgreSQL asynchronous standbys and WAL archive
-       ├─ independent Ceph cluster + read-only RGW secondary zone
-       ├─ signed images / encrypted configuration / recovery services
-       └─ dedicated backup repository and offline media
+Trusted on-premises network
+  ├─ Existing PostgreSQL server
+  ├─ Existing Valkey server
+  ├─ Dedicated ClamAV host
+  └─ External availability monitor
 
-Third failure domain
-  └─ quorum witness only: no business data, no public endpoint</div>
+TLS over Internet
+  └─ Amazon S3
+       ├─ quarantine bucket
+       ├─ clean bucket
+       ├─ preview bucket
+       └─ delivery bucket</div>
   <h3>物理構成</h3>
   <ul>
-    <li><strong>主拠点：</strong>同一障害ドメインに置かないx86_64ノード3台で構成する。各ノードは24コア以上、ECCメモリ128GB以上、OS・DB用エンタープライズNVMe 1.92TBのミラー、Ceph OSD用エンタープライズHDD 8TBを4本、TPM 2.0、冗長電源を備える。拠点全体は30分以上維持できるUPS、監視可能PDU、冷却、予備ディスクを持つ。</li>
-    <li><strong>副拠点：</strong>別建物、別電源、別回線に主拠点と同仕様のノード3台を置く。独立Cephクラスタ、PostgreSQL待機系、休止状態のアプリ・ワーカー・公開入口を保持し、平常時は利用者向け書き込みを受けない。</li>
-    <li><strong>第三地点：</strong>4コア、ECCメモリ8GB、暗号化SSD、TPM 2.0、UPSを持つ監視ノード1台を置き、主・副・第三地点の3ノードetcdで昇格世代と排他リースだけを管理する。業務データ、秘密の正本、利用者向け入口は置かない。</li>
-    <li><strong>バックアップ：</strong>副拠点に実効32TB以上の専用暗号化リポジトリを1台置き、週次完全バックアップを暗号化したオフライン媒体2組へ交互保存する。一方は第三の物理保管場所へ移す。</li>
-    <li><strong>回線：</strong>異なる通信事業者の二回線と固定アドレスを使用し、切替、IPv4、IPv6、DNS、証明書更新を月次試験する。拠点間複製と管理はWireGuardで分離する。</li>
-    <li><strong>容量：</strong>Cephは各拠点で生容量96TB、3複製後の実効約32TBを基準とし、契約済み容量は実効容量50％、平常時使用率60％を上限とする。単一ノード停止と再均衡中も90％停止閾値を超えない。</li>
+    <li><strong>アプリケーションホスト：</strong>x86_64の単一ホストとし、必要容量は本番相当負荷試験の結果から確定する。暗号化ストレージ、UPS、監視可能な電源、時刻同期、予備機または交換部材を用意する。</li>
+    <li><strong>既存基盤：</strong>PostgreSQLとValkeyは既存オンプレミスサーバーを使用する。バージョン、TLS、バックアップ、容量、監視、保守責任を本番投入前に記録する。</li>
+    <li><strong>ClamAV：</strong>オンプレミス専用ホストを接続先とする。初期構築時は接続点と設定契約を実装し、<code>required</code>を選ぶ場合だけ接続正常性と定義期限を起動・readiness条件に含める。</li>
+    <li><strong>Amazon S3：</strong>隔離、検査済み、プレビュー、配信を別バケットとし、同一AWSリージョンへ作成する。バケット名とリージョンは設定値とし、公開アクセスを全面遮断する。</li>
+    <li><strong>単一障害点：</strong>アプリケーションホスト停止時はサービス全体が停止する。継続提供ではなく、署名済みイメージ、設定、バックアップから交換ホストへ復旧する。</li>
   </ul>
   <h3>ソフトウェア基準</h3>
   <ul>
     <li>OSはUbuntu Server 26.04 LTS、コンテナ実行はDocker EngineとDocker Composeを使用する。</li>
-    <li>技術系列はOpenJDK 25 LTS、Spring Boot 4.1、PostgreSQL 18、React 19、Node.js 24 LTS、Ceph Tentacle 20.2、ClamAV 1.5とする。</li>
+    <li>技術系列はOpenJDK 25 LTS、Spring Boot 4.1、PostgreSQL 18、React 19、Node.js 24 LTS、ClamAV 1.5とする。既存オンプレミス製品の実バージョンは互換試験後に設定取得ガイドへ記録する。</li>
     <li>ビルドはMaven Wrapperとpnpmを使用し、パッチ版と依存関係はSBOM、互換試験、セキュリティ情報を確認してリリースごとに固定する。</li>
-    <li>Nginx、ModSecurityとOWASP CRS、Valkey、Ceph RGW、ClamAV、libvips、qpdf、Poppler、FFmpeg、pgBackRest、restic、Prometheus、Grafana、Loki、Alertmanager、Ansible、SOPSとageを運用構成へ含める。</li>
-    <li>アプリ、ワーカー、監視はDocker Compose、Cephはcephadmで管理する。Kubernetesは初期構成へ導入せず、OCIコンテナによる移植性を維持する。</li>
+    <li>Nginx、ModSecurityとOWASP CRS、Valkeyクライアント、Amazon S3クライアント、ClamAVクライアント、libvips、qpdf、Poppler、FFmpeg、pgBackRest、restic、Prometheus、Grafana、Loki、Alertmanager、Ansibleを運用構成へ含める。</li>
+    <li>アプリ、ワーカー、アップロード入口、監視はDocker Composeで管理する。Kubernetesは初期構成へ導入せず、OCIコンテナによる移植性を維持する。</li>
     <li>本番イメージは可変タグを禁止し、承認したパッチ版、OCI digest、依存ロック、SBOM、署名をリリース単位で固定する。サポート終了日の90日前までに後継系列への移行計画を承認する。</li>
   </ul>
   <h3>公開面と管理面</h3>
   <ul>
     <li>公開ポートは443だけとし、80はHTTPSへのリダイレクトだけに使う。</li>
-    <li>SSH、DB、Valkey、Ceph管理面、監視、バックアップ、コンテナ管理を公開しない。管理操作はWireGuard、MFA、個人別アカウント、監査を必須とする。</li>
-    <li>公開入口はアプリ用443、分割アップロード用443、ファイル配布用443、Stripe Webhook用443をホストとパスで分離する。アップロード入口は署名済みのPUTパートだけを隔離バケットへ転送し、ListBucket、管理API、検査済みバケットへ到達させない。ファイル配布はアプリで発行した短命grantをPOST bodyで専用originへ交換し、gatewayがGET、HEAD、各Rangeを再認可してstreamする。利用者へRGW URL、RGW credential、アプリsession cookieを渡さない。</li>
+    <li>SSH、DB、Valkey、ClamAV、監視、バックアップ、コンテナ管理を公開しない。管理操作はWireGuard、MFA、個人別アカウント、監査を必須とする。</li>
+    <li>公開入口はアプリ用443、分割アップロード用443、ファイル配布用443、Stripe Webhook用443をホストとパスで分離する。アップロード入口は署名済みのPUTパートだけをAmazon S3隔離バケットへ送信し、管理APIと他バケットへ到達させない。ファイル配布はアプリで発行した短命grantをPOST bodyで専用originへ交換し、gatewayがGET、HEAD、各Rangeを再認可してstreamする。利用者へAWS資格情報、内部object key、アプリsession cookieを渡さない。</li>
     <li>外向き通信はメール中継、Stripe API、DNS、NTP、承認済み更新リポジトリだけをプロキシ許可リスト化する。外部URL添付はサーバーからDNS解決・HTTP取得せず、字句検査と利用者主導の警告遷移だけを行う。到達先およびredirect先の安全性を検査済みと表示しない。</li>
     <li>オンプレ回線で吸収できないDDoSでは、サービス継続より機密性を優先し、依頼受付、アップロード、認証または公開を停止できる。</li>
-    <li>DNS、公開証明書、トランザクションメール中継、Stripeは外部専門サービスを利用できる。中核データの保管と処理はクラウド移行条件を満たすまでオンプレに置く。</li>
+    <li>Amazon S3、DNS、公開証明書、トランザクションメール中継、Stripeは外部専門サービスを利用できる。業務処理、PostgreSQL、Valkey、ClamAV、監視はオンプレミスに置く。</li>
   </ul>
   <h3>バックアップと復旧</h3>
   <ul>
-    <li>PostgreSQLはWALを継続的に副拠点へ転送し、日次増分、週次差分、月次完全バックアップを暗号化する。日次で検証し、四半期と本番前に復元する。</li>
-    <li>Ceph RGWは主拠点を書込み可能なmaster zone、副拠点をread-only zoneとする。版管理、マルチサイト同期、転送後ETag検証を有効化し、旧版と削除マーカーを副拠点へ保全する。利用者ファイル、プレビュー、納品成果物に固定WORM retentionを設定せず、承認済み法的保持だけを個別適用する。Object Lockは業務本文を含まない監査固定点、削除台帳固定点、通常バックアップに限定し、稼働系30日・通常バックアップ35日の削除期限を妨げない。週次で専用リポジトリとオフライン媒体へ暗号化バックアップを取得する。</li>
-    <li>検査済みオブジェクトは、副拠点で同一version ID・サイズ・SHA-256を確認した後だけ配信可能へ遷移する。DB LSNとRGW複製ウォーターマークを5分ごとの復旧マニフェストへ記録する。</li>
-    <li>副拠点への切替は、障害宣言、旧主系のPDU電源遮断とファイアウォール経路剥奪、etcd昇格リース取得、PostgreSQL昇格、RGW master zone切替、認証世代更新、DNS切替、限定公開、旧主系再構築の順で行う。二者承認と、同時に書込み可能な拠点が一つであることを必須とする。</li>
+    <li>PostgreSQLは既存オンプレミス基盤のバックアップ方式へ統合し、暗号化、定期検証、本番前と四半期ごとの復元を必須とする。</li>
+    <li>Amazon S3の全バケットでバージョニング、デフォルト暗号化、公開アクセス遮断を有効化する。ライフサイクルはデータ保持要件、削除台帳、法的保持と矛盾しないことを検証して適用する。</li>
+    <li>DBにはbucket、object key、version ID、SHA-256、サイズ、検査状態を保持する。復元後にAmazon S3実体と照合し、不一致が一件でもあれば公開しない。</li>
+    <li>平文設定ファイルはGitへ保存せず、アクセス制御された暗号化バックアップへ含める。復元時は資格情報の有効性と権限を再検証する。</li>
   </ul>
   <h3>自動停止閾値</h3>
   <ul>
-    <li>WAL遅延5分で警告、10分で新規アップロードと新規案件を停止、12分で重要書き込みを停止し、15分到達で重大インシデントを宣言する。</li>
-    <li>Ceph使用率80％で警告と上限通知、90％で新規アップロードを停止する。</li>
+    <li>PostgreSQL、Valkey、Amazon S3の接続または整合性検査が失敗した場合、影響する書込みを停止する。</li>
+    <li>ホストのディスク使用率80％で警告、90％で新規書込みを停止する。Amazon S3は利用量、リクエスト、転送量、予算のアラートを設定する。</li>
     <li>DB使用率85％で新規案件作成を停止する。</li>
     <li>時刻差2秒超で合意、承認、受領を停止する。異常の検知、拒否、管理対応、復旧の監査は劣化時刻情報付きで継続する。</li>
     <li>UPS残量が安全停止閾値を下回った場合は新規書き込みを止め、整合性を保ってシャットダウンする。</li>
-    <li>バックアップ検証失敗、証明書更新失敗、マルウェア定義期限超過では、該当するデプロイ、平文公開、アップロードを許可しない。</li>
+    <li>バックアップ検証失敗、証明書更新失敗では、該当するデプロイと公開を許可しない。マルウェア定義期限超過は<code>required</code>でアップロード後の昇格を停止し、<code>bypass</code>では警告、監査、メトリクスを継続する。</li>
   </ul>
   <h3>クラウド移行とロールバック</h3>
   <p>クラウド移行時はDNS TTLを事前に短縮し、DBとファイルを事前同期する。保守時間中に最終WALと差分を適用し、件数、ハッシュ、版、監査連続性を確認してからクラウドを読み取り専用で検証する。切替後7日間はオンプレを読み取り専用で保持する。クラウド側に書き込みが発生した後は、逆同期を完了しない限りオンプレへ戻さない。</p>
-  <p class="footnote">技術系列は2026-08-03時点の公式情報で確定した。各本番リリースは系列内のサポート中パッチ版とOCI digestへ固定し、可変タグを使用しない。Ceph RGWのマルチサイト、S3、運用要件は<a href="#R-26">R-26</a>〜<a href="#R-30">R-30</a>を参照する。</p>
+  <p class="footnote">技術系列は2026-08-11時点の公式情報を基準とする。各本番リリースは系列内のサポート中パッチ版とOCI digestへ固定し、可変タグを使用しない。Amazon S3の運用要件は<a href="#R-26">R-26</a>〜<a href="#R-30">R-30</a>を参照する。</p>
 </section>
 
 <section class="section" id="release">
@@ -1445,7 +1442,7 @@ Third failure domain
     <li><strong>納品</strong>成果物と条件をまとめて受領し、案件記録を出力できる。</li>
     <li><strong>請求</strong>無料、有料、変更、支払い失敗、読み取り専用、解約を安全に処理できる。</li>
     <li><strong>保護</strong>他者案件への不正アクセス、危険なファイル、重要履歴の上書きを防げる。</li>
-    <li><strong>復旧</strong>副拠点とバックアップからRPO 15分、RTO 4時間以内に復旧し、旧認証状態を失効できる。</li>
+    <li><strong>復旧</strong>バックアップと署名済み成果物から交換ホストへ復旧し、旧認証状態を失効できる。RPO、RTO、可用性は実測結果から確定する。</li>
   </ol>
   <h3>リリース判定</h3>
   <ul>
@@ -1454,10 +1451,10 @@ Third failure domain
     <li>案件横断、役割横断、版差し替え、期限切れ、再発行、再接続、ロールバック後の認可試験が通る。</li>
     <li>CSRF、XSS、SQLインジェクション、SSRF、総当たり、危険なアップロード、権限昇格、署名検証を確認する。</li>
     <li>320、375、414、768、1440ピクセルで主要画面と状態を撮影し、担当者が画像を目視確認する。</li>
-    <li>主系が生存した通信分断を含む主拠点障害で、PDU・ネットワークフェンシング、第三地点の昇格ロック、副拠点切替、DB・オブジェクト一貫復元、全認証失効、元拠点再構築を実行し、同時書込み拠点が一つだけであることを確認する。</li>
+    <li>アプリケーションホスト停止を発生させ、交換ホストへイメージ、設定、DB接続、Amazon S3参照を復元し、全認証失効とデータ整合性を確認する。復旧時間とデータ損失範囲を記録する。</li>
     <li>外部公開ポート、IPv4とIPv6、VPN、MFA、TLS更新、WAF、レート制限を本番相当環境で確認する。</li>
-    <li>4GB分割アップロード、全本文検査、許可形式ごとのプレビュー、破損・暗号化・巨大・悪性入力、Ceph副ゾーン複製、復旧を本番相当環境で実行する。</li>
-    <li>容量、WAL遅延5・10・12・15分、時刻ずれ、Valkey全消失、UPS、マルウェア定義、監査DB停止、バックアップ失敗の各停止・劣化条件を実際に発火させる。</li>
+    <li>4GB分割アップロード、<code>required</code>での全本文検査、<code>bypass</code>での状態分離、許可形式ごとのプレビュー、破損・暗号化・巨大・悪性入力、Amazon S3の版整合性、復旧を本番相当環境で実行する。</li>
+    <li>容量、PostgreSQL・Valkey・Amazon S3・ClamAVの切断、時刻ずれ、UPS、マルウェア定義、監査DB停止、バックアップ失敗の各停止・劣化条件を実際に発火させる。</li>
     <li>監査イベントの変更、削除、並べ替え、挿入、署名鍵ローテーション、時刻劣化中の記録、日次チェックポイント検証に合格する。</li>
     <li>削除前バックアップを復元し、独立台帳から削除、非公開化、アクセス失効、法的保持を再適用して再露出しないことを確認する。</li>
     <li>利用規約、プライバシー、法的表示、契約画面、権利条件、商標を専門家が確認し、実画面と一致する。</li>
@@ -1567,9 +1564,9 @@ Third failure domain
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="DEC-016" href="#DEC-016">DEC-016</a></td>
           <td data-label="決定対象"><strong>初期本番基盤</strong></td>
-          <td data-label="確定方針">主拠点と別建物の副拠点によるオンプレ運用とし、単一サーバーを認めない。</td>
-          <td data-label="根拠">クラウド固定費を負う前に採算を確認しながら、RPOとRTOを満たす。</td>
-          <td data-label="変更条件">DEC-017の全条件を満たした場合</td>
+          <td data-label="確定方針">アプリケーションをオンプレミスの単一ホストで運用し、PostgreSQL、Valkey、ClamAV、監視はオンプレミス基盤、オブジェクトはAmazon S3を使用する。</td>
+          <td data-label="根拠">既存オンプレミス基盤を利用し、アプリケーション運用境界を一台に限定するという運用方針を正本化する。</td>
+          <td data-label="変更条件">複数ホスト化または実行基盤移行の費用、運用、復旧を承認した場合</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="DEC-017" href="#DEC-017">DEC-017</a></td>
           <td data-label="決定対象"><strong>クラウド移行</strong></td>
@@ -1585,9 +1582,9 @@ Third failure domain
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="DEC-019" href="#DEC-019">DEC-019</a></td>
           <td data-label="決定対象"><strong>オブジェクトストレージ</strong></td>
-          <td data-label="確定方針">Ceph Tentacle系列の独立3ノードクラスタを各拠点へ配置し、RGWマルチサイトを主系書込み・副系読取り専用で運用する。</td>
-          <td data-label="根拠">S3 multipart、版管理、Object Lock、二つの独立クラスタ間複製、手順化された副ゾーン昇格を同じ基盤で実現できる。</td>
-          <td data-label="変更条件">代替製品が同じS3契約、二拠点復旧、保守、ライセンス、供給再現性を満たし、完全復元試験を通過した場合</td>
+          <td data-label="確定方針">Amazon S3の汎用バケットを隔離、検査済み、プレビュー、配信用途に分離し、公開アクセス遮断、バージョニング、暗号化、最小権限を適用する。</td>
+          <td data-label="根拠">外部S3利用を確定し、用途間の権限分離と復元可能性をAWSの標準機能で検証できる。</td>
+          <td data-label="変更条件">別サービスへの移行契約、データ移行、権限、復元、ロールバックを承認した場合</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="DEC-020" href="#DEC-020">DEC-020</a></td>
           <td data-label="決定対象"><strong>認証と復旧</strong></td>
@@ -1597,15 +1594,15 @@ Third failure domain
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="DEC-021" href="#DEC-021">DEC-021</a></td>
           <td data-label="決定対象"><strong>監査と鍵</strong></td>
-          <td data-label="確定方針">RFC 8785正規化、SHA-256連鎖、Ed25519日次署名、2-of-3オフラインルート、用途別鍵階層を採用する。</td>
+          <td data-label="確定方針">RFC 8785正規化、SHA-256連鎖、Ed25519日次署名、用途別鍵分離を採用する。秘密値はGit管理外の平文ファイルへ運用者が直接記載する。</td>
           <td data-label="根拠">時刻劣化、DB停止、鍵更新、バックアップ復元を跨いで改変と欠落を検知できる。</td>
           <td data-label="変更条件">暗号方式の危殆化、標準廃止、または同等以上の検証可能性を持つ方式への移行計画を承認した場合</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="DEC-022" href="#DEC-022">DEC-022</a></td>
-          <td data-label="決定対象"><strong>災害復旧排他</strong></td>
-          <td data-label="確定方針">主・副・第三地点のetcd昇格ロック、PDUとファイアウォールの二重フェンシング、二者承認を待機系昇格の必須条件とする。</td>
-          <td data-label="根拠">通信分断時のスプリットブレインと、旧主系の復活によるDB・オブジェクト・監査の分岐を防ぐ。</td>
-          <td data-label="変更条件">同時書込み可能拠点が常に一つであることを障害注入試験で証明できる別方式を承認した場合</td>
+          <td data-label="決定対象"><strong>マルウェア検査運用</strong></td>
+          <td data-label="確定方針"><code>required</code>と<code>bypass</code>を起動時設定から選択可能とし、バイパス済みファイルを検査済みと区別して永続化する。</td>
+          <td data-label="根拠">本番環境での開発・試験を妨げず、検査を行っていない事実をログ、監査、状態、メトリクスから追跡できる。</td>
+          <td data-label="変更条件">検査方式、状態契約、監査、既存バイパスファイルの移行を承認した場合</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="DEC-023" href="#DEC-023">DEC-023</a></td>
           <td data-label="決定対象"><strong>削除と保持</strong></td>
@@ -1614,10 +1611,10 @@ Third failure domain
           <td data-label="変更条件">法令、契約、保全命令の変更を専門家が確認し、移行と再露出防止を承認した場合</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="DEC-024" href="#DEC-024">DEC-024</a></td>
-          <td data-label="決定対象"><strong>物理構成と容量</strong></td>
-          <td data-label="確定方針">各拠点3台の24コア・128GB ECCノード、各拠点生容量96TB、第三地点の監視ノード、専用バックアップを本番基準とする。</td>
-          <td data-label="根拠">Ceph quorum、単一ノード故障、4GB検査、二拠点復旧を、契約容量50％以内の余裕を保って実行できる。</td>
-          <td data-label="変更条件">想定2倍負荷、単一ノード停止、完全復元を満たす容量モデルを再計算し、縮小または増強を承認した場合</td>
+          <td data-label="決定対象"><strong>容量とサービス目標</strong></td>
+          <td data-label="確定方針">ホスト容量、RPO、RTO、月間可用性は本番相当負荷・復元試験と本番実績を測定してから確定する。</td>
+          <td data-label="根拠">単一ホストと既存オンプレミス基盤の実能力を測定せず、達成不能な固定値を保証しない。</td>
+          <td data-label="変更条件">ハードウェア、外部依存、負荷モデル、復旧方式を変更した場合は再測定する</td>
         </tr></tbody>
     </table>
   </div>
@@ -1636,10 +1633,10 @@ Third failure domain
         <tr><td data-label="リスク"><strong>透明性が監視へ変わる</strong></td><td data-label="影響">クリエイターの自律性と心理的安全性を損なう</td><td data-label="対応">公開チェックポイント方式、内部タスク非公開、時間とオンライン状態の追跡禁止</td></tr>
         <tr><td data-label="リスク"><strong>無制限修正</strong></td><td data-label="影響">採算悪化と制作中断が起こる</td><td data-label="対応">ゲート型、修正ラウンド、追加変更の再合意を使う</td></tr>
         <tr><td data-label="リスク"><strong>法的効力の過大表示</strong></td><td data-label="影響">利用者が契約支援と法的保証を取り違える</td><td data-label="対応">入力と記録支援に限定し、実画面を専門家が確認するまで公開しない</td></tr>
-        <tr><td data-label="リスク"><strong>ファイル原価と容量不足</strong></td><td data-label="影響">利益圧迫からアップロード、DB、バックアップへ障害が波及する</td><td data-label="対応">契約容量50％、平常使用60％、80％警告、90％停止、4GB上限、外部URL、独自動画変換の対象外化</td></tr>
+        <tr><td data-label="リスク"><strong>ファイル原価と容量不足</strong></td><td data-label="影響">Amazon S3の保存、リクエスト、転送費とオンプレミス資源が利益と処理能力を圧迫する</td><td data-label="対応">AWS予算・利用量アラート、4GB上限、外部URL、独自動画変換の対象外化、実測原価の月次確認</td></tr>
         <tr><td data-label="リスク"><strong>権限不備と情報漏えい</strong></td><td data-label="影響">成果物、依頼内容、識別子が第三者へ露出し、ログとバックアップに残る</td><td data-label="対応">既定拒否、関係性認可、短期URL、運営者一時アクセス、監査、再起動と復元後の逆方向検証</td></tr>
-        <tr><td data-label="リスク"><strong>マルウェア検査停止</strong></td><td data-label="影響">危険な成果物が利用者、運用者、バックアップへ広がる</td><td data-label="対応">隔離領域、定義期限、検査不能時の拒否、アップロード停止を機械化する</td></tr>
-        <tr><td data-label="リスク"><strong>単一拠点障害</strong></td><td data-label="影響">火災、停電、回線、盗難でサービスとバックアップを同時に失う</td><td data-label="対応">別建物、別電源、別回線の副拠点、オフラインバックアップ、四半期復元試験</td></tr>
+        <tr><td data-label="リスク"><strong>マルウェア検査バイパス</strong></td><td data-label="影響">未検査の成果物が利用者、運用者、S3、バックアップへ広がり、後から<code>required</code>へ戻しても残存する</td><td data-label="対応"><code>bypassed</code>状態、監査、メトリクス、再検査・削除手順を維持し、自動フォールバックを禁止する</td></tr>
+        <tr><td data-label="リスク"><strong>単一ホスト障害</strong></td><td data-label="影響">故障、停電、回線、盗難によりアプリケーション全体が停止する</td><td data-label="対応">外部オンプレミス監視、暗号化バックアップ、署名済みイメージ、交換ホスト復旧、四半期復元試験を行い、RPO・RTO・可用性を実測する</td></tr>
         <tr><td data-label="リスク"><strong>オンプレ運用負荷</strong></td><td data-label="影響">更新、監視、証明書、容量、予備部品の対応漏れが障害になる</td><td data-label="対応">Ansible、自動監視、停止閾値、運用当番、予備部品、手順訓練、月次レビュー</td></tr>
         <tr><td data-label="リスク"><strong>DDoSと回線飽和</strong></td><td data-label="影響">オンプレ回線だけでは公開継続が困難になる</td><td data-label="対応">WAFとレート制限を使い、吸収不能時は機密性を優先して受付、アップロード、認証を停止する</td></tr>
         <tr><td data-label="リスク"><strong>早すぎるクラウド移行</strong></td><td data-label="影響">固定費と転送料で粗利が失われ、撤退費用が増える</td><td data-label="対応">3か月実績、25％MRR、粗利65％、回収12か月、6か月現金余力などを全件ゲート化する</td></tr>
@@ -1668,8 +1665,10 @@ Third failure domain
     <div><dt>紛争中</dt><dd>修正種別、成果物、権利、支払い等について当事者の認識が一致せず、対象処理を停止した状態。</dd></div>
     <div><dt>隔離領域</dt><dd>安全判定前または危険判定済みのファイルを、利用者へ配信せず保管する領域。</dd></div>
     <div><dt>フェイルクローズ</dt><dd>安全性を確認できない場合に、警告だけで続行せず操作、公開、書き込み、デプロイを停止する設計。</dd></div>
-    <div><dt>RPO</dt><dd>障害時に許容できるデータ損失時間。本書では15分以内。</dd></div>
-    <div><dt>RTO</dt><dd>障害発生からサービス復旧までの目標時間。本書では4時間以内。</dd></div>
+    <div><dt>RPO</dt><dd>障害時に許容できるデータ損失時間。Production V1の目標値は実測後に確定する。</dd></div>
+    <div><dt>RTO</dt><dd>障害発生からサービス復旧までの目標時間。Production V1の目標値は実測後に確定する。</dd></div>
+    <div><dt>required</dt><dd>ClamAVによる本文全体の検査成功を、隔離領域からの昇格条件とするマルウェア検査モード。</dd></div>
+    <div><dt>bypass</dt><dd>ClamAVへ接続せず後続処理を許可し、未検査であることをファイル状態、監査、ログ、メトリクスへ残すマルウェア検査モード。</dd></div>
     <div><dt>MRR</dt><dd>月次経常収益。クラウド費用の採算判定に使う。</dd></div>
     <div><dt>オンプレ</dt><dd>事業者が管理する物理設備と回線に中核システムを配置する運用形態。</dd></div>
     <div><dt>クラウド移行ゲート</dt><dd>採算、資金、性能、データ統制、復旧の全条件を満たした場合だけ移行を許可する判定。</dd></div>
@@ -1701,16 +1700,16 @@ Third failure domain
     <li id="R-18"><span class="ref-id">R-18</span><a href="https://react.dev/versions" target="_blank" rel="noreferrer">React「Versions」</a></li>
     <li id="R-19"><span class="ref-id">R-19</span><a href="https://ubuntu.com/about/release-cycle?product=ubuntu&amp;release=ubuntu&amp;version=26.04+LTS" target="_blank" rel="noreferrer">Ubuntu「Release cycle 26.04 LTS」</a></li>
     <li id="R-20"><span class="ref-id">R-20</span><a href="https://docs.docker.com/compose/how-tos/production/" target="_blank" rel="noreferrer">Docker Docs「Use Compose in production」</a></li>
-    <li id="R-21"><span class="ref-id">R-21</span><a href="https://github.com/minio/minio" target="_blank" rel="noreferrer">MinIO公式GitHub「アーカイブ状態とSource-Only Distribution」</a></li>
-    <li id="R-22"><span class="ref-id">R-22</span><a href="https://docs.min.io/aistor/operations/licenses/" target="_blank" rel="noreferrer">MinIO AIStor Documentation「Licenses」</a></li>
+    <li id="R-21"><span class="ref-id">R-21</span><a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html" target="_blank" rel="noreferrer">AWS「General purpose bucket naming rules」</a></li>
+    <li id="R-22"><span class="ref-id">R-22</span><a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingEncryption.html" target="_blank" rel="noreferrer">AWS「Protecting data with encryption」</a></li>
     <li id="R-23"><span class="ref-id">R-23</span><a href="https://pgbackrest.org/user-guide.html" target="_blank" rel="noreferrer">pgBackRest「User Guide」</a></li>
     <li id="R-24"><span class="ref-id">R-24</span><a href="https://docs.clamav.net/manual/Usage/Scanning.html" target="_blank" rel="noreferrer">ClamAV Documentation「Scanning」</a></li>
     <li id="R-25"><span class="ref-id">R-25</span><a href="https://valkey.io/topics/installation/" target="_blank" rel="noreferrer">Valkey「Installation」</a></li>
-    <li id="R-26"><span class="ref-id">R-26</span><a href="https://docs.ceph.com/en/latest/releases/" target="_blank" rel="noreferrer">Ceph Foundation「Active Releases」</a></li>
-    <li id="R-27"><span class="ref-id">R-27</span><a href="https://docs.ceph.com/en/tentacle/radosgw/multisite/" target="_blank" rel="noreferrer">Ceph Documentation「RGW Multi-Site」</a></li>
-    <li id="R-28"><span class="ref-id">R-28</span><a href="https://docs.ceph.com/en/tentacle/radosgw/s3/" target="_blank" rel="noreferrer">Ceph Documentation「Object Gateway S3 API」</a></li>
-    <li id="R-29"><span class="ref-id">R-29</span><a href="https://docs.ceph.com/en/latest/start/hardware-recommendations/" target="_blank" rel="noreferrer">Ceph Documentation「Hardware Recommendations」</a></li>
-    <li id="R-30"><span class="ref-id">R-30</span><a href="https://docs.ceph.com/en/tentacle/rados/configuration/mon-config-ref/" target="_blank" rel="noreferrer">Ceph Documentation「Monitor quorum」</a></li>
+    <li id="R-26"><span class="ref-id">R-26</span><a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html" target="_blank" rel="noreferrer">AWS「Blocking public access to your Amazon S3 storage」</a></li>
+    <li id="R-27"><span class="ref-id">R-27</span><a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/Versioning.html" target="_blank" rel="noreferrer">AWS「Using versioning in S3 buckets」</a></li>
+    <li id="R-28"><span class="ref-id">R-28</span><a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/intro-lifecycle-rules.html" target="_blank" rel="noreferrer">AWS「Lifecycle configuration elements」</a></li>
+    <li id="R-29"><span class="ref-id">R-29</span><a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html" target="_blank" rel="noreferrer">AWS「Security best practices in IAM」</a></li>
+    <li id="R-30"><span class="ref-id">R-30</span><a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/GettingStartedS3CLI.html" target="_blank" rel="noreferrer">AWS「Getting started with Amazon S3 using the AWS CLI」</a></li>
     <li id="R-31"><span class="ref-id">R-31</span><a href="https://docs.clamav.net/manual/Usage/ClamdProtocol.html" target="_blank" rel="noreferrer">ClamAV Documentation「ClamD Protocol limits」</a></li>
     <li id="R-32"><span class="ref-id">R-32</span><a href="https://pages.nist.gov/800-63-4/sp800-63b.html" target="_blank" rel="noreferrer">NIST SP 800-63B「Authentication and lifecycle management」</a></li>
     <li id="R-33"><span class="ref-id">R-33</span><a href="https://www.rfc-editor.org/rfc/rfc8785" target="_blank" rel="noreferrer">RFC 8785「JSON Canonicalization Scheme」</a></li>
@@ -1720,7 +1719,7 @@ Third failure domain
 </main>
 </div>
 <footer class="document-footer">
-  <p>Stage Accord Requirements · Version 1.3.0 · 要求仕様承認済み／本番投入未承認 · <a href="HLD.html">概要設計書</a> · 整理日 2026-08-03 · 情報基準日 2026-08-03</p>
+  <p>Stage Accord Requirements · Version 1.4.0 · 要求仕様承認済み／本番投入未承認 · <a href="HLD.html">概要設計書</a> · 整理日 2026-08-11 · 情報基準日 2026-08-11</p>
 </footer>
 </div>
 </body>
