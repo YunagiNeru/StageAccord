@@ -208,7 +208,7 @@
           <li><a href="#runtime">実行・運用</a></li>
           <li><a href="#deployment">物理境界</a></li>
           <li><a href="#verification">検証・追跡</a></li>
-          <li><a href="#open-items">レビュー対応</a></li>
+          <li><a href="#open-items">実装開始条件</a></li>
         </ol>
       </nav>
     </aside>
@@ -224,7 +224,7 @@
           <li><a href="#security">認証・認可</a></li><li><a href="#files">ファイル</a></li>
           <li><a href="#async">非同期処理</a></li><li><a href="#runtime">実行・運用</a></li>
           <li><a href="#deployment">物理境界</a></li>
-          <li><a href="#verification">検証・追跡</a></li><li><a href="#open-items">レビュー対応</a></li>
+          <li><a href="#verification">検証・追跡</a></li><li><a href="#open-items">実装開始条件</a></li>
         </ol>
       </nav>
     </details>
@@ -235,14 +235,14 @@
         <h1>Stage Accord 詳細設計書</h1>
         <p class="lede">概要設計の境界を、実装者がクラス、API、データ、状態、権限、ワーカー、運用ゲートへ一貫して落とし込める契約として定義する。</p>
         <dl class="document-contract">
-          <div><dt>状態</dt><dd>再レビューRound 2指摘反映済み・解消確認待ち・実装開始不可</dd></div>
-          <div><dt>版</dt><dd>1.2.0</dd></div>
+          <div><dt>状態</dt><dd>詳細設計承認済み・実装開始可能・本番投入未承認</dd></div>
+          <div><dt>版</dt><dd>1.3.0</dd></div>
           <div><dt>対象</dt><dd>Production V1のWeb、API、ワーカー、データ、物理・運用境界</dd></div>
           <div><dt>対象外</dt><dd>画面ピクセル仕様、機器の製造番号、Runbookの実コマンド列、法的助言</dd></div>
-          <div><dt>基準文書</dt><dd><a href="HLD.html">HLD.html 1.3.0</a>／<a href="REQUIREMENTS.html">REQUIREMENTS.html 1.3.0</a></dd></div>
-          <div><dt>情報基準日</dt><dd>2026-08-03</dd></div>
+          <div><dt>基準文書</dt><dd><a href="HLD.html">HLD.html 1.4.0</a>／<a href="REQUIREMENTS.html">REQUIREMENTS.html 1.4.0</a></dd></div>
+          <div><dt>情報基準日</dt><dd>2026-08-11</dd></div>
           <div><dt>設計方式</dt><dd>Spring Bootモジュラーモノリス／ポートとアダプター</dd></div>
-          <div><dt>実装開始条件</dt><dd>REVIEW-LLDのBlocker・Majorが0件となり、追跡検査に成功すること</dd></div>
+          <div><dt>実装開始条件</dt><dd>本書、設定値取得ガイド、構成スキーマが一致し、文書監査と追跡検査に成功すること</dd></div>
         </dl>
       </header>
 
@@ -257,7 +257,7 @@
           <div><dt>読了後の行動</dt><dd>担当モジュールの公開契約、所有データ、状態機械、例外、試験IDを選び、実装計画へ分解する。</dd></div>
           <div><dt>優先関係</dt><dd>REQUIREMENTS.htmlの要求と受入条件 → HLD.htmlの境界と設計判断 → 本書の実装契約。競合時は上位文書を変更せず本書を修正する。</dd></div>
           <div><dt>変更規則</dt><dd>公開API、保存形式、状態名、監査イベント、認可条件の変更は、影響する要求ID・HLD ID・移行・ロールバックを同じレビューで扱う。</dd></div>
-          <div><dt>確定性</dt><dd>初回レビュー22件と再レビューRound 2の14件への設計対応は本文へ反映済みである。再レビューで解消確認されるまで各指摘は「対応済み・未承認」とし、実装開始判断へ使わない。</dd></div>
+          <div><dt>確定性</dt><dd>本文の要求、決定、制約を現在の正本とする。過去のレビュー台帳と旧構成履歴を実装判断へ使用しない。</dd></div>
           <div><dt>正本範囲</dt><dd>Web挙動、クラス依存、公開API、論理DDL、状態、認可、暗号、非同期処理、物理境界、構成、検証。</dd></div>
         </dl>
 
@@ -284,97 +284,97 @@
 
         <div class="record-strip" aria-label="詳細設計の主要決定">
           <article class="record" id="DEC-201">
-            <header class="record__header"><span class="record__id">DEC-201</span><h3 class="record__title">モジュール内部の依存方向</h3><span class="status status--review">提案</span></header>
+            <header class="record__header"><span class="record__id">DEC-201</span><h3 class="record__title">モジュール内部の依存方向</h3><span class="status status--fixed">承認済み</span></header>
             <dl class="record__meta"><div><dt>種別</dt><dd>決定</dd></div><div><dt>規範強度</dt><dd>必須</dd></div><div><dt>適用範囲</dt><dd>全バックエンドモジュール</dd></div></dl>
             <p class="record__statement">各モジュールは <code>api → application → domain</code> の内向き依存とし、<code>infrastructure</code> はapplicationが定義するポートを実装する。domainはSpring、JPA、HTTP、ファイルシステムへ依存しない。</p>
             <details><summary>理由と検証</summary><p>業務規則をフレームワークから分離し、モジュール境界を機械検査できるようにする。ArchUnitで層依存、他モジュールのentity・repository参照、循環依存を拒否する。</p></details>
           </article>
           <article class="record" id="DEC-202">
-            <header class="record__header"><span class="record__id">DEC-202</span><h3 class="record__title">識別子と競合制御</h3><span class="status status--review">提案</span></header>
+            <header class="record__header"><span class="record__id">DEC-202</span><h3 class="record__title">識別子と競合制御</h3><span class="status status--fixed">承認済み</span></header>
             <dl class="record__meta"><div><dt>種別</dt><dd>決定</dd></div><div><dt>規範強度</dt><dd>必須</dd></div><div><dt>適用範囲</dt><dd>API、集約、永続化</dd></div></dl>
             <p class="record__statement">公開識別子はUUIDv7、集約の競合制御は単調増加する64bit <code>version</code>、再実行制御は128bit以上の不透明な冪等キーを使う。</p>
             <details><summary>理由と検証</summary><p>時系列局所性と推測困難性を両立し、状態遷移の取り違えを防ぐ。更新APIは期待versionを要求し、不一致はHTTP 409で現在versionを返す。</p></details>
           </article>
           <article class="record" id="DEC-203">
-            <header class="record__header"><span class="record__id">DEC-203</span><h3 class="record__title">APIの表現とエラー形式</h3><span class="status status--review">提案</span></header>
+            <header class="record__header"><span class="record__id">DEC-203</span><h3 class="record__title">APIの表現とエラー形式</h3><span class="status status--fixed">承認済み</span></header>
             <dl class="record__meta"><div><dt>種別</dt><dd>決定</dd></div><div><dt>規範強度</dt><dd>必須</dd></div><div><dt>適用範囲</dt><dd>REST／OpenAPI</dd></div></dl>
             <p class="record__statement">APIは <code>/api/v1</code> を基点とするJSON RESTとし、フィールドはlowerCamelCase、時刻はUTCのRFC 3339文字列、エラーはProblem Details形式へ安定した <code>code</code> と <code>correlationId</code> を追加する。</p>
             <details><summary>理由と検証</summary><p>表示用ローカライズと保存値を分離し、クライアントが文言に依存せず例外分岐できる。OpenAPI差分と契約試験で破壊的変更を拒否する。</p></details>
           </article>
           <article class="record" id="DEC-204">
-            <header class="record__header"><span class="record__id">DEC-204</span><h3 class="record__title">PostgreSQLの所有境界</h3><span class="status status--review">提案</span></header>
+            <header class="record__header"><span class="record__id">DEC-204</span><h3 class="record__title">PostgreSQLの所有境界</h3><span class="status status--fixed">承認済み</span></header>
             <dl class="record__meta"><div><dt>種別</dt><dd>決定</dd></div><div><dt>規範強度</dt><dd>必須</dd></div><div><dt>適用範囲</dt><dd>全永続データ</dd></div></dl>
             <p class="record__statement">各業務モジュールは専用PostgreSQL schemaとmigration ownerを持つ。通常applicationは共有runtime roleを使い、モジュール境界は公開facade・ArchUnit・repository配置で強制する。テナント境界は <code>workspace_id</code> を含む複合PK・FK・uniqueでDB強制する。</p>
             <details><summary>理由と検証</summary><p>モジュラーモノリスの横断transactionを維持しながら、DB権限で保証できないモジュール境界を誤って主張しない。schema別migration、全tenant FK、別workspace総当たり、他モジュールrepository参照拒否を検査する。</p></details>
           </article>
           <article class="record" id="DEC-205">
-            <header class="record__header"><span class="record__id">DEC-205</span><h3 class="record__title">履歴と訂正</h3><span class="status status--review">提案</span></header>
+            <header class="record__header"><span class="record__id">DEC-205</span><h3 class="record__title">履歴と訂正</h3><span class="status status--fixed">承認済み</span></header>
             <dl class="record__meta"><div><dt>種別</dt><dd>決定</dd></div><div><dt>規範強度</dt><dd>必須</dd></div><div><dt>適用範囲</dt><dd>合意、承認、受領、監査、削除台帳</dd></div></dl>
             <p class="record__statement">成立済みの合意、承認、受領、監査イベントをUPDATEまたはDELETEで訂正せず、元IDを参照する追加イベントまたは新しい版で訂正する。</p>
             <details><summary>理由と検証</summary><p>過去の意味と操作者を保持する。DBロール制約、トリガー、更新拒否試験、監査連鎖検証で確認する。</p></details>
           </article>
           <article class="record" id="DEC-206">
-            <header class="record__header"><span class="record__id">DEC-206</span><h3 class="record__title">外部副作用の確定境界</h3><span class="status status--review">提案</span></header>
+            <header class="record__header"><span class="record__id">DEC-206</span><h3 class="record__title">外部副作用の確定境界</h3><span class="status status--fixed">承認済み</span></header>
             <dl class="record__meta"><div><dt>種別</dt><dd>決定</dd></div><div><dt>規範強度</dt><dd>必須</dd></div><div><dt>適用範囲</dt><dd>メール、Stripe、検査、プレビュー、オブジェクト、監査連携</dd></div></dl>
             <p class="record__statement">業務状態とOutboxを一つのDBトランザクションで確定し、外部副作用はworkerがat-least-onceで実行する。送信先は <code>eventId + destination</code> を冪等キーとして重複を無害化する。</p>
             <details><summary>理由と検証</summary><p>DB確定と外部送信の中間失敗で状態を失わない。プロセス強制終了、再試行、逆順、重複配送の統合試験を必須とする。</p></details>
           </article>
           <article class="record" id="CON-201">
-            <header class="record__header"><span class="record__id">CON-201</span><h3 class="record__title">既定拒否</h3><span class="status status--review">提案</span></header>
+            <header class="record__header"><span class="record__id">CON-201</span><h3 class="record__title">既定拒否</h3><span class="status status--fixed">承認済み</span></header>
             <dl class="record__meta"><div><dt>種別</dt><dd>制約</dd></div><div><dt>規範強度</dt><dd>禁止</dd></div><div><dt>適用範囲</dt><dd>API、ファイル、検索、通知、出力、運営操作</dd></div></dl>
             <p class="record__statement">主体、認証強度、workspace、案件関係、役割、対象版、状態、停止モードのいずれかを評価できない場合は操作を許可しない。</p>
             <details><summary>理由と検証</summary><p>画面制御やキャッシュ障害を権限拡大へ変えない。認可行列の全denyケースとValkey消失をE2E試験する。</p></details>
           </article>
           <article class="record" id="PRO-201">
-            <header class="record__header"><span class="record__id">PRO-201</span><h3 class="record__title">モジュール境界の迂回禁止</h3><span class="status status--review">提案</span></header>
+            <header class="record__header"><span class="record__id">PRO-201</span><h3 class="record__title">モジュール境界の迂回禁止</h3><span class="status status--fixed">承認済み</span></header>
             <dl class="record__meta"><div><dt>種別</dt><dd>禁止</dd></div><div><dt>規範強度</dt><dd>禁止</dd></div><div><dt>適用範囲</dt><dd>アプリ、バッチ、管理CLI</dd></div></dl>
             <p class="record__statement">他モジュールのJPA entity、repository、内部service、所有テーブルを直接利用して業務状態を読み書きしてはならない。</p>
             <details><summary>理由と検証</summary><p>公開application facade、query port、domain eventだけを境界越えに使う。緊急運用も監査付き専用ユースケースとして実装する。</p></details>
           </article>
           <article class="record" id="DEC-207">
-            <header class="record__header"><span class="record__id">DEC-207</span><h3 class="record__title">HTTP操作分類</h3><span class="status status--review">提案</span></header>
+            <header class="record__header"><span class="record__id">DEC-207</span><h3 class="record__title">HTTP操作分類</h3><span class="status status--fixed">承認済み</span></header>
             <dl class="record__meta"><div><dt>種別</dt><dd>決定</dd></div><div><dt>規範強度</dt><dd>必須</dd></div><div><dt>適用範囲</dt><dd>全公開HTTP endpoint</dd></div></dl>
             <p class="record__statement">HTTP操作をquery、一般command、認証交換、秘密発行、即時失効、冪等中止、非同期削除へ分類し、status code、冪等キー、再試行、response保存、監査を分類ごとに固定する。</p>
             <details><summary>理由と検証</summary><p>DELETEとPOSTへ一律規則を適用すると、即時失効と削除workflow、秘密発行と一般commandが競合する。全endpointが一つの分類へ所属することをOpenAPI lintで検査する。</p></details>
           </article>
           <article class="record" id="DEC-208">
-            <header class="record__header"><span class="record__id">DEC-208</span><h3 class="record__title">Web状態の所有境界</h3><span class="status status--review">提案</span></header>
+            <header class="record__header"><span class="record__id">DEC-208</span><h3 class="record__title">Web状態の所有境界</h3><span class="status status--fixed">承認済み</span></header>
             <dl class="record__meta"><div><dt>種別</dt><dd>決定</dd></div><div><dt>規範強度</dt><dd>必須</dd></div><div><dt>適用範囲</dt><dd>React Web全route</dd></div></dl>
             <p class="record__statement">業務状態と認可結果はAPI responseだけを正本とし、WebはOpenAPI生成client、query cache adapter、route loader、局所UI stateに分離する。Webが業務状態を推測または権限を拡大してはならない。</p>
             <details><summary>理由と検証</summary><p>server stateと一時的な表示stateを混同しない。401、403、409、423、503、再読込、別tab更新、read-onlyのE2Eで表示とserver判定を一致させる。</p></details>
           </article>
           <article class="record" id="DEC-209">
-            <header class="record__header"><span class="record__id">DEC-209</span><h3 class="record__title">未信頼コンテンツの配布境界</h3><span class="status status--review">提案</span></header>
+            <header class="record__header"><span class="record__id">DEC-209</span><h3 class="record__title">未信頼コンテンツの配布境界</h3><span class="status status--fixed">承認済み</span></header>
             <dl class="record__meta"><div><dt>種別</dt><dd>決定</dd></div><div><dt>規範強度</dt><dd>必須</dd></div><div><dt>適用範囲</dt><dd>upload、preview、download、client link</dd></div></dl>
-            <p class="record__statement">sessionを持つapp originと、upload・preview・download originを分離する。取得はdownload gatewayがgrant secretをPOST bodyで単回交換し、files origin専用の短命HttpOnly cookieを発行して、GET／HEAD／Rangeごとに関係性を再認可しながら内部RGWをstreamする。browserへRGW署名URL、object key、app session Cookieを渡さない。</p>
+            <p class="record__statement">sessionを持つapp originと、upload・preview・download originを分離する。取得はdownload gatewayがgrant secretをPOST bodyで単回交換し、files origin専用の短命HttpOnly cookieを発行して、GET／HEAD／Rangeごとに関係性を再認可しながらAmazon S3からstreamする。browserへS3 URL、object key、AWS資格情報、app session Cookieを渡さない。</p>
             <details><summary>理由と検証</summary><p>直接S3 URLやquery tokenでは発行後の権限失効を再評価できず、履歴、Referer、access logへsecretが残る。grant交換、cookie期限、membership、project grant、auth generation、file visibility失効後のGET／HEAD／Rangeを拒否し、URL・log・historyへのsecret残存が0件であることを検査する。</p></details>
           </article>
           <article class="record" id="DEC-210">
-            <header class="record__header"><span class="record__id">DEC-210</span><h3 class="record__title">外部URLの非取得</h3><span class="status status--review">提案</span></header>
+            <header class="record__header"><span class="record__id">DEC-210</span><h3 class="record__title">外部URLの非取得</h3><span class="status status--fixed">承認済み</span></header>
             <dl class="record__meta"><div><dt>種別</dt><dd>決定</dd></div><div><dt>規範強度</dt><dd>必須</dd></div><div><dt>適用範囲</dt><dd>ExternalLink</dd></div></dl>
             <p class="record__statement">外部URLはserverからDNS解決もHTTP取得も行わない。登録時は構文、http／https、userinfo、literal IP、localhost表記を検査し、遷移時は警告画面と <code>Referrer-Policy: no-referrer</code> を使う。redirect先の安全を保証しない。</p>
             <details><summary>理由と検証</summary><p>redirect検査にはserver fetchが必要となり、非取得方針と競合する。URL parserの変形入力、数値IP、IPv6、userinfo、制御文字を試験する。</p></details>
           </article>
           <article class="record" id="DEC-211">
-            <header class="record__header"><span class="record__id">DEC-211</span><h3 class="record__title">監査連鎖の単一append点</h3><span class="status status--review">提案</span></header>
+            <header class="record__header"><span class="record__id">DEC-211</span><h3 class="record__title">監査連鎖の単一append点</h3><span class="status status--fixed">承認済み</span></header>
             <dl class="record__meta"><div><dt>種別</dt><dd>決定</dd></div><div><dt>規範強度</dt><dd>必須</dd></div><div><dt>適用範囲</dt><dd>audit event、degraded spool</dd></div></dl>
             <p class="record__statement">通常監査は専用DB append functionがchain head行を排他取得し、global sequence、previous hash、event hashを一transactionで付与する。DB停止時はhost別署名連鎖へ記録し、回復後にhost内順序を保持してglobal chainへ追記する。</p>
             <details><summary>理由と検証</summary><p>複数processが同じprevious hashから分岐することを防ぐ。並行append、process kill、複数host spool、再取込、改変を試験する。</p></details>
           </article>
           <article class="record" id="DEC-212">
-            <header class="record__header"><span class="record__id">DEC-212</span><h3 class="record__title">Object Lockと削除期限</h3><span class="status status--review">提案</span></header>
-            <dl class="record__meta"><div><dt>種別</dt><dd>決定</dd></div><div><dt>規範強度</dt><dd>必須</dd></div><div><dt>適用範囲</dt><dd>Ceph bucket、backup、削除台帳</dd></div></dl>
+            <header class="record__header"><span class="record__id">DEC-212</span><h3 class="record__title">Object Lockと削除期限</h3><span class="status status--fixed">承認済み</span></header>
+            <dl class="record__meta"><div><dt>種別</dt><dd>決定</dd></div><div><dt>規範強度</dt><dd>必須</dd></div><div><dt>適用範囲</dt><dd>Amazon S3 bucket、backup、削除台帳</dd></div></dl>
             <p class="record__statement">利用者ファイル、preview、納品成果物のbucketはversioningを有効にするが固定WORM retentionを設定せず、承認済みの法的保持だけを個別適用する。Object Lockは業務本文を含まない監査固定点、削除台帳固定点、通常backupへ用途別期限で適用し、稼働系30日・通常backup35日の削除期限を超えない。</p>
             <details><summary>理由と検証</summary><p>一律Object Lockは削除SLAと競合する。bucket policy、retention、legal hold、delete marker、復元後再適用を試験する。</p></details>
           </article>
           <article class="record" id="DEC-213">
-            <header class="record__header"><span class="record__id">DEC-213</span><h3 class="record__title">昇格世代の書込みfencing</h3><span class="status status--review">提案</span></header>
-            <dl class="record__meta"><div><dt>種別</dt><dd>決定</dd></div><div><dt>規範強度</dt><dd>必須</dd></div><div><dt>適用範囲</dt><dd>application、worker、PostgreSQL、RGW</dd></div></dl>
-            <p class="record__statement">昇格世代をreadinessだけで検査せず、site-generation別DB login role、DB write guard、worker fencing token、site-generation別RGW access keyで強制する。昇格時は旧DB roleをNOLOGIN化して権限を取り消し、既存sessionをserver側で終了し、旧RGW keyの削除確認が終わるまで公開しない。</p>
-            <details><summary>理由と検証</summary><p>application codeを迂回する古いprocessやconnection poolも拒否する。新規INSERT、UPDATE、DELETE、監査function、Outbox claim、object writeを、旧主系生存、古いconnection、遅延job、旧S3 credentialで試験し、確定副作用が0件であることを確認する。</p></details>
+            <header class="record__header"><span class="record__id">DEC-213</span><h3 class="record__title">マルウェア検査モード</h3><span class="status status--fixed">承認済み</span></header>
+            <dl class="record__meta"><div><dt>種別</dt><dd>決定</dd></div><div><dt>規範強度</dt><dd>必須</dd></div><div><dt>適用範囲</dt><dd>application、worker、ClamAV、Amazon S3</dd></div></dl>
+            <p class="record__statement"><code>MALWARE_SCAN_MODE</code>は<code>required</code>または<code>bypass</code>だけを許可する。<code>required</code>はClamAV検査成功を昇格条件とし、<code>bypass</code>はClamAVへ接続せず後続処理を許可するが、ファイルを<code>bypassed</code>として永続化する。</p>
+            <details><summary>理由と検証</summary><p>暗黙の自動フォールバックを禁止し、本番試験の円滑さと未検査状態の追跡可能性を両立する。未設定、空値、未知値、接続障害、モード変更、復元、ロールバックを試験する。</p></details>
           </article>
           <article class="record" id="DEC-214">
-            <header class="record__header"><span class="record__id">DEC-214</span><h3 class="record__title">NとN-1の前方互換</h3><span class="status status--review">提案</span></header>
+            <header class="record__header"><span class="record__id">DEC-214</span><h3 class="record__title">NとN-1の前方互換</h3><span class="status status--fixed">承認済み</span></header>
             <dl class="record__meta"><div><dt>種別</dt><dd>決定</dd></div><div><dt>規範強度</dt><dd>必須</dd></div><div><dt>適用範囲</dt><dd>API、event、DB、Web</dd></div></dl>
             <p class="record__statement">追加fieldと追加statusはconsumer先行、producer後行で展開し、N-1は未知値を <code>UNKNOWN</code> として読取り可能にする。意味変更と削除は新versionへ分離し、contract gate通過前に旧形式を削除しない。</p>
             <details><summary>理由と検証</summary><p>varchar CHECKだけではJava enumやTypeScript unionの互換性を保証しない。NとN-1の同時起動、新旧event、rollbackを試験する。</p></details>
@@ -415,7 +415,7 @@
               <tr><th scope="row"><code>backend/src/test</code></th><td>単体、module integration、ArchUnit、認可、契約試験</td><td>外部依存を常時共有する順序依存テスト</td></tr>
               <tr><th scope="row"><code>web/src</code></th><td>React、TypeScript、OpenAPI生成client、公開・creator・client・admin route</td><td>業務可否の最終判定、秘密、長寿命token</td></tr>
               <tr><th scope="row"><code>openapi/stage-accord-v1.yaml</code></th><td>HTTP契約の正本。生成コードと互換検査の入力</td><td>実装だけを先行して契約を後追い</td></tr>
-              <tr><th scope="row"><code>deploy</code></th><td>Compose、Ansible、SOPS参照、監視規則、起動前検査</td><td>平文秘密、可変tag、CephのCompose管理</td></tr>
+              <tr><th scope="row"><code>deploy</code></th><td>単一ホストCompose、Ansible、Git管理外設定参照、監視規則、起動前検査</td><td>秘密値の環境変数格納、可変tag、PostgreSQL・Valkey・ClamAVのCompose管理</td></tr>
             </tbody>
           </table>
         </div>
@@ -603,7 +603,7 @@
               <tr><th scope="row"><code>agreement</code><br><code>agreement</code></th><td>Offer、AgreementVersion、PartyAcceptance、ApprovalRule、ChangeOrder、ExternalPaymentRecord。正規化snapshot、対象版、成立規則、変更差分、外部支払の申告記録を所有する。</td><td><code>CreateOffer</code>、<code>OfferAgreementVersion</code>、<code>AcceptAgreementVersion</code>、<code>ProposeChangeOrder</code>、<code>AcceptChangeOrder</code>、<code>RecordExternalPaymentStatus</code>、<code>GetEffectiveAgreement</code>、<code>VerifyAgreementHash</code></td><td>発行: <code>AgreementOffered</code>、<code>AgreementAccepted</code>、<code>ChangeOrderAccepted</code>、<code>ExternalPaymentStatusRecorded</code><br>購読: request accepted、time trust、party grant失効</td><td><code>offer</code>、<code>agreement_version</code>、<code>agreement_party</code>、<code>party_acceptance</code>、<code>approval_rule</code>、<code>change_order</code>、<code>external_payment_record</code></td></tr>
               <tr><th scope="row"><code>project</code><br><code>project</code></th><td>Project、WorkflowInstance、CheckpointInstance、InternalTask、Assignment、Dispute、Cancellation。案件の順序、保留、担当、内部task、キャンセル、紛争lockを所有する。</td><td><code>CreateProjectFromAgreement</code>、<code>StartProject</code>、<code>AdvanceCheckpoint</code>、<code>PutProjectOnHold</code>、<code>ResumeProject</code>、<code>AssignMember</code>、<code>CreateInternalTask</code>、<code>UpdateInternalTask</code>、<code>ListInternalTasks</code>、<code>RequestProjectCancellation</code>、<code>OpenDispute</code>、<code>RecordDisputeResolution</code>、<code>CloseProject</code></td><td>発行: <code>ProjectCreated</code>、<code>CheckpointActivated</code>、<code>ProjectHeld</code>、<code>CancellationRequested</code>、<code>DisputeOpened</code>、<code>DisputeResolved</code>、<code>ProjectClosed</code><br>購読: agreement accepted、change order accepted、approval established</td><td><code>project</code>、<code>project_participant</code>、<code>workflow_instance</code>、<code>checkpoint_instance</code>、<code>checkpoint_item</code>、<code>internal_task</code>、<code>assignment</code>、<code>dispute</code>、<code>cancellation</code></td></tr>
               <tr><th scope="row"><code>collaboration</code><br><code>collab</code></th><td>ProgressUpdate、Comment、RevisionRound、ApprovalProcess、DeliveryPackage、Receipt。公開投稿、文脈参照、修正回数、承認成立、納品を所有する。</td><td><code>PublishProgress</code>、<code>PostComment</code>、<code>SaveRevisionDraft</code>、<code>SubmitRevisionRound</code>、<code>RecordApprovalAction</code>、<code>FreezeDeliveryPackage</code>、<code>ReceiveDelivery</code>、<code>ExportProjectRecord</code></td><td>発行: <code>ProgressPublished</code>、<code>RevisionRequested</code>、<code>ApprovalEstablished</code>、<code>DeliveryFrozen</code>、<code>DeliveryReceived</code><br>購読: checkpoint activated、file ready、change order accepted</td><td><code>progress_update</code>、<code>comment</code>、<code>revision_draft</code>、<code>revision_round</code>、<code>approval_process</code>、<code>approval_action</code>、<code>delivery_package</code>、<code>delivery_item</code>、<code>receipt</code></td></tr>
-              <tr><th scope="row"><code>filehandling</code><br><code>file_store</code></th><td>UploadSession、FileRecord、FileVersion、ScanResult、PreviewAsset、DownloadGrant、ExternalLink。隔離からreadyまでの状態とオブジェクト参照を所有する。</td><td><code>InitiateMultipartUpload</code>、<code>SignUploadPart</code>、<code>CompleteUpload</code>、<code>RecordScan</code>、<code>RecordReplication</code>、<code>RecordPreview</code>、<code>IssueDownloadGrant</code>、<code>RegisterExternalLink</code></td><td>発行: <code>UploadCompleted</code>、<code>FileScanRequested</code>、<code>FileClean</code>、<code>FileReady</code>、<code>FileRejected</code>、<code>FileDeleted</code><br>購読: project grant失効、legal hold、site recovery、deletion target</td><td><code>upload_session</code>、<code>upload_part</code>、<code>file_record</code>、<code>file_version</code>、<code>scan_result</code>、<code>replication_receipt</code>、<code>preview_asset</code>、<code>download_grant</code>、<code>external_link</code></td></tr>
+              <tr><th scope="row"><code>filehandling</code><br><code>file_store</code></th><td>UploadSession、FileRecord、FileVersion、ScanResult、PromotionReceipt、PreviewAsset、DownloadGrant、ExternalLink。隔離からreadyまでの状態とAmazon S3オブジェクト参照を所有する。</td><td><code>InitiateMultipartUpload</code>、<code>SignUploadPart</code>、<code>CompleteUpload</code>、<code>RecordScanDecision</code>、<code>PromoteObject</code>、<code>RecordPreview</code>、<code>IssueDownloadGrant</code>、<code>RegisterExternalLink</code></td><td>発行: <code>UploadCompleted</code>、<code>FileScanRequested</code>、<code>FileClean</code>、<code>FileScanBypassed</code>、<code>FileReady</code>、<code>FileRejected</code>、<code>FileDeleted</code><br>購読: project grant失効、legal hold、host recovery、deletion target</td><td><code>upload_session</code>、<code>upload_part</code>、<code>file_record</code>、<code>file_version</code>、<code>scan_result</code>、<code>s3_promotion_receipt</code>、<code>preview_asset</code>、<code>download_grant</code>、<code>external_link</code></td></tr>
               <tr><th scope="row"><code>privacy</code><br><code>privacy</code></th><td>DeletionRequest、DeletionTarget、DeletionReceipt。削除対象集合、独立台帳ack、live／cache／backup期限と法的保持例外を所有する。</td><td><code>RequestCreatorFileDeletion</code>、<code>RequestClientFileDeletion</code>、<code>GetDeletionRequest</code>、<code>AcknowledgeDeletionLedger</code>、<code>RecordDeletionReceipt</code>、<code>CompleteDeletionRequest</code></td><td>発行: <code>DeletionRequested</code>、<code>DeletionLedgerAcknowledged</code>、<code>DeletionTargetDue</code>、<code>DeletionCompleted</code><br>購読: account／workspace削除、file削除、legal hold変更、backup expiry</td><td><code>deletion_request</code>、<code>deletion_target</code>、<code>deletion_receipt</code></td></tr>
               <tr><th scope="row"><code>schedulenotification</code><br><code>schedule</code></th><td>BusinessCalendar、CalendarSnapshot、ScheduleProposal、NotificationRequest、NotificationPreference。営業日計算、二種類の期限、通知集約を所有する。</td><td><code>SaveBusinessCalendar</code>、<code>SnapshotCalendar</code>、<code>CalculateProjectSchedule</code>、<code>ProposeScheduleChange</code>、<code>AcceptScheduleChange</code>、<code>RequestNotification</code>、<code>UpdateNotificationPreference</code></td><td>発行: <code>ScheduleProposed</code>、<code>ScheduleAccepted</code>、<code>NotificationRequested</code><br>購読: agreement accepted、client delay、change order、submission、approval、delivery</td><td><code>business_calendar</code>、<code>calendar_exception</code>、<code>calendar_snapshot</code>、<code>schedule_proposal</code>、<code>schedule_item</code>、<code>notification_preference</code>、<code>notification_delivery</code></td></tr>
               <tr><th scope="row"><code>billing</code><br><code>billing</code></th><td>BillingCustomer、Subscription、Entitlement、UsageMeterLedger、CurrentUsageProjection、BillingEvent。Stripe照合、本サービス利用権、猶予、read-onlyを所有する。</td><td><code>CreateCheckoutSession</code>、<code>CreatePortalSession</code>、<code>AcceptStripeWebhook</code>、<code>ReconcileSubscriptions</code>、<code>EvaluateEntitlement</code>、<code>RecordUsageDelta</code>、<code>ReconcileUsageProjection</code>、<code>ApplyGracePeriod</code></td><td>発行: <code>SubscriptionChanged</code>、<code>EntitlementChanged</code>、<code>UsageProjectionCorrected</code>、<code>WorkspaceReadOnlyChanged</code><br>購読: project/file usage、workspace created</td><td><code>billing_customer</code>、<code>subscription</code>、<code>entitlement</code>、<code>usage_meter_ledger</code>、<code>current_usage_projection</code>、<code>stripe_event</code>、<code>reconciliation_run</code></td></tr>
@@ -861,7 +861,7 @@
               <tr id="REL-003"><th scope="row">REL-003</th><td><code>intake.request → agreement.offer → agreement_version → project.project</code></td><td>各段階で<code>workspace_id</code>を含むFK。projectはaccepted agreement一件から一度だけ</td><td>上流訂正で下流を上書きせず新version／event</td></tr>
               <tr id="REL-004"><th scope="row">REL-004</th><td><code>project.project → workflow_instance → checkpoint_instance → checkpoint_item</code></td><td><code>(workspace_id, project_id)</code>と順序unique</td><td>前段lockedをguardにし、親削除はdeletion workflow</td></tr>
               <tr id="REL-005"><th scope="row">REL-005</th><td><code>project.checkpoint_instance → collab.progress_update／comment／revision_round／approval_process</code></td><td>workspace＋checkpoint複合FK。target version／hashを別途固定</td><td>公開後・提出後は追記または新版</td></tr>
-              <tr id="REL-006"><th scope="row">REL-006</th><td><code>project.project → file_store.file_record → file_version → scan_result／replication_receipt／preview_asset</code></td><td>workspaceを含む複合FK。object参照はbucket＋key＋version一意</td><td>scan／previewは子状態。原本削除は全object receiptを要求</td></tr>
+              <tr id="REL-006"><th scope="row">REL-006</th><td><code>project.project → file_store.file_record → file_version → scan_result／s3_promotion_receipt／preview_asset</code></td><td>workspaceを含む複合FK。Amazon S3参照はbucket＋key＋version一意</td><td>scan判定／previewは子状態。原本削除は全object receiptを要求</td></tr>
               <tr id="REL-007"><th scope="row">REL-007</th><td><code>project.project → schedule.calendar_snapshot／schedule_proposal → schedule_item</code></td><td>workspace＋project／proposal複合FK</td><td>snapshot immutable、proposal accepted後だけ未来予定へ反映</td></tr>
               <tr id="REL-008"><th scope="row">REL-008</th><td><code>iam.account → workspace.membership</code>、<code>iam.client_access_grant → project.project</code></td><td>accountはglobal ID、grantは<code>(workspace_id, project_id)</code>複合FK</td><td>失効はauth generationを増加。履歴参照IDを物理cascadeしない</td></tr>
               <tr id="REL-009"><th scope="row">REL-009</th><td><code>collab.delivery_package → delivery_item → file_store.file_version</code>、<code>delivery_package → receipt</code></td><td>workspaceを含むFKとfrozen version</td><td>frozen後item変更禁止、receipt追記のみ</td></tr>
@@ -923,9 +923,9 @@
             <tbody>
               <tr><th scope="row"><code>file_store.upload_session</code></th><td>workspace_id、project_id、id、object_key、max_size、part_size、max_parts、status、expires_at、version</td><td>max_size≤4,000,000,000、part_size=67,108,864、max_parts=60。object keyにfilenameを含めない。</td><td>未完了24時間。</td></tr>
               <tr><th scope="row"><code>file_store.upload_part</code></th><td>workspace_id、upload_id、part_no、expected_size、etag、completed_at</td><td>part_no 1..60、一意。最終part以外64MiB。</td><td>upload確定後90日で圧縮削除可。</td></tr>
-              <tr><th scope="row"><code>file_store.file_version</code></th><td>workspace_id、file_id、id、version_no、bucket、object_key、object_version_id、size_bytes、sha256、status、media_type</td><td>bucket＋key＋object version一意。readyは陰性scanと副拠点receipt必須。</td><td>稼働系は削除要求から30日以内。</td></tr>
-              <tr><th scope="row"><code>file_store.scan_result</code></th><td>workspace_id、file_version_id、engine、definition_version、config_hash、bytes_read、bytes_scanned、result、completed_at</td><td>bytes_read=bytes_scanned=file sizeかつNEGATIVEだけclean候補。</td><td>file履歴と同じ。</td></tr>
-              <tr><th scope="row"><code>file_store.replication_receipt</code></th><td>workspace_id、file_version_id、remote_zone、object_version_id、size_bytes、sha256、verified_at</td><td>local値との完全一致。remote zone＋file version一意。</td><td>file履歴と同じ。</td></tr>
+              <tr><th scope="row"><code>file_store.file_version</code></th><td>workspace_id、file_id、id、version_no、bucket、object_key、object_version_id、size_bytes、sha256、status、scan_mode、scan_status、media_type</td><td>bucket＋key＋object version一意。readyは<code>clean</code>または<code>bypassed</code>のscan判定と昇格receiptを必須とする。</td><td>稼働系は削除要求から30日以内。</td></tr>
+              <tr><th scope="row"><code>file_store.scan_result</code></th><td>workspace_id、file_version_id、mode、engine NULL、definition_version NULL、config_hash、bytes_read、bytes_scanned、result、completed_at</td><td><code>required</code>は全byte一致かつNEGATIVEだけclean候補。<code>bypass</code>はClamAVへ接続せず、engine／definitionをNULL、resultをBYPASSEDとして一度だけ記録する。</td><td>file履歴と同じ。</td></tr>
+              <tr><th scope="row"><code>file_store.s3_promotion_receipt</code></th><td>workspace_id、file_version_id、source_bucket、source_version_id、destination_bucket、destination_version_id、size_bytes、sha256、verified_at</td><td>昇格元と昇格先のsize／SHA-256一致。file version一意。</td><td>file履歴と同じ。</td></tr>
               <tr><th scope="row"><code>schedule.calendar_snapshot</code></th><td>workspace_id、id、time_zone、workdays、holidays_json、cutoff_local_time、source_version</td><td>合意・project作成後UPDATE禁止。</td><td>参照projectと同じ。</td></tr>
               <tr><th scope="row"><code>schedule.schedule_proposal</code></th><td>workspace_id、project_id、id、reason、base_version、changes_json、final_delivery_changed、status</td><td>最終納品変更時はcontract owner acceptance必須。</td><td>契約終了後7年。</td></tr>
               <tr><th scope="row"><code>billing.subscription</code></th><td>workspace_id、stripe_subscription_id、status、plan_code、period_end、grace_until、last_event_created</td><td>Stripe ID一意。古いeventで状態を戻さない。</td><td>請求法令・契約に従う。</td></tr>
@@ -999,9 +999,9 @@
               <tr><th scope="row"><code>privacy.deletion_target</code></th><td>workspace_id、deletion_request_id、id、target_type、target_id_digest、location_class、deadline_at、state、legal_hold_id NULL</td><td>request＋type＋digest＋location一意。承認済みholdだけ期限停止</td><td>cache24h／live30d／backup35d</td></tr>
               <tr><th scope="row"><code>privacy.deletion_receipt</code></th><td>workspace_id、deletion_request_id、target_id、id、receipt_type、evidence_digest、completed_at</td><td>target＋receipt type一意、append-only。全target receipt後だけcompleted</td><td>完了証明7年、本文なし</td></tr>
               <tr><th scope="row"><code>infra.crypto_rotation</code></th><td>id、purpose、from_key_id、to_key_id、phase、cursor、started_at、completed_at NULL、mismatch_count</td><td>purposeごとactive一件。expand→dual_read→backfill→single_read→retiredの単方向</td><td>security証跡7年</td></tr>
-              <tr><th scope="row"><code>infra.promotion_guard</code></th><td>site_id、promotion_generation、db_role_name、rgw_key_id、worker_credential_id、state、activated_at、retired_at NULL</td><td>active generationは全体で一件。DB trigger／worker lease／RGW keyが同一世代だけwrite許可</td><td>世代履歴7年、secret値なし</td></tr>
+              <tr><th scope="row"><code>infra.runtime_configuration</code></th><td>configuration_id、environment、malware_scan_mode、non_secret_config_hash、activated_at、retired_at NULL</td><td>active構成は全体で一件。秘密値は保存せず、起動前検査済み構成のhashとscan modeだけを監査する。</td><td>構成履歴7年、secret値なし</td></tr>
               <tr><th scope="row"><code>infra.consumer_dedup</code></th><td>consumer_name、event_id、processed_at、result_digest</td><td>consumer＋event一意</td><td>outbox再送窓＋35日</td></tr>
-              <tr><th scope="row"><code>infra.job_lease</code></th><td>job_key、owner_id、promotion_generation、fencing_token、lease_until</td><td>active promotion generation一致をDB functionで強制し、fencing tokenは取得ごとに増加</td><td>現行と90日履歴</td></tr>
+              <tr><th scope="row"><code>infra.job_lease</code></th><td>job_key、owner_id、fencing_token、lease_until</td><td>同一jobは一つだけ有効。fencing tokenは取得ごとに増加し、期限切れownerの副作用を拒否する。</td><td>現行と90日履歴</td></tr>
             </tbody>
           </table>
         </div>
@@ -1018,7 +1018,7 @@
               <tr><th scope="row"><code>worker_runtime</code></th><td>outbox、lease、担当業務table、object metadataの必要操作</td><td>対話login、role変更、無関係schemaの書込み</td></tr>
               <tr><th scope="row"><code>audit_append</code></th><td><code>audit.append_event</code>のEXECUTEだけ</td><td>base table直接SELECT／INSERT／UPDATE／DELETE、任意function、role変更</td></tr>
               <tr><th scope="row"><code>migration_runner</code></th><td>署名済みmigration checksum確認後に対象ownerへSET ROLE</td><td>通常application接続、任意SQL、複数schema同時owner</td></tr>
-              <tr><th scope="row"><code>backup_agent</code></th><td>整合snapshotとWAL読取、復元検証先への書込み</td><td>Production業務table変更、秘密平文出力</td></tr>
+              <tr><th scope="row"><code>backup_agent</code></th><td>既存DB基盤の整合backup読取と復元検証先への書込み</td><td>Production業務table変更、秘密平文出力</td></tr>
               <tr><th scope="row"><code>support_readonly</code></th><td>承認済みgrantのview／mask済み列だけ</td><td>base table、秘密、全件export、期限外query</td></tr>
             </tbody>
           </table>
@@ -1081,14 +1081,14 @@
             <tbody>
               <tr id="STATE-REQUEST"><th scope="row">STATE-REQUEST<br>Request</th><td><code>submitted → startScreening → screening</code><br><code>screening → requestClarification → needs_info</code><br><code>screening/needs_info → accept → accepted</code><br><code>submitted/screening/needs_info → reject/withdraw/expire → rejected/withdrawn/expired</code></td><td><code>accepted</code>、<code>rejected</code>、<code>withdrawn</code>、<code>expired</code>が終端。needs_infoは期限内再送可</td><td>service version公開中、rate・block通過、actor権限、expected version。</td><td>acceptedからscreeningへ戻さない。訂正eventを追加する。</td></tr>
               <tr id="STATE-AGREEMENT"><th scope="row">STATE-AGREEMENT<br>AgreementVersion</th><td><code>draft → offer → offered</code><br><code>offered → acceptParty → offered</code><br><code>offered → establish → accepted</code><br><code>draft/offered → supersede → superseded</code></td><td><code>accepted</code>、<code>superseded</code>終端。期限切れは新versionのみ</td><td>canonical hash一致、全party有効、fresh auth、time trust、approval rule成立。</td><td>未操作・期限超過はacceptedにしない。対象版変更は新version。</td></tr>
-              <tr id="STATE-PROJECT"><th scope="row">STATE-PROJECT<br>Project</th><td><code>pending_start → start → active</code><br><code>active → hold → on_hold → resume → active</code><br><code>active/on_hold → requestCancellation → cancellation_pending → confirmCancellation → cancelled</code><br><code>active/on_hold/delivered → openDispute → disputed → resolveDispute → prior_state</code><br><code>active → freezeDelivery → delivered → receive → received → close → closed</code></td><td><code>cancelled</code>、<code>closed</code>終端。disputedは解決後だけ保存済みprior_stateへ復帰</td><td>有効合意、必要party、紛争なし、前段条件、kill switch、容量・複製・time trust。</td><td>disputed中は承認、納品完了、通常削除を423で拒否。運営者が一方的に解決stateを書かない。</td></tr>
-              <tr id="STATE-CHECKPOINT"><th scope="row">STATE-CHECKPOINT<br>Checkpoint</th><td><code>pending → activate → in_progress</code><br><code>in_progress/revision_in_progress → submit → awaiting_review</code><br><code>awaiting_review → requestRevision → revision_requested → startRevision → revision_in_progress</code><br><code>awaiting_review → establishApproval → approved → lock → locked</code></td><td><code>locked</code>終端。scan／複製失敗はfile側再試行後に再提出</td><td>前段locked、required input、ready file、revision quota、target version、approval rule。</td><td>approved／lockedを通常編集で巻き戻さない。</td></tr>
-              <tr id="STATE-FILE"><th scope="row">STATE-FILE<br>FileVersion</th><td><code>initiated → uploading → quarantined → scan_pending → scanning</code><br><code>scanning → infected/scan_error/replication_pending</code><br><code>replication_pending → ready</code><br><code>initiated/uploading/quarantined/scan_pending/scanning/infected/scan_error/replication_pending/ready → deletion_pending → deleted</code>、または <code>deletion_pending → legal_hold → deletion_pending</code></td><td><code>deleted</code>だけが完全な終端。<code>infected</code>は配布上の終端だが削除可能。<code>scan_error</code>と<code>replication_pending</code>は制限付き再試行</td><td>size、全part、SHA-256、全本文scan、定義、remote receipt、認可世代。削除は元stateにかかわらずDeletionRequestへ集約する。</td><td>ERROR、timeout、部分読込、未複製をreadyへしない。previewは下記の直交状態。</td></tr>
+              <tr id="STATE-PROJECT"><th scope="row">STATE-PROJECT<br>Project</th><td><code>pending_start → start → active</code><br><code>active → hold → on_hold → resume → active</code><br><code>active/on_hold → requestCancellation → cancellation_pending → confirmCancellation → cancelled</code><br><code>active/on_hold/delivered → openDispute → disputed → resolveDispute → prior_state</code><br><code>active → freezeDelivery → delivered → receive → received → close → closed</code></td><td><code>cancelled</code>、<code>closed</code>終端。disputedは解決後だけ保存済みprior_stateへ復帰</td><td>有効合意、必要party、紛争なし、前段条件、kill switch、host／DB／Amazon S3容量、time trust。</td><td>disputed中は承認、納品完了、通常削除を423で拒否。運営者が一方的に解決stateを書かない。</td></tr>
+              <tr id="STATE-CHECKPOINT"><th scope="row">STATE-CHECKPOINT<br>Checkpoint</th><td><code>pending → activate → in_progress</code><br><code>in_progress/revision_in_progress → submit → awaiting_review</code><br><code>awaiting_review → requestRevision → revision_requested → startRevision → revision_in_progress</code><br><code>awaiting_review → establishApproval → approved → lock → locked</code></td><td><code>locked</code>終端。scan判定またはAmazon S3昇格失敗はfile側再試行後に再提出</td><td>前段locked、required input、ready file、revision quota、target version、approval rule。</td><td>approved／lockedを通常編集で巻き戻さない。</td></tr>
+              <tr id="STATE-FILE"><th scope="row">STATE-FILE<br>FileVersion</th><td><code>initiated → uploading → quarantined → scan_pending</code><br><code>scan_pending → scanning → clean/infected/scan_error</code>（required）<br><code>scan_pending → bypassed</code>（bypass）<br><code>clean/bypassed → promotion_pending → ready</code><br><code>deleted</code>以外の全状態から<code>deletion_pending → deleted</code>、または <code>deletion_pending → legal_hold → deletion_pending</code></td><td><code>deleted</code>だけが完全な終端。<code>infected</code>は配布上の終端だが削除可能。<code>scan_error</code>と<code>promotion_pending</code>は制限付き再試行。ready後もscan_statusを保持する。</td><td>size、全part、SHA-256、scan mode、required時の全本文scanと定義、Amazon S3昇格receipt、認可世代。削除は元stateにかかわらずDeletionRequestへ集約する。</td><td>required時のERROR、timeout、部分読込をreadyへしない。bypassはClamAVへ接続せずBYPASSEDを記録する。previewは下記の直交状態。</td></tr>
               <tr id="STATE-PREVIEW"><th scope="row">STATE-PREVIEW<br>PreviewAsset</th><td><code>not_requested → pending → generating → ready</code><br><code>generating → failed → pending</code><br><code>not_requested/pending/generating/failed → markUnsupported → unsupported</code></td><td><code>ready</code>と<code>unsupported</code>終端。failedは上限3回・指数backoffで再試行</td><td>原本FileVersionがready、対応MIME、sandbox利用可能。capabilityは状態とは別に <code>previewCapability</code> と <code>downloadCapability</code> で評価する。</td><td>preview失敗・非対応でも原本はreadyを維持し、<code>previewCapability=unavailable</code>、<code>downloadCapability=allowed</code>とする。</td></tr>
               <tr id="STATE-SUBSCRIPTION"><th scope="row">STATE-SUBSCRIPTION<br>Subscription</th><td><code>free → checkout_pending → active</code><br><code>active → payment_retry → read_only</code><br><code>payment_retry → active</code><br><code>active → cancellation_scheduled → free/read_only</code></td><td>freeは再契約可。read_onlyから拡大は照合成功時だけ</td><td>Stripe署名、event ID、最新state照合、grace 7日、usage上限。</td><td>不一致・API停止中にentitlementを拡大しない。</td></tr>
               <tr id="STATE-NOTIFICATION"><th scope="row">STATE-NOTIFICATION<br>NotificationDelivery</th><td><code>requested → queued → sending → sent → delivered</code><br><code>sending → retry_wait → sending</code><br><code>sending/retry_wait → failed/suppressed</code></td><td><code>delivered</code>、<code>failed</code>、<code>suppressed</code>終端。retryは10回／24時間以内</td><td>recipient relation、preference、必須channel、dedupe key、template version。</td><td>既読をdeliveredや業務承認へ変換しない。</td></tr>
               <tr id="STATE-DELETION"><th scope="row">STATE-DELETION<br>DeletionRequest</th><td><code>created → appendLedger → ledger_pending → acknowledgeLedger → ledger_acked → process → processing → completed</code><br><code>processing → legal_hold → processing</code><br><code>processing → retry_wait → processing</code></td><td><code>completed</code>終端。legal_holdは対象保持解除後だけ再開。retryは期限を越えない。同じidempotency keyは同一requestへ収束する。</td><td>対象集合hash、法的保持範囲、cache24h、live30d、backup35d、独立台帳sequence／entry hash／署名済みack。</td><td>独立台帳ackを確認した後だけ202を返す。timeout時は503とrequest IDを返し、作成済みrequestを消さず、同じkeyの再試行で状態を照会・再送する。</td></tr>
-              <tr id="STATE-RUNTIME"><th scope="row">STATE-RUNTIME<br>RuntimeMode</th><td><code>normal → restricted → write_stopped → recovery_verification → normal</code></td><td>終端なし。縮退解除は連続健全時間と二者承認後</td><td>WAL、容量、time、ClamAV、backup、TLS、UPS、kill switch。</td><td>解除条件が連続時間・二者承認を満たすまで縮退を維持。</td></tr>
+              <tr id="STATE-RUNTIME"><th scope="row">STATE-RUNTIME<br>RuntimeMode</th><td><code>normal → restricted → write_stopped → recovery_verification → normal</code></td><td>終端なし。縮退解除は連続健全時間と二者承認後</td><td>DB接続、Amazon S3、host容量、time、scan mode、required時のClamAV、backup、TLS、UPS、kill switch。</td><td>解除条件が連続時間・二者承認を満たすまで縮退を維持。</td></tr>
             </tbody>
           </table>
         </div>
@@ -1287,62 +1287,62 @@
         <header class="section__header">
           <p class="section__label">09 / File Pipeline</p>
           <h2>ファイル取込・検査・配布</h2>
-          <p class="section__lede">アプリは本文を中継せず、browserへ単一part PUT権限だけを渡す。陰性検査と副拠点一致が揃うまで配布しない。</p>
+          <p class="section__lede">アプリは本文を中継せず、browserへ対象を限定したPUT権限だけを渡す。scan modeの判定とAmazon S3内の昇格検証が揃うまで配布しない。</p>
         </header>
         <figure class="diagram">
           <svg viewBox="0 0 980 250" role="img" aria-labelledby="file-title file-description">
             <title id="file-title">ファイル取込の状態と信頼境界</title>
-            <desc id="file-description">アプリがuploadを開始し、browserが専用入口から隔離bucketへpartを送信する。アプリが完了を確定し、workerが全本文検査、cleanコピー、副拠点照合、preview生成を行い、最後に短命download grantを発行する。</desc>
+            <desc id="file-description">アプリがuploadを開始し、browserがAmazon S3の隔離bucketへpartを送信する。アプリが完了を確定し、workerがscan modeを適用してclean bucketへ昇格し、preview生成後に短命download grantを発行する。</desc>
             <defs><marker id="arrow-file" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"></path></marker></defs>
             <rect class="node" x="15" y="75" width="125" height="80" rx="4"></rect><text x="77" y="110" text-anchor="middle">App</text><text x="77" y="135" text-anchor="middle">init / complete</text>
             <rect class="node" x="175" y="75" width="125" height="80" rx="4"></rect><text x="237" y="110" text-anchor="middle">Browser</text><text x="237" y="135" text-anchor="middle">part PUT</text>
             <rect class="node" x="335" y="75" width="125" height="80" rx="4"></rect><text x="397" y="110" text-anchor="middle">Quarantine</text><text x="397" y="135" text-anchor="middle">untrusted</text>
             <rect class="node node--focus" x="495" y="75" width="125" height="80" rx="4"></rect><text x="557" y="110" text-anchor="middle">Scan worker</text><text x="557" y="135" text-anchor="middle">full bytes</text>
-            <rect class="node node--focus" x="655" y="75" width="125" height="80" rx="4"></rect><text x="717" y="110" text-anchor="middle">Clean</text><text x="717" y="135" text-anchor="middle">replicated</text>
+            <rect class="node node--focus" x="655" y="75" width="125" height="80" rx="4"></rect><text x="717" y="110" text-anchor="middle">Clean</text><text x="717" y="135" text-anchor="middle">promoted</text>
             <rect class="node" x="815" y="75" width="145" height="80" rx="4"></rect><text x="887" y="110" text-anchor="middle">Preview / Download</text><text x="887" y="135" text-anchor="middle">re-authorized</text>
             <path d="M140 115 H175 M300 115 H335 M460 115 H495 M620 115 H655 M780 115 H815" fill="none" stroke="var(--color-rule-strong)" stroke-width="1.5" marker-end="url(#arrow-file)"></path>
           </svg>
-          <figcaption>信頼境界はquarantine、scan、clean、副拠点receipt、取得時認可の五段。どの段階も後段の成立を推測しない。</figcaption>
+          <figcaption>信頼境界はquarantine、scan mode判定、clean昇格、昇格receipt、取得時認可の五段。どの段階も後段の成立を推測しない。</figcaption>
         </figure>
 
         <h3>オブジェクト命名と権限</h3>
         <div class="table-wrap">
           <table>
-            <caption>S3互換bucket契約</caption>
+            <caption>Amazon S3 bucket契約</caption>
             <thead><tr><th scope="col">bucket</th><th scope="col">key</th><th scope="col">書込み主体</th><th scope="col">読取り主体</th><th scope="col">禁止</th></tr></thead>
             <tbody>
               <tr><th scope="row"><code>quarantine</code></th><td><code>q/{workspaceId}/{projectId}/{uploadId}</code></td><td>upload ingressの単一part権限、appのcomplete、worker</td><td>scan workerだけ</td><td>browser GET、ListBucket、公開配布、preview処理</td></tr>
-              <tr><th scope="row"><code>clean</code></th><td><code>c/{workspaceId}/{fileId}/{fileVersionId}</code></td><td>scan workerのserver-side copyだけ</td><td>preview worker、download gateway</td><td>browser直接credential、未複製配布、上書き</td></tr>
+              <tr><th scope="row"><code>clean</code></th><td><code>c/{workspaceId}/{fileId}/{fileVersionId}</code></td><td>workerのserver-side copyだけ</td><td>preview worker、download gateway</td><td>browser直接credential、昇格receiptなしの配布、上書き</td></tr>
               <tr><th scope="row"><code>preview</code></th><td><code>p/{workspaceId}/{fileVersionId}/{previewId}</code></td><td>sandboxから検証済み出力を受けるworker</td><td>preview gateway</td><td>利用者指定key、元metadata、script実行</td></tr>
               <tr><th scope="row"><code>delivery</code></th><td><code>d/{workspaceId}/{deliveryId}/{packageVersion}</code></td><td>delivery worker</td><td>download gateway</td><td>package凍結後の置換</td></tr>
             </tbody>
           </table>
         </div>
 
-        <h3>配布credential・Object Lock・昇格fencing</h3>
+        <h3>配布credential・Object Lock・構成guard</h3>
         <div class="table-wrap table-wrap--compact">
           <table>
             <caption>FILE-CONTROL — object操作の権限と削除</caption>
             <thead><tr><th scope="col">対象</th><th scope="col">実装契約</th><th scope="col">検査</th></tr></thead>
             <tbody>
-              <tr><th scope="row">download gateway</th><td>利用者へRGW credentialや永続署名URLを返さず、grant tokenを検証してgateway自身がrange streamする。file version、project relation、generation、statusを要求ごとに再認可</td><td>失効後の再利用、別range、別file、別origin、期限超過を拒否。access logはgrant ID digestまで</td></tr>
+              <tr><th scope="row">download gateway</th><td>利用者へAWS credentialや永続署名URLを返さず、grant tokenを検証してgateway自身がAmazon S3からrange streamする。file version、project relation、auth generation、statusを要求ごとに再認可</td><td>失効後の再利用、別range、別file、別origin、期限超過を拒否。access logはgrant ID digestまで</td></tr>
               <tr><th scope="row">Object Lock</th><td>利用者file、preview、納品成果物には固定WORM retentionを設定せず、承認済み法的保持だけを個別適用する。Object Lockは業務本文を含まない監査固定点、削除台帳固定点、通常backupだけに用途別期限で適用する</td><td>承認済みhold IDが無い利用者objectは削除期限を止めない。残存object version、hold ID、解除予定を独立台帳へ限定記録</td></tr>
-              <tr><th scope="row">削除完了</th><td>primary、replica、preview、multipart、cache、index、通常backup expiryを列挙し、各receiptのhashを独立deletion ledgerへ追記</td><td>cache／search 24時間、live DB／object／replica 30日、通常backup 35日以内。対象外を保持延長しない</td></tr>
-              <tr><th scope="row">promotion fencing</th><td>site-generation別DB login roleとRGW write keyを発行し、DB guardは<code>infra.promotion_guard</code>との一致をSECURITY DEFINER function／triggerで全writeに強制する。昇格前に旧roleをNOLOGIN・REVOKEし、<code>pg_terminate_backend</code>で既存sessionを終了し、旧worker tokenと旧RGW keyを削除する</td><td>旧site processを意図的に残し、INSERT／UPDATE／DELETE、監査append、outbox claim、clean copyが全て拒否されることと旧credential不存在を確認するまで公開しない</td></tr>
+              <tr><th scope="row">削除完了</th><td>quarantine、clean、preview、delivery、multipart、cache、index、通常backup expiryを列挙し、各receiptのhashを独立deletion ledgerへ追記</td><td>cache／search 24時間、live DB／Amazon S3 object 30日、通常backup 35日以内。対象外を保持延長しない</td></tr>
+              <tr><th scope="row">構成guard</th><td>起動時にGit管理外の設定ファイルを読取り、必須キー、権限、ファイル所有者、Amazon S3接続、DB／Valkey接続、<code>MALWARE_SCAN_MODE</code>を検証する。値欠落・未知mode・過剰権限ならserviceを起動しない</td><td><code>required</code>ではClamAV接続・定義・EICARを検証し、<code>bypass</code>ではClamAVへ一切接続せず警告metricと監査eventを必須にする</td></tr>
             </tbody>
           </table>
         </div>
 
         <h3>取込処理</h3>
         <ol class="steps">
-          <li><div><h4>Initiate</h4><p>actor、workspace、project、checkpoint、用途、表示filename、declared media type、sizeを検査する。sizeは1..4,000,000,000、part sizeは67,108,864、最大60、期限24時間。Ceph 90％、scanner定義24時間超、WAL 10分以上、plan上限時は開始しない。</p></div></li>
+          <li><div><h4>Initiate</h4><p>actor、workspace、project、checkpoint、用途、表示filename、declared media type、sizeを検査する。sizeは1..4,000,000,000、part sizeは67,108,864、最大60、期限24時間。Amazon S3疎通不能、host一時領域90％、required時のscanner定義24時間超、plan上限時は開始しない。</p></div></li>
           <li><div><h4>Sign part</h4><p>part番号、expected size、object key、upload IDを固定したSigV4 URLを15分で発行する。methodはPUTだけ、List・Delete・Complete・別key・clean bucketの権限を含めない。</p></div></li>
           <li><div><h4>Complete</h4><p>全part番号の連続性、最終part以外64MiB、各ETag、合計size、upload owner、project stateを再検査し、appだけがCompleteMultipartUploadを呼ぶ。結果のobject version IDをDBへ固定する。</p></div></li>
           <li><div><h4>Fetch and hash</h4><p>workerは12GiB暗号化一時領域へstream取得し、noexec・nodev・nosuid、同時1件、CPU 2、memory 8GiB、30分上限で実sizeとSHA-256を測る。</p></div></li>
-          <li><div><h4>Full scan</h4><p>同一hostのUNIX socketへFILDESで渡し、ClamAV 1.5系列、定義版、config hash、bytes read、bytes scanned、resultを記録する。三つのbyte数が一致し陰性の場合だけ次へ進む。</p></div></li>
-          <li><div><h4>Promote and replicate</h4><p>cleanへserver-side copyし、副zoneのobject version ID、size、SHA-256を照合する。不一致、遅延、remote read不能はreplication_pendingを維持する。</p></div></li>
+          <li><div><h4>Apply scan mode</h4><p><code>required</code>ではオンプレ専用ClamAV hostの暗号化・接続元制限済みTCPへINSTREAMで全本文を送り、engine、定義版、config hash、bytes read、bytes scanned、resultを記録する。byte数一致かつ陰性だけをcleanとする。<code>bypass</code>ではClamAVへ接続せず、BYPASSED、構成hash、処理時刻、correlation IDを記録して後続へ進む。</p></div></li>
+          <li><div><h4>Promote</h4><p>quarantineからcleanへAmazon S3 server-side copyし、コピー先version ID、size、SHA-256を照合してreceiptを保存する。不一致、遅延、read不能は<code>promotion_pending</code>を維持する。</p></div></li>
           <li><div><h4>Preview</h4><p>許可形式だけをnetworkなし、non-root、read-only root、capabilityなしのsandboxで処理する。変換失敗時も元fileがcleanなら<code>previewCapability=unavailable</code>、<code>downloadCapability=allowed</code>とし、元file自体の安全性を変更しない。</p></div></li>
-          <li><div><h4>Distribute</h4><p><code>app.example</code>でgrantを発行し、POST bodyで<code>files.example</code>へ交換して同host限定・短命・HttpOnly cookieを設定する。gatewayはGET／HEAD／各Rangeごとにproject関係、file visibility、auth generation、file statusを再認可し、自身がstreamする。RGW URLとapp session cookieをfiles originへ渡さない。</p></div></li>
+          <li><div><h4>Distribute</h4><p><code>app.example</code>でgrantを発行し、POST bodyで<code>files.example</code>へ交換して同host限定・短命・HttpOnly cookieを設定する。gatewayはGET／HEAD／各Rangeごとにproject関係、file visibility、auth generation、file statusを再認可し、自身がstreamする。Amazon S3 URL、AWS credential、app session cookieをfiles originへ渡さない。</p></div></li>
         </ol>
 
         <div class="table-wrap">
@@ -1456,14 +1456,13 @@
             <tbody>
               <tr><th scope="row">nginx-edge</th><td>public 443、80はredirectのみ</td><td>Internet、Stripe</td><td>web assets、application 8080、upload ingress</td><td>TLS実接続、WAF rule、upstream health</td></tr>
               <tr><th scope="row">application</th><td>app network 8080、management network 8081</td><td>nginx-edge、管理監視</td><td>PostgreSQL、Valkey、Outbox、許可済み内部port</td><td>DB read/write、Valkey session、runtime guard、schema互換</td></tr>
-              <tr><th scope="row">worker</th><td>inboundなし、management 8081</td><td>管理監視</td><td>PostgreSQL、RGW、ClamAV socket、egress proxy、preview sandbox</td><td>DB、Outbox claim、必要volume、定義freshness</td></tr>
-              <tr><th scope="row">upload ingress</th><td>edge経由443</td><td>署名付きBrowser PUT</td><td>RGW quarantineだけ</td><td>署名検証、quarantine到達、clean拒否self-test</td></tr>
-              <tr><th scope="row">PostgreSQL</th><td>data network 5432</td><td>application、worker、backup、監視</td><td>standby、WAL archive</td><td>role、replication、disk、WAL、backup age</td></tr>
+              <tr><th scope="row">worker</th><td>inboundなし、management 8081</td><td>管理監視</td><td>PostgreSQL、Amazon S3、ClamAV専用host、egress proxy、preview sandbox</td><td>DB、Outbox claim、Amazon S3、必要volume、scan mode。required時のみ定義freshness</td></tr>
+              <tr><th scope="row">upload ingress</th><td>edge経由443</td><td>署名付きBrowser PUT</td><td>Amazon S3 quarantineだけ</td><td>署名検証、quarantine到達、clean拒否self-test</td></tr>
+              <tr><th scope="row">PostgreSQL</th><td>既存オンプレDB network 5432</td><td>application、worker、backup、監視</td><td>DB運用基盤が定めるbackup先</td><td>TLS、role、schema、disk、backup age</td></tr>
               <tr><th scope="row">Valkey</th><td>data network 6379</td><td>application、worker</td><td>なし</td><td>AUTH/TLS、read/write。障害時にauth操作をfail close</td></tr>
-              <tr><th scope="row">Ceph RGW</th><td>data network 7480相当</td><td>upload ingress、worker、download gateway</td><td>副zone複製</td><td>quorum、capacity、sync state。管理APIは別network</td></tr>
-              <tr><th scope="row">ClamAV</th><td>同一host UNIX socket</td><td>scan workerだけ</td><td>定義更新proxy</td><td>daemon、定義24時間以内、EICAR self-test</td></tr>
+              <tr><th scope="row">Amazon S3</th><td>AWS公開endpoint 443</td><td>upload ingress、worker、download gateway</td><td>AWS管理下</td><td>TLS、bucket policy、公開block、versioning、暗号化、read/write self-test</td></tr>
+              <tr><th scope="row">ClamAV</th><td>オンプレ専用hostの接続元制限済みTCP</td><td>scan workerだけ</td><td>定義更新proxy</td><td>required時だけdaemon、定義24時間以内、EICAR self-test。bypass時は接続しない</td></tr>
               <tr><th scope="row">Prometheus等</th><td>management network限定</td><td>監視・運用端末</td><td>各management endpoint、Alertmanager通知</td><td>scrape、rule、通知経路、保持容量</td></tr>
-              <tr><th scope="row">Ceph管理面</th><td>management network限定</td><td>cephadm管理host</td><td>Ceph node</td><td>公開routeなし。Docker Composeへ含めない</td></tr>
             </tbody>
           </table>
         </div>
@@ -1483,18 +1482,19 @@
             <caption>applicationとworkerの必須設定</caption>
             <thead><tr><th scope="col">key群</th><th scope="col">内容</th><th scope="col">供給元</th><th scope="col">起動前検査</th></tr></thead>
             <tbody>
-              <tr><th scope="row"><code>APP_ENVIRONMENT</code>、<code>APP_SITE_ID</code>、<code>APP_PROMOTION_GENERATION</code></th><td>環境、拠点、現在の昇格世代</td><td>署名済み外部設定</td><td>production値、site一致、etcd lease世代一致</td></tr>
-              <tr><th scope="row"><code>DB_URL</code>、<code>DB_SITE_ID</code>、<code>DB_PROMOTION_GENERATION</code>、<code>DB_USERNAME_FILE</code>、<code>DB_PASSWORD_FILE</code></th><td>site-generation別PostgreSQL接続。username／password fileは世代別に生成し共有しない</td><td>SOPS復号後のgeneration専用secret mount</td><td>TLS、role名のsite／generation一致、<code>infra.promotion_guard</code>一致、schema version、N/N-1互換。旧roleがNOLOGINでsession 0</td></tr>
-              <tr><th scope="row"><code>VALKEY_URL</code>、<code>VALKEY_SECRET_FILE</code></th><td>session、rate、cache</td><td>secret mount</td><td>TLS、認証、namespace、write/read。失敗時はauth入口を開かない</td></tr>
-              <tr><th scope="row"><code>S3_ENDPOINT</code>、<code>S3_QUARANTINE_BUCKET</code>、<code>S3_CLEAN_BUCKET</code>、<code>S3_PREVIEW_BUCKET</code>、<code>S3_WRITE_KEY_ID_FILE</code>、<code>S3_WRITE_SECRET_FILE</code></th><td>S3互換境界。write keyはsite-generation別、read keyと分離</td><td>署名済み設定＋generation専用secret mount</td><td>bucket policy、versioning、Object Lock、clean書込主体、quarantine非公開、active generation一致、旧write key不存在</td></tr>
-              <tr><th scope="row"><code>WEBAUTHN_RP_ID</code>、<code>WEBAUTHN_ALLOWED_ORIGINS</code></th><td>Passkey境界</td><td>署名済み設定</td><td>公開hostと完全一致、http・wildcard・local origin拒否</td></tr>
-              <tr><th scope="row"><code>STRIPE_WEBHOOK_SECRET_FILE</code>、<code>STRIPE_API_KEY_FILE</code></th><td>本サービス請求だけ</td><td>用途別secret mount</td><td>test/live mode一致、別用途共有なし、期限・rotation状態</td></tr>
+              <tr><th scope="row"><code>APP_ENVIRONMENT</code></th><td>実行環境。productionだけを本番hostで許可</td><td>Git管理外の平文設定ファイル</td><td>値が<code>production</code>、所有者root、mode 0640、想定外キーなし</td></tr>
+              <tr><th scope="row"><code>DB_URL</code>、<code>DB_USERNAME_FILE</code>、<code>DB_PASSWORD_FILE</code></th><td>既存オンプレPostgreSQLへの専用接続</td><td>Git管理外の平文設定・秘密ファイル</td><td>TLS、専用role、schema version、N/N-1互換、DDL権限なし</td></tr>
+              <tr><th scope="row"><code>VALKEY_URL</code>、<code>VALKEY_SECRET_FILE</code></th><td>既存オンプレValkeyのsession、rate、cache</td><td>Git管理外の平文設定・秘密ファイル</td><td>TLS、認証、専用namespace、write/read。失敗時はauth入口を開かない</td></tr>
+              <tr><th scope="row"><code>S3_REGION</code>、<code>S3_ENDPOINT</code>、<code>S3_QUARANTINE_BUCKET</code>、<code>S3_CLEAN_BUCKET</code>、<code>S3_PREVIEW_BUCKET</code>、<code>S3_DELIVERY_BUCKET</code>、<code>S3_ACCESS_KEY_ID_FILE</code>、<code>S3_SECRET_ACCESS_KEY_FILE</code></th><td>Amazon S3。用途別bucketと最小権限credentialを分離</td><td>Git管理外の平文設定・秘密ファイル</td><td>公式endpoint、bucket policy、versioning、公開block、暗号化、用途外操作拒否</td></tr>
+              <tr><th scope="row"><code>MALWARE_SCAN_MODE</code>、<code>CLAMAV_HOST</code>、<code>CLAMAV_PORT</code>、<code>CLAMAV_CONNECT_TIMEOUT</code>、<code>CLAMAV_READ_TIMEOUT</code></th><td><code>required</code>または<code>bypass</code>。ClamAV接続値はrequired時だけ使用</td><td>Git管理外の平文設定ファイル</td><td>未知値・欠落は起動拒否。requiredは接続・定義・EICAR、bypassはsocket接続0と監査eventを確認</td></tr>
+              <tr><th scope="row"><code>WEBAUTHN_RP_ID</code>、<code>WEBAUTHN_ALLOWED_ORIGINS</code></th><td>Passkey境界</td><td>Git管理外の平文設定ファイル</td><td>公開hostと完全一致、http・wildcard・local origin拒否</td></tr>
+              <tr><th scope="row"><code>STRIPE_WEBHOOK_SECRET_FILE</code>、<code>STRIPE_API_KEY_FILE</code></th><td>本サービス請求だけ</td><td>Git管理外の用途別平文秘密ファイル</td><td>test/live mode一致、別用途共有なし、rotation状態</td></tr>
               <tr><th scope="row"><code>AUDIT_SIGNING_KEY_REF</code>、<code>DELETION_LEDGER_ENDPOINT</code></th><td>監査固定点、独立台帳</td><td>TPM封印host鍵と管理network</td><td>key ID、公開鍵履歴、terminal hash、spool容量</td></tr>
               <tr><th scope="row"><code>FEATURE_KILL_SWITCH_SOURCE</code></th><td>認証、intake、upload、重要書込みの停止状態</td><td>監査schema＋署名済みruntime cache</td><td>取得不能は対象feature停止</td></tr>
             </tbody>
           </table>
         </div>
-        <p>秘密値を環境変数、一般設定、image layer、Compose履歴へ直接埋め込まない。設定dump、Actuator、exception、support画面はkey名だけを示し、値をredactする。</p>
+        <p>秘密値は管理者がGit管理外の専用ファイルへ直接記載し、containerへread-only mountする。環境変数、repository、image layer、Compose定義へ値を埋め込まない。設定dump、Actuator、exception、support画面はkey名だけを示し、値をredactする。</p>
 
         <h3>runtime guardとフェイルクローズ</h3>
         <div class="table-wrap">
@@ -1502,14 +1502,14 @@
             <caption>検知条件から操作制限への写像</caption>
             <thead><tr><th scope="col">信号</th><th scope="col">normalからの遷移</th><th scope="col">拒否するcommand</th><th scope="col">解除</th></tr></thead>
             <tbody>
-              <tr><th scope="row">WAL lag</th><td>5分warning、10分restricted、12分write_stopped、15分major incident</td><td>10分: 新規upload・新規project。12分: 合意、承認、受領、納品、請求、重要監査対象write</td><td>10分連続5分未満、欠損なし、二者承認</td></tr>
-              <tr><th scope="row">Ceph usage</th><td>80％warning、90％restricted</td><td>90％で新規upload</td><td>60％未満、rebalancing・hash整合確認</td></tr>
+              <tr><th scope="row">PostgreSQL接続／backup age</th><td>接続不能でwrite_stopped、backup期限超過でdeployment blocked</td><td>DB依存write、deploy、schema contract</td><td>接続・整合・backup・隔離restore成功、二者承認</td></tr>
+              <tr><th scope="row">Amazon S3</th><td>疎通・権限・暗号化・versioning検査失敗でrestricted</td><td>新規upload、file昇格、preview、download</td><td>用途別read/write/delete self-testとpolicy再検査</td></tr>
               <tr><th scope="row">PostgreSQL usage</th><td>85％restricted</td><td>新規project生成</td><td>空き容量、VACUUM／DB健全性</td></tr>
               <tr><th scope="row">clock offset</th><td>1秒warning、2秒超time degraded</td><td>合意、承認、受領。監査追記は継続</td><td>複数NTP源で10分連続1秒以内、二者確認</td></tr>
-              <tr><th scope="row">ClamAV</th><td>停止、self-test失敗、定義24時間超でrestricted</td><td>upload開始、quarantineからの昇格</td><td>定義更新、daemon、EICAR、4GB設定self-test</td></tr>
+              <tr><th scope="row">ClamAV</th><td>required時は停止、self-test失敗、定義24時間超でrestricted。bypass時は接続せず警告継続</td><td>required時のupload開始とquarantineからの昇格</td><td>requiredは定義更新、daemon、EICAR、4GB設定self-test。bypass解除は設定変更・再起動・監査確認</td></tr>
               <tr><th scope="row">backup／restore evidence</th><td>期限超過・失敗でdeployment blocked</td><td>deploy、schema contract、公開切替</td><td>新しいbackupと隔離restore成功</td></tr>
               <tr><th scope="row">TLS更新</th><td>検証失敗でdeployment blocked</td><td>deploy、証明書切替</td><td>新証明書のIPv4／IPv6実接続、chain、期限確認</td></tr>
-              <tr><th scope="row">UPS</th><td>安全停止閾値でwrite_stopped</td><td>新規write全般</td><td>電源、容量、複製、時刻、DB／RGW整合の起動前検査</td></tr>
+              <tr><th scope="row">UPS</th><td>安全停止閾値でwrite_stopped</td><td>新規write全般</td><td>電源、host容量、時刻、DB／Amazon S3整合の起動前検査</td></tr>
               <tr><th scope="row">Valkey</th><td>利用不能でauth／rate degraded</td><td>login、client link、公開POST、認証済み操作。既存cookieを401扱いしない</td><td>復旧、session検証、rate script、auth generation整合。全session再発行はincident判断時だけ</td></tr>
               <tr><th scope="row">audit spool</th><td>80％でadmin write stopped</td><td>support、kill switch解除、管理変更</td><td>DB取込、chain検証、spool余裕、二者確認</td></tr>
             </tbody>
@@ -1562,16 +1562,15 @@
           </table>
         </div>
 
-        <h3>復旧世代と再露出防止</h3>
+        <h3>交換host復旧と再露出防止</h3>
         <ol class="steps">
           <li><div><h4>書込みを止める</h4><p>重大incidentを二者で宣言し、public入口を保守表示へ切り替える。auditはdegraded spoolを含め継続する。</p></div></li>
-          <li><div><h4>旧主系を二重fenceする</h4><p>PDU電源断の観測証拠とfirewallの公開VIP・site VPN・管理route剥奪を揃える。一つでも未確認なら昇格しない。</p></div></li>
-          <li><div><h4>promotion generationを取得する</h4><p>副拠点と第三地点を含むetcd多数派から単回leaseを取得し、世代とfence証拠へ二名が署名する。</p></div></li>
-          <li><div><h4>一貫復旧点を選ぶ</h4><p>5分ごとのDB LSN、RGW watermark、file manifest、trust manifest、deletion ledger terminal hashを照合する。不一致は前の復旧点へ戻す。</p></div></li>
-          <li><div><h4>データ層を昇格する</h4><p>PostgreSQLとRGW periodを新世代へ昇格し、applicationは一致する <code>APP_PROMOTION_GENERATION</code> の接続だけをreadiness成功にする。</p></div></li>
-          <li><div><h4>失効と削除を再適用する</h4><p>全session、client link、support grant、recovery code、download URL、影響secretを失効し、独立台帳をDB、projection、Valkey、Ceph、通知queueへ再適用する。</p></div></li>
-          <li><div><h4>限定公開する</h4><p>運用者read、代表write、audit chain、Outbox、file download、複製、backupを確認し、一般trafficを段階的に戻す。</p></div></li>
-          <li><div><h4>旧主系を再構築する</h4><p>disk初期化、host鍵再発行、現主系からfull同期、fence解除、再検証を行う。旧環境をそのまま参加させない。</p></div></li>
+          <li><div><h4>故障hostを隔離する</h4><p>公開VIP、管理route、DB／Valkey接続元、Amazon S3 credentialを故障hostから剥奪し、再接続不能を実測する。diskを再利用する場合は消去証拠を残す。</p></div></li>
+          <li><div><h4>交換hostを構築する</h4><p>承認済みOS、container runtime、digest固定image、Git管理外設定ファイルを適用し、所有者・mode・秘密値非出力を起動前検査する。</p></div></li>
+          <li><div><h4>一貫復旧点を選ぶ</h4><p>既存PostgreSQLの復旧点、Amazon S3 file manifest、trust manifest、deletion ledger terminal hash、backup catalogを照合する。不一致は公開不可とする。</p></div></li>
+          <li><div><h4>失効と削除を再適用する</h4><p>影響したsession、client link、support grant、recovery code、download grant、秘密を失効し、独立台帳をDB、projection、Valkey、Amazon S3、通知queueへ再適用する。</p></div></li>
+          <li><div><h4>限定公開する</h4><p>運用者read、代表write、audit chain、Outbox、required／bypass各file flow、download、backupを確認し、一般trafficを段階的に戻す。</p></div></li>
+          <li><div><h4>目標値を測定する</h4><p>障害発生から復旧までの実測RPO・RTOと可用性を記録し、証拠が蓄積するまで保証値として扱わない。</p></div></li>
         </ol>
 
         <div class="table-wrap">
@@ -1582,7 +1581,7 @@
               <tr><th scope="row">PostgreSQL</th><td>deleted／private／revoked／legal_hold状態と世代を更新</td><td>ledger sequence、件数、target hash</td><td>公開不可</td></tr>
               <tr><th scope="row">公開projection・検索</th><td>対象document削除または非公開再構築</td><td>target ID集合差分が空</td><td>projection全再生成</td></tr>
               <tr><th scope="row">Valkey</th><td>session、grant、cache、rate metadataを世代で無効化</td><td>旧generation lookupが全件miss</td><td>全namespace flush後に安全再生成</td></tr>
-              <tr><th scope="row">Ceph</th><td>削除marker、Object Lock／legal hold、公開grant停止</td><td>bucket、key、versionごとの状態・hash一致</td><td>対象fileと参照画面を非公開</td></tr>
+              <tr><th scope="row">Amazon S3</th><td>全用途bucketのobject version、Object Lock／legal hold、公開grant停止</td><td>bucket、key、versionごとの状態・hash一致</td><td>対象fileと参照画面を非公開</td></tr>
               <tr><th scope="row">Outbox・通知</th><td>未送信通知を取消し、旧linkを無効化</td><td>対象event IDと取消eventの一対一</td><td>queue処理を停止して手動照合</td></tr>
             </tbody>
           </table>
@@ -1595,23 +1594,23 @@
         <header class="section__header">
           <p class="section__label">12 / Physical &amp; deployment</p>
           <h2>物理配置・通信・公開運用境界</h2>
-          <p class="section__lede">論理serviceを二拠点と第三地点へ割り当て、誰がどこから何へ到達できるか、旧主系をどう止めるか、公開時に何を表示するかを実装・配備の入力として固定する。</p>
+          <p class="section__lede">論理serviceを一台のオンプレapplication hostへ配置し、既存オンプレ依存とAmazon S3への到達、交換host復旧、公開時の表示を実装・配備の入力として固定する。</p>
         </header>
 
-        <h3>拠点とノード割当</h3>
+        <h3>hostと外部依存の割当</h3>
         <div class="table-wrap">
           <table>
-            <caption>PHY-NODE — HLD物理要件からの配置</caption>
+            <caption>PHY-NODE — 単一host構成の配置</caption>
             <thead><tr><th scope="col">論理ラベル</th><th scope="col">台数・最低仕様</th><th scope="col">配置service</th><th scope="col">電源・fence</th><th scope="col">障害時</th></tr></thead>
             <tbody>
-              <tr id="PHY-PRIMARY"><th scope="row">site-primary / p-node-01..03</th><td>3台。各24 core、128 GiB ECC以上。独立system／data disk</td><td>edge冗長、application、worker、PostgreSQL primary／sync standby候補、Ceph MON／OSD／RGW、Valkey</td><td>二系統PDUへ分散。BMCはmanagement zoneだけ。node単位とsite単位の電源断証拠</td><td>単一node停止はsite内継続。site断はsecondary昇格手順</td></tr>
-              <tr id="PHY-SECONDARY"><th scope="row">site-secondary / s-node-01..03</th><td>3台。各24 core、128 GiB ECC以上。primaryと同等restore capacity</td><td>standby application／worker、PostgreSQL replica、Ceph secondary zone、Valkey再構築先、監視replica</td><td>primaryとは別電源・回線。PDU／firewall fenceを独立操作</td><td>promotion generation取得後だけwrite siteへ昇格</td></tr>
-              <tr id="PHY-WITNESS"><th scope="row">site-witness / w-node-01</th><td>第三障害領域1台。業務本文・objectを置かない</td><td>etcd witness、fence証拠、promotion lease、外形監視、署名済みmanifest</td><td>両siteから独立した管理回線。業務traffic routeなし</td><td>多数派を作れない場合は昇格不可。単独で主系を選ばない</td></tr>
+              <tr id="PHY-APPLICATION"><th scope="row">application-host-01</th><td>オンプレ1台。CPU、memory、diskは性能試験と4GB file同時実行試験で確定</td><td>edge、application、worker、download gateway、preview sandbox、監査spool、監視exporter</td><td>UPS、管理network、disk暗号化、交換host手順。DB、Valkey、Amazon S3はhost外</td><td>停止中はサービス停止。交換hostへ再構築し、復旧検証後に限定公開</td></tr>
+              <tr id="PHY-DEPENDENCIES"><th scope="row">on-prem dependencies</th><td>既存運用中のPostgreSQL、Valkey、ClamAV専用host、監視、backup</td><td>既存基盤の担当範囲。アプリ専用DB／role／namespace／接続許可を払い出す</td><td>接続元allowlist、TLS、最小権限、運用連絡経路</td><td>依存別fail-close。アプリhost内へ代替DBやValkeyを自動起動しない</td></tr>
+              <tr id="PHY-S3"><th scope="row">Amazon S3</th><td>AWS選択region内の4用途bucket</td><td>quarantine、clean、preview、delivery。versioning、暗号化、公開block</td><td>AWS credentialは用途別秘密ファイル。browserへcredentialを渡さない</td><td>到達不能時はfile操作停止。オンプレobject storeへ自動切替しない</td></tr>
               <tr id="PHY-OPERATOR"><th scope="row">operator zone</th><td>管理端末、踏み台、監視。一般利用端末と分離</td><td>VPN、MFA、support approval、Ansible、監視UI、backup verification</td><td>端末証明書、期限付きaccess、録画／監査</td><td>到達不能でも一般系を危険に開かず管理操作を停止</td></tr>
             </tbody>
           </table>
         </div>
-        <p>実機serial、rack、PDU outlet、switch port、実VLAN ID、IP addressは環境固有の配備台帳へ保存し、この論理ラベルとの一対一対応をdeployment gateで検証する。対応が欠けるnodeはcluster参加・公開切替を許可しない。</p>
+        <p>実機serial、rack、PDU outlet、switch port、VLAN ID、IP address、依存service endpointは環境固有の配備台帳へ保存し、この論理ラベルとの一対一対応をdeployment gateで検証する。対応が欠けるhostは公開切替を許可しない。</p>
 
         <h3>network zoneと通信allowlist</h3>
         <div class="table-wrap table-wrap--compact">
@@ -1624,9 +1623,8 @@
               <tr><th scope="row">management zone</th><td>service management</td><td>TCP 8081、監視／運用mTLS</td><td>health／metric。一般edgeから到達禁止</td></tr>
               <tr><th scope="row">application／worker</th><td>PostgreSQL</td><td>TCP 5432、TLS、role別credential</td><td>業務DB。Internetとedgeの直接接続禁止</td></tr>
               <tr><th scope="row">application／worker</th><td>Valkey</td><td>TCP 6379、TLS、AUTH</td><td>session、rate、cache。公開接続禁止</td></tr>
-              <tr><th scope="row">upload／worker／gateway</th><td>Ceph RGW</td><td>TCP 7480相当、service credential、TLS</td><td>bucket policyで用途分離。browserのRGW credential取得禁止</td></tr>
-              <tr><th scope="row">site-primary／secondary</th><td>相互site</td><td>WireGuard tunnel内のDB replication、Ceph multisite、監視allowlist</td><td>全subnet routeを許可せず、service単位。Internet経由平文禁止</td></tr>
-              <tr><th scope="row">両site</th><td>site-witness</td><td>WireGuard内etcd peer／client allowlist</td><td>promotion leaseと証拠だけ。業務DB／object転送禁止</td></tr>
+              <tr><th scope="row">upload／worker／gateway</th><td>Amazon S3</td><td>TCP 443、用途別AWS credential、TLS</td><td>bucket policyで用途分離。browserのAWS credential取得禁止</td></tr>
+              <tr><th scope="row">scan worker</th><td>ClamAV専用host</td><td>接続元制限済みTCP、必要ならstunnel等で暗号化</td><td>required時のINSTREAMだけ。bypass時は通信0。ClamAV TCPを非信頼networkへ公開しない</td></tr>
               <tr><th scope="row">worker egress</th><td>mail、Stripe、更新mirror</td><td>egress proxy経由TCP 443／メールprovider規定port</td><td>FQDN allowlist、DNS／TLS log。利用者登録URLへの接続禁止</td></tr>
             </tbody>
           </table>
@@ -1640,9 +1638,9 @@
             <tbody>
               <tr><th scope="row">匿名受付</th><td>依頼者email・本文。列挙、bot、spam、workspace越境</td><td>公開DTO、短命intake grant、Valkey分散rate、digest block、複合tenant FK。rate不能時は503</td><td>別workspace、IPv4／IPv6、重複、Valkey断、本文redaction</td></tr>
               <tr><th scope="row">認証・link</th><td>account、session、client権限。token窃取、replay、復旧悪用</td><td>HttpOnly cookie、単回digest、世代失効、fresh auth、Origin／CSRF、列挙耐性</td><td>再発行、消費後、全session失効、clockずれ、browser履歴</td></tr>
-              <tr><th scope="row">file</th><td>原本、成果物。malware、署名URL漏えい、preview実行、未複製配布</td><td>quarantine、全byte scan、sandbox、別origin gateway、5分grant、取得時再認可、副site receipt</td><td>EICAR、破損、4GB、range、失効、preview失敗、旧世代credential</td></tr>
+              <tr><th scope="row">file</th><td>原本、成果物。malware、署名URL漏えい、preview実行、bypassの見落とし</td><td>quarantine、scan mode永続化、required時の全byte scan、sandbox、別origin gateway、5分grant、取得時再認可、Amazon S3昇格receipt</td><td>required／bypass、EICAR、破損、4GB、range、失効、preview失敗、旧credential</td></tr>
               <tr><th scope="row">運営support</th><td>案件本文・権限。内部不正、過剰閲覧、ログ残存</td><td>VPN＋MFA、申請者≠承認者、60分、field allowlist、全操作監査、利用者通知</td><td>期限後、scope外、再起動後、export、監査chain</td></tr>
-              <tr><th scope="row">site昇格</th><td>DB・object・認証。split brain、削除済み情報の復活</td><td>PDU＋network二重fence、witness多数派、promotion generation、manifest、削除／失効再適用</td><td>旧主系生存、回線分断、rollback、backup復元、旧session／grant</td></tr>
+              <tr><th scope="row">host復旧</th><td>設定・認証・一時data。旧秘密の再利用、削除済み情報の復活</td><td>故障host隔離、交換host再構築、manifest、削除／失効再適用、限定公開</td><td>再起動、再接続、rollback、backup復元、旧session／grant</td></tr>
             </tbody>
           </table>
         </div>
@@ -1683,11 +1681,11 @@
               <tr><th scope="row">API contract</th><td>OpenAPI、generated client、Problem Details</td><td>required、format、unknown field、error code、互換差分</td><td>実装responseがOpenAPIへ適合し、破壊的差分を承認なしで導入しない。</td></tr>
               <tr><th scope="row">Authorization</th><td>creator 5役割、client 4役割、support、anonymous</td><td>同一workspace、別workspace、別project、失効、freshness、version、runtime mode</td><td>allow caseだけ成功し、deny caseは本文・存在・timing差で情報を漏らさない。</td></tr>
               <tr><th scope="row">Async fault</th><td>Outbox、mail、Stripe、object、audit spool</td><td>process kill、lease切れ、重複、逆順、429、5xx、恒久4xx、手動再送</td><td>副作用が二重化せず、eventを失わず、10回／24時間で隔離する。</td></tr>
-              <tr><th scope="row">File security</th><td>4GB multipart、ClamAV、preview、replication、download</td><td>正常、悪性、破損、暗号化、巨大、部分読込、timeout、scanner停止、remote不一致</td><td>陰性・全読込・副拠点一致だけがreadyとなり、取得時再認可される。</td></tr>
+              <tr><th scope="row">File security</th><td>4GB multipart、required／bypass、ClamAV、preview、Amazon S3昇格、download</td><td>正常、悪性、破損、暗号化、巨大、部分読込、timeout、scanner停止、mode切替、昇格不一致</td><td>requiredは陰性・全読込、bypassは監査済みBYPASSED、両者とも昇格receiptがある場合だけreadyとなり、取得時再認可される。</td></tr>
               <tr><th scope="row">Security</th><td>認証、CSRF、XSS、SQLi、SSRF、rate、secret、supply chain</td><td>ASVS基準の高risk項目、token失効、Origin、IPv4／IPv6公開面</td><td>risk高の未解消、secret検出、未署名artifactが一件でもあればrelease不可。</td></tr>
               <tr><th scope="row">Performance</th><td>公開page、通常API、DB、queue、scan、network</td><td>実績予測2倍、単一node停止、4GB完全処理</td><td>LCP p75≤2.5s、API p95≤500ms、停止閾値内で整合性を維持。</td></tr>
               <tr><th scope="row">UI／accessibility</th><td>公開page、client portal、creator主要画面</td><td>320、375、414、768、1440px、keyboard、screen reader、200％、loading、error、readonly</td><td>実画面screenshotを担当者が目視し、WCAG 2.2 AAの自動・手動検査を通過。</td></tr>
-              <tr><th scope="row">Backup／DR</th><td>DB、RGW、auth、audit、deletion ledger、site failover</td><td>通信分断、旧主系生存、二重fence、promotion lock、削除再適用、旧認証拒否</td><td>RPO≤15分、RTO≤4時間、同時write siteが一つ、再露出ゼロ。</td></tr>
+              <tr><th scope="row">Backup／DR</th><td>DB、Amazon S3、auth、audit、deletion ledger、交換host復旧</td><td>host全損、依存通信断、故障host再接続、削除再適用、旧認証拒否</td><td>再露出ゼロ。RPO・RTO・可用性は実測値を蓄積してから目標値を確定する。</td></tr>
             </tbody>
           </table>
         </div>
@@ -1724,8 +1722,8 @@
               <tr><th scope="row"><a href="HLD.html#HLD-DEL-001"><code>HLD-DEL-001</code></a></th><td>削除状態、独立台帳、再適用先、件数・hash gate</td><td>削除前backup復元、cache／projection／object／queue再露出</td></tr>
               <tr><th scope="row"><a href="HLD.html#HLD-SUP-001"><code>HLD-SUP-001</code></a></th><td>support request／grant、申請者分離、60分、mask、kill switch</td><td>無ticket、期限、範囲外、解除者同一、利用者監査</td></tr>
               <tr><th scope="row"><a href="HLD.html#HLD-DEP-001"><code>HLD-DEP-001</code></a></th><td>runtime service、network、構成key、readiness、capacity guard</td><td>node停止、容量閾値、依存順再起動</td></tr>
-              <tr><th scope="row"><a href="HLD.html#HLD-DR-001"><code>HLD-DR-001</code></a></th><td>二重fence、promotion generation、限定公開、旧主系再構築</td><td>旧主系生存分断、leaseなし昇格拒否、同時write一拠点</td></tr>
-              <tr><th scope="row"><a href="HLD.html#HLD-DR-002"><code>HLD-DR-002</code></a></th><td>DB／RGW／file／trust manifest、公開gate</td><td>欠落、余剰、hash不一致、旧auth、削除再適用</td></tr>
+              <tr><th scope="row"><a href="HLD.html#HLD-DR-001"><code>HLD-DR-001</code></a></th><td>故障host隔離、交換host再構築、限定公開</td><td>故障host再接続拒否、設定復元、required／bypass、公開gate</td></tr>
+              <tr><th scope="row"><a href="HLD.html#HLD-DR-002"><code>HLD-DR-002</code></a></th><td>DB／Amazon S3 file／trust manifest、公開gate</td><td>欠落、余剰、hash不一致、旧auth、削除再適用</td></tr>
               <tr><th scope="row"><a href="HLD.html#HLD-SLO-001"><code>HLD-SLO-001</code></a></th><td>metric属性、LCP／API／availability／recovery算式</td><td>同一母数、除外理由、2倍負荷</td></tr>
               <tr><th scope="row"><a href="HLD.html#HLD-BIL-001"><code>HLD-BIL-001</code></a></th><td>webhook、逆順、日次照合、grace、entitlement fail close</td><td>重複、古いevent、API停止、不一致、7日経過</td></tr>
               <tr><th scope="row"><a href="HLD.html#HLD-MIG-001"><code>HLD-MIG-001</code></a></th><td>schema別Flyway、status CHECK拡張、N/N-1、前進修復</td><td>expand／backfill再開／read切替／contract gate</td></tr>
@@ -1839,9 +1837,9 @@
               <tr id="TRACE-NFR-PERF-002"><th scope="row"><a href="REQUIREMENTS.html#NFR-PERF-002"><code>NFR-PERF-002</code></a></th><td><a href="HLD.html#HLD-DEP-001"><code>HLD-DEP-001</code></a></td><td><a href="#deployment">物理・deployment</a></td><td><code>HTTP非公開: load／capacity test</code></td><td>metric・load evidence</td><td><code>T-NFR-PERF-002</code></td><td>基準値・2倍負荷・単一障害</td></tr>
               <tr id="TRACE-NFR-AVL-001"><th scope="row"><a href="REQUIREMENTS.html#NFR-AVL-001"><code>NFR-AVL-001</code></a></th><td><a href="HLD.html#HLD-SLO-001"><code>HLD-SLO-001</code></a></td><td><a href="#runtime">観測・SLO</a></td><td><code>HTTP非公開: SLO monitor／runtime guard</code></td><td>runtime mode・SLO event</td><td><code>T-NFR-AVL-001</code></td><td>基準値・2倍負荷・単一障害</td></tr>
               <tr id="TRACE-NFR-AVL-002"><th scope="row"><a href="REQUIREMENTS.html#NFR-AVL-002"><code>NFR-AVL-002</code></a></th><td><a href="HLD.html#HLD-DEP-001"><code>HLD-DEP-001</code></a></td><td><a href="#deployment">物理・deployment</a></td><td><code>HTTP非公開: SLO monitor／runtime guard</code></td><td>runtime mode・SLO event</td><td><code>T-NFR-AVL-002</code></td><td>基準値・2倍負荷・単一障害</td></tr>
-              <tr id="TRACE-NFR-BCP-001"><th scope="row"><a href="REQUIREMENTS.html#NFR-BCP-001"><code>NFR-BCP-001</code></a></th><td><a href="HLD.html#HLD-DR-002"><code>HLD-DR-002</code></a></td><td><a href="#runtime">復旧・再露出防止</a></td><td><code>HTTP非公開: backup／restore／DR workflow</code></td><td>backup manifest・promotion generation・deletion ledger</td><td><code>T-NFR-BCP-001</code></td><td>正常・障害・復元・rollback</td></tr>
-              <tr id="TRACE-NFR-BCP-002"><th scope="row"><a href="REQUIREMENTS.html#NFR-BCP-002"><code>NFR-BCP-002</code></a></th><td><a href="HLD.html#HLD-DR-002"><code>HLD-DR-002</code></a></td><td><a href="#runtime">復旧・再露出防止</a></td><td><code>HTTP非公開: backup／restore／DR workflow</code></td><td>backup manifest・promotion generation・deletion ledger</td><td><code>T-NFR-BCP-002</code></td><td>正常・障害・復元・rollback</td></tr>
-              <tr id="TRACE-NFR-BCP-003"><th scope="row"><a href="REQUIREMENTS.html#NFR-BCP-003"><code>NFR-BCP-003</code></a></th><td><a href="HLD.html#HLD-AUT-001"><code>HLD-AUT-001</code></a></td><td><a href="#security">認証・認可</a></td><td><code>HTTP非公開: backup／restore／DR workflow</code></td><td>backup manifest・promotion generation・deletion ledger</td><td><code>T-NFR-BCP-003</code></td><td>正常・障害・復元・rollback</td></tr>
+              <tr id="TRACE-NFR-BCP-001"><th scope="row"><a href="REQUIREMENTS.html#NFR-BCP-001"><code>NFR-BCP-001</code></a></th><td><a href="HLD.html#HLD-DR-002"><code>HLD-DR-002</code></a></td><td><a href="#runtime">復旧・再露出防止</a></td><td><code>HTTP非公開: backup／restore／DR workflow</code></td><td>backup manifest・host configuration hash・deletion ledger</td><td><code>T-NFR-BCP-001</code></td><td>正常・障害・復元・rollback</td></tr>
+              <tr id="TRACE-NFR-BCP-002"><th scope="row"><a href="REQUIREMENTS.html#NFR-BCP-002"><code>NFR-BCP-002</code></a></th><td><a href="HLD.html#HLD-DR-002"><code>HLD-DR-002</code></a></td><td><a href="#runtime">復旧・再露出防止</a></td><td><code>HTTP非公開: backup／restore／DR workflow</code></td><td>backup manifest・host configuration hash・deletion ledger</td><td><code>T-NFR-BCP-002</code></td><td>正常・障害・復元・rollback</td></tr>
+              <tr id="TRACE-NFR-BCP-003"><th scope="row"><a href="REQUIREMENTS.html#NFR-BCP-003"><code>NFR-BCP-003</code></a></th><td><a href="HLD.html#HLD-AUT-001"><code>HLD-AUT-001</code></a></td><td><a href="#security">認証・認可</a></td><td><code>HTTP非公開: backup／restore／DR workflow</code></td><td>backup manifest・host configuration hash・deletion ledger</td><td><code>T-NFR-BCP-003</code></td><td>正常・障害・復元・rollback</td></tr>
               <tr id="TRACE-NFR-OBS-001"><th scope="row"><a href="REQUIREMENTS.html#NFR-OBS-001"><code>NFR-OBS-001</code></a></th><td><a href="HLD.html#operations"><code>operations</code></a></td><td><a href="#runtime">運用・復旧</a></td><td><code>HTTP非公開: telemetry／retention job</code></td><td>log／metric／trace／audit retention</td><td><code>T-NFR-OBS-001</code></td><td>正常・境界・障害・証拠</td></tr>
               <tr id="TRACE-NFR-OBS-002"><th scope="row"><a href="REQUIREMENTS.html#NFR-OBS-002"><code>NFR-OBS-002</code></a></th><td><a href="HLD.html#HLD-AUD-001"><code>HLD-AUD-001</code></a></td><td><a href="#async">監査原子追記</a></td><td><code>HTTP非公開: telemetry／retention job</code></td><td>log／metric／trace／audit retention</td><td><code>T-NFR-OBS-002</code></td><td>正常・境界・障害・証拠</td></tr>
               <tr id="TRACE-NFR-OPS-001"><th scope="row"><a href="REQUIREMENTS.html#NFR-OPS-001"><code>NFR-OPS-001</code></a></th><td><a href="HLD.html#HLD-CNT-001"><code>HLD-CNT-001</code></a></td><td><a href="#runtime">container制約</a></td><td><code>HTTP非公開: preflight／runtime guard</code></td><td>runtime guard・audit spool・deployment evidence</td><td><code>T-NFR-OPS-001</code></td><td>正常・障害・復元・rollback</td></tr>
@@ -1858,7 +1856,7 @@
           <li><div><h4>静的品質</h4><p>format、compile、type check、lint、ArchUnit、SAST、secret scan、dependency／license、SBOM、container scanを実行する。</p></div></li>
           <li><div><h4>実行品質</h4><p>unit、module integration、API contract、認可、E2E、async fault、file securityを実行する。</p></div></li>
           <li><div><h4>release安全性</h4><p>backup age、隔離restore、migration N/N-1、rollback image、TLS、ClamAV、runtime guard、署名を検査する。</p></div></li>
-          <li><div><h4>限定反映</h4><p>一部applicationへdigest固定imageを反映し、synthetic、error rate、p95、Outbox、DB、WAL、capacityを確認する。</p></div></li>
+          <li><div><h4>限定反映</h4><p>本番hostへdigest固定imageを反映し、外部trafficを閉じたままsynthetic、error rate、p95、Outbox、DB、Amazon S3、capacityを確認する。</p></div></li>
           <li><div><h4>全体反映とcontract</h4><p>段階切替後も旧imageを退避可能に保つ。DB contractはbackfill完了、二回のrelease成功、14日、旧trafficゼロ、restore成功後だけ行う。</p></div></li>
         </ol>
 
@@ -1868,56 +1866,12 @@
       <section class="section section--wide" id="open-items">
         <header class="section__header">
           <p class="section__label">14 / Open</p>
-          <h2>レビュー対応台帳と次の行動</h2>
-          <p class="section__lede">初回REVIEW-LLDの22件とRound 2の14件は設計へ反映したが、レビュー側の解消確認は未了である。したがって本書は再レビュー待ちであり、実装開始不可を維持する。</p>
+          <h2>実装開始条件と文書管理</h2>
+          <p class="section__lede">本書の設計判断は承認済みであり、実装を開始できる。本番投入は検証証拠と運用承認が揃った場合に限る。</p>
         </header>
-        <div class="table-wrap">
-          <table>
-            <caption>REVIEW-REGISTER — 指摘単位の対応と再レビュー条件</caption>
-            <thead><tr><th scope="col">review ID</th><th scope="col">重要度</th><th scope="col">反映先</th><th scope="col">owner</th><th scope="col">状態・再レビュー条件</th></tr></thead>
-            <tbody>
-              <tr><th scope="row"><a href="REVIEW-LLD.html#REQ-301">REQ-301</a></th><td>Blocker</td><td><a href="#frontend">Web route・state・失敗・a11y</a></td><td>Web</td><td>設計反映済み・再レビュー待ち。主要画面からAPI／testへ追跡可能</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD.html#REQ-302">REQ-302</a></th><td>Blocker</td><td><a href="#api">endpoint台帳</a>、<a href="#verification">107件追跡</a></td><td>API</td><td>設計反映済み・再レビュー待ち。83 FRの開始点・親testが空欄なし</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD.html#REQ-303">REQ-303</a></th><td>Blocker</td><td><a href="#states">状態catalog</a></td><td>Domain</td><td>設計反映済み・再レビュー待ち。DB／OpenAPI／event／UI集合検査を規定</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD.html#REQ-304">REQ-304</a></th><td>Blocker</td><td><a href="#API-CLASS-QUERY">API操作分類</a></td><td>API</td><td>設計反映済み・再レビュー待ち。全operationが単一分類</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD.html#REQ-305">REQ-305</a></th><td>Blocker</td><td><a href="#AUTHZ-WORKSPACE-MANAGE">creator／client権限行列</a></td><td>Security</td><td>設計反映済み・再レビュー待ち。9役割のallow／denyとcapability分離</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD.html#REQ-306">REQ-306</a></th><td>Blocker</td><td><a href="#data">DB role・全tenant複合制約</a></td><td>Data</td><td>設計反映済み・再レビュー待ち。共有runtime roleの保証範囲を限定</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD.html#REQ-307">REQ-307</a></th><td>Blocker</td><td><a href="#security">認証lifecycle</a>、<a href="#api">補完API</a></td><td>Security</td><td>設計反映済み・再レビュー待ち。期限・単回・世代失効を固定</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD.html#REQ-308">REQ-308</a></th><td>Blocker</td><td><a href="#security">origin policy</a></td><td>Web／Security</td><td>設計反映済み・再レビュー待ち。cookie／CSP／CORS／download headerを固定</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD.html#REQ-309">REQ-309</a></th><td>Blocker</td><td><a href="#files">download gateway</a></td><td>File</td><td>設計反映済み・再レビュー待ち。取得時再認可とrange試験を規定</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD.html#REQ-310">REQ-310</a></th><td>Blocker</td><td><a href="#DEC-210">外部URL非取得</a></td><td>Security</td><td>設計反映済み・再レビュー待ち。interstitial／no-referrer／字句検査を固定</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD.html#REQ-311">REQ-311</a></th><td>Blocker</td><td><a href="#async">監査append・spool merge</a></td><td>Audit</td><td>設計反映済み・再レビュー待ち。並行・複数hostでも決定的</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD.html#REQ-312">REQ-312</a></th><td>Blocker</td><td><a href="#files">Object Lock・削除</a></td><td>Data／Ops</td><td>設計反映済み・再レビュー待ち。30日／35日と個別holdが両立</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD.html#REQ-313">REQ-313</a></th><td>Blocker</td><td><a href="#DEC-213">promotion fencing</a>、<a href="#deployment">物理fence</a></td><td>Ops</td><td>設計反映済み・再レビュー待ち。旧世代writeをDB／worker／RGWで拒否</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD.html#REQ-314">REQ-314</a></th><td>Major</td><td><a href="#data">全表DDL manifest</a></td><td>Data</td><td>設計反映済み・再レビュー待ち。所有表集合差分0をgate化</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD.html#REQ-315">REQ-315</a></th><td>Major</td><td><a href="#data">crypto profile</a></td><td>Security／Data</td><td>設計反映済み・再レビュー待ち。AAD・正規化・dual-readを固定</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD.html#REQ-316">REQ-316</a></th><td>Major</td><td><a href="#async">通知flow</a></td><td>Notification</td><td>設計反映済み・再レビュー待ち。in-app／mail／preference／dedupeを固定</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD.html#REQ-317">REQ-317</a></th><td>Major</td><td><a href="#runtime">Valkey入口別縮退</a></td><td>Platform</td><td>設計反映済み・再レビュー待ち。401誤変換とlocal拡大fallbackなし</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD.html#REQ-318">REQ-318</a></th><td>Major</td><td><a href="#verification">107件直接追跡</a></td><td>Architecture</td><td>設計反映済み・再レビュー待ち。要求IDを一件一行で収録</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD.html#REQ-319">REQ-319</a></th><td>Major</td><td><a href="#runtime">N／N-1互換表</a></td><td>Release</td><td>設計反映済み・再レビュー待ち。共存・rollback拒否条件を固定</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD.html#REQ-320">REQ-320</a></th><td>Major</td><td>本台帳、document status、版</td><td>Architecture</td><td>設計反映済み・再レビュー待ち。全指摘解消確認後だけrecordを承認済みにする</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD.html#REC-301">REC-301</a></th><td>Minor</td><td><a href="#contract">TERM-CATALOG</a></td><td>Documentation</td><td>設計反映済み・再レビュー待ち。表示語／code／禁止語を分離</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD.html#REC-302">REC-302</a></th><td>Minor</td><td>HTML source</td><td>Documentation</td><td>設計反映済み・再レビュー待ち。隠し採点commentを削除</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD-ROUND-2.html#REQ-321">REQ-321</a></th><td>Blocker</td><td><a href="#api">単一API操作台帳</a></td><td>API</td><td>設計反映済み・再レビュー待ち。未分類・重複・開始点・status／error空欄を0にする</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD-ROUND-2.html#REQ-322">REQ-322</a></th><td>Blocker</td><td><a href="#AUTH-FACTOR-LIFECYCLE">認証要素lifecycle</a></td><td>Security</td><td>設計反映済み・再レビュー待ち。メール単独変更禁止、最後の要素保護、世代失効</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD-ROUND-2.html#REQ-323">REQ-323</a></th><td>Blocker</td><td><a href="#files">gateway配布・状態分離</a></td><td>File／Security</td><td>設計反映済み・再レビュー待ち。gateway interfaceとcapabilityを全章で統一</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD-ROUND-2.html#REQ-324">REQ-324</a></th><td>Blocker</td><td><a href="#DELETION-ACCEPTANCE-PROTOCOL">削除saga・ledger ack</a></td><td>Privacy／Ops</td><td>設計反映済み・再レビュー待ち。通信切断全位置でentry一件、ack後だけ202</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD-ROUND-2.html#REQ-325">REQ-325</a></th><td>Blocker</td><td><a href="#async">監査function-only</a></td><td>Audit／Data</td><td>設計反映済み・再レビュー待ち。runtime base table権限0、連続chain</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD-ROUND-2.html#REQ-326">REQ-326</a></th><td>Blocker</td><td><a href="#DEC-213">site-generation fencing</a></td><td>Ops／Data</td><td>設計反映済み・再レビュー待ち。旧DB session／worker／RGW keyの副作用0</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD-ROUND-2.html#REQ-327">REQ-327</a></th><td>Blocker</td><td><a href="#DDL-TYPE-BINDING">column-level DDL規則</a></td><td>Data</td><td>設計反映済み・再レビュー待ち。nullable・FK・state table・tenant FKの欠落0</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD-ROUND-2.html#REQ-328">REQ-328</a></th><td>Major</td><td><a href="#api">permission ID・client namespace</a></td><td>API／Security</td><td>設計反映済み・再レビュー待ち。9役割一致、曖昧主体・client内部ID要求0</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD-ROUND-2.html#REQ-329">REQ-329</a></th><td>Major</td><td><a href="#CRYPTO-ROTATION-PROTOCOL">crypto rotation</a></td><td>Security／Data</td><td>設計反映済み・再レビュー待ち。旧新混在・rollback・backup復元を検証</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD-ROUND-2.html#REQ-330">REQ-330</a></th><td>Major</td><td><a href="#USAGE-RECONCILIATION">usage ledger・projection</a></td><td>Billing／Data</td><td>設計反映済み・再レビュー待ち。増減・重複・逆順後も正本一致</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD-ROUND-2.html#REQ-331">REQ-331</a></th><td>Major</td><td><a href="#DEC-210">外部URL非取得</a></td><td>Security</td><td>設計反映済み・再レビュー待ち。字句検査・警告遷移だけ、server egress 0</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD-ROUND-2.html#REQ-332">REQ-332</a></th><td>Major</td><td><a href="#CACHE-PRIVATE">private／secret cache</a></td><td>Web／Security</td><td>設計反映済み・再レビュー待ち。logout／失効／account切替後の再表示0</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD-ROUND-2.html#REC-303">REC-303</a></th><td>Minor</td><td><a href="#contract">用語・公開ID</a></td><td>Documentation</td><td>設計反映済み・再レビュー待ち。禁止同義語の未説明使用0</td></tr>
-              <tr><th scope="row"><a href="REVIEW-LLD-ROUND-2.html#REC-304">REC-304</a></th><td>Minor</td><td>HTML source</td><td>Documentation</td><td>設計反映済み・再レビュー待ち。行頭patch marker 0</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <h3>実装前に閉じる行動</h3>
+        <h3>実装開始時の必須行動</h3>
         <ol class="steps">
-          <li><div><h4>設計レビュー</h4><p>backend、web、infra、security、operationsの担当者が、公開契約、所有schema、状態、認可、fail-close、migrationを確認し、本書の提案recordを承認済みへ更新する。</p></div></li>
+          <li><div><h4>設定と接続点の確定</h4><p>本番設定ファイルへ取得済みの値を直接記載し、所有者・mode・必須key・依存接続・秘密値非出力を起動前検査する。</p></div></li>
           <li><div><h4>OpenAPIとtest manifest</h4><p>endpoint台帳をOpenAPIへ写し、107要求の親test IDを機械可読manifestへ登録する。本文との重複正本を作らず、生成物として扱う。</p></div></li>
           <li><div><h4>実装単位へ分解</h4><p>観測点 → 入力・境界 → 最小core logic → error処理 → testの順で、一つの説明可能な概念を一commitにする。</p></div></li>
           <li><div><h4>release evidenceを蓄積</h4><p>patch／digest、SBOM、署名、UI screenshot、性能、復元、切替、法務、運用訓練の証拠をrelease recordへ結び付ける。</p></div></li>
@@ -1931,7 +1885,7 @@
         </dl>
       </section>
     </main>
-    <footer class="foot"><p>Round 2レビュー指摘反映済み・再レビュー待ち・実装開始不可 · 版 1.2.0 · 情報基準日 2026-08-03 · 正本 docs/LLD.html</p></footer>
+    <footer class="foot"><p>詳細設計承認済み・実装開始可能・本番投入未承認 · 版 1.3.0 · 情報基準日 2026-08-11 · 正本 docs/LLD.html</p></footer>
   </div>
 </body>
 </html>
