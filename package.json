@@ -1,0 +1,14 @@
+{
+  "name": "stage-accord-build",
+  "private": true,
+  "packageManager": "pnpm@10.29.1",
+  "engines": {
+    "node": ">=24.17.0 <25",
+    "pnpm": ">=10.29.1 <11"
+  },
+  "scripts": {
+    "verify:production-config": "python deploy/scripts/preflight_production.py --schema-only",
+    "test:production-config": "python -m unittest deploy/scripts/test_preflight_production.py",
+    "verify:release-artifacts": "python deploy/scripts/verify_release_artifacts.py"
+  }
+}

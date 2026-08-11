@@ -1,0 +1,11 @@
+[tools]
+cosign = "3.0.6"
+java = "temurin-25.0.2+10.0.LTS"
+node = "24.17.0"
+python = "3.13.14"
+
+[env]
+_.path = ["./backend"]
+
+[settings]
+idiomatic_version_file_enable_tools = ["node"]

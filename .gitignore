@@ -7,7 +7,34 @@
 
 # 依存関係・一時ファイル
 node_modules/
+target/
+dist/
+__pycache__/
+*.pyc
+.pnpm-store/
+.mise.local.toml
 *.tmp
 *.log
 .DS_Store
 Thumbs.db
+
+# 本番環境の実値・秘密・配備台帳
+deploy/config/production.env
+deploy/ansible/inventory/production/hosts.yml
+deploy/ansible/inventory/production/host_vars/
+deploy/secrets/application/
+deploy/secrets/worker/
+deploy/secrets/edge/
+deploy/runtime/
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.crt
+*.csr
+*.wireguard
+
+# テスト・検査の一時証拠
+.preflight/
+backend/.flattened-pom.xml
