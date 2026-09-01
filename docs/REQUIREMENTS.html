@@ -338,7 +338,7 @@ td p { margin: .2rem 0 0; color: var(--color-muted); font-size: .93rem; line-hei
     <li><strong>依頼を受ける</strong>依頼者が用途、希望、予算、納期、資料を送る。</li>
     <li><strong>条件を合意</strong>クリエイターが作業範囲、価格、日程、権利、修正条件、承認規則を提示し、権限を持つ依頼者が明示的に承認する。</li>
     <li><strong>案件フローを開始</strong>公開テンプレートを案件固有の予定日へ変換し、合意時点の条件を固定する。</li>
-    <li><strong>段階ごとに提出</strong>クリエイターが検査済みファイルまたは外部URLを、版とチェックポイントへ紐付けて提出する。</li>
+    <li><strong>段階ごとに提出</strong>クリエイターが受入済みファイルまたは外部URLを、版とチェックポイントへ紐付けて提出する。</li>
     <li><strong>確認、修正、承認</strong>依頼者が、指定された段階で質問、文脈コメント、修正依頼、承認を行う。</li>
     <li><strong>変更を再合意</strong>追加変更、回答遅延、担当変更があれば、価格、範囲、日程への影響を示した変更注文を合意する。</li>
     <li><strong>納品して完了</strong>成果物、利用条件、クレジット、履歴をまとめて確認し、受領する。</li>
@@ -743,7 +743,7 @@ td p { margin: .2rem 0 0; color: var(--color-muted); font-size: .93rem; line-hei
           <td data-label="要件"><strong>アップロード検証</strong><p>拡張子だけでなくMIME、容量、本文全体のマルウェア、危険な埋め込みを検証する。部分検査、上限超過、タイムアウト、検査エラーを安全判定にしない。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
-          <td data-label="受入条件">ファイルは隔離領域でMIME、マジックバイト、容量、SHA-256、本文全体のマルウェアを検査する。検査設定値と実読込バイト数が実サイズを覆い、かつ陰性の場合だけ検査済み領域へ昇格する。</td>
+          <td data-label="受入条件">ファイルは隔離領域でMIME、マジックバイト、容量、SHA-256、本文全体のマルウェアを検査する。<code>required</code>では検査設定値と実読込バイト数が実サイズを覆い、かつ陰性の場合に<code>clean</code>として受入領域へ昇格する。<code>bypass</code>ではNFR-SEC-005の検証を満たした場合に限り、<code>bypassed</code>のまま同じ受入領域へ昇格できる。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="FR-FIL-003" href="#FR-FIL-003">FR-FIL-003</a></td>
           <td data-label="要件"><strong>外部URLの添付</strong><p>大容量動画、音声、ステージング環境、リポジトリ等を外部URLとして共有できる。</p></td>
@@ -752,10 +752,10 @@ td p { margin: .2rem 0 0; color: var(--color-muted); font-size: .93rem; line-hei
           <td data-label="受入条件">URLの種類と説明を付ける。サーバーはDNS解決・HTTP取得を行わず、scheme、userinfo、literal IP、localhost／予約TLD、制御文字を字句検査で拒否する。外部遷移前に安全性を保証しない旨を表示し、利用者の明示操作とno-referrerで遷移する。到達先およびredirect先の安全性は保証しない。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="FR-FIL-004" href="#FR-FIL-004">FR-FIL-004</a></td>
-          <td data-label="要件"><strong>大容量アップロード</strong><p>1ファイル4GB（4,000,000,000バイト）まで、専用アップロード入口を介した分割アップロードを提供し、中断後に安全に再開できる。上限を超える成果物は外部URLで共有する。</p></td>
+          <td data-label="要件"><strong>大容量アップロード</strong><p>1ファイル4GB（4,000,000,000バイト）まで、アプリの専用アップロード制御APIとAmazon S3への直接multipart転送を提供し、中断後に安全に再開できる。上限を超える成果物は外部URLで共有する。</p></td>
           <td data-label="優先度"><span class="priority priority--p0">P0</span></td>
           <td data-label="状態"><span class="status status--fixed">確定</span></td>
-          <td data-label="受入条件">アプリが64MiB単位のパートごとに15分以内・案件限定・オブジェクト限定の署名付き権限を発行する。開始と完了はアプリが制御し、各パートと完成物のサイズ、ETag、SHA-256、権限を検証する。未完了アップロードは24時間で自動中止・削除する。</td>
+          <td data-label="受入条件">アプリは<code>ChecksumAlgorithm=SHA256</code>でmultipartを開始し、64MiB単位の各パートについて15分以内・案件限定・オブジェクト限定・<code>x-amz-checksum-sha256</code>必須の署名付きPUT URLを発行する。ブラウザは本文をAmazon S3の隔離バケットへ直接送信する。アプリはpart番号、サイズ、ETag、SHA-256 checksum、権限を照合して完了し、workerは完成オブジェクト全体を読み取って実サイズとSHA-256を算出・保存する。未完了アップロードは24時間で自動中止・削除する。</td>
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="FR-FIL-005" href="#FR-FIL-005">FR-FIL-005</a></td>
           <td data-label="要件"><strong>プレビューと拒否形式</strong><p>PNG、JPEG、WebP、PDF、MP3、M4A、WAV、MP4、WebM、UTF-8テキストをプレビュー対象とし、安全な非対応形式はダウンロード専用にする。</p></td>
@@ -1366,7 +1366,7 @@ Request
             └─ Single on-premises application host
                  ├─ Nginx reverse proxy / WAF / rate limit
                  ├─ React static assets / Spring Boot API
-                 ├─ application / worker / upload ingress
+                 ├─ application / worker / download gateway
                  └─ Prometheus / Grafana / Loki / Alertmanager
 
 Trusted on-premises network
@@ -1386,7 +1386,7 @@ TLS over Internet
     <li><strong>アプリケーションホスト：</strong>x86_64の単一ホストとし、必要容量は本番相当負荷試験の結果から確定する。暗号化ストレージ、UPS、監視可能な電源、時刻同期、予備機または交換部材を用意する。</li>
     <li><strong>既存基盤：</strong>PostgreSQLとValkeyは既存オンプレミスサーバーを使用する。バージョン、TLS、バックアップ、容量、監視、保守責任を本番投入前に記録する。</li>
     <li><strong>ClamAV：</strong>オンプレミス専用ホストを接続先とする。初期構築時は接続点と設定契約を実装し、<code>required</code>を選ぶ場合だけ接続正常性と定義期限を起動・readiness条件に含める。</li>
-    <li><strong>Amazon S3：</strong>隔離、検査済み、プレビュー、配信を別バケットとし、同一AWSリージョンへ作成する。バケット名とリージョンは設定値とし、公開アクセスを全面遮断する。</li>
+    <li><strong>Amazon S3：</strong>隔離、受入済み、プレビュー、配信を別バケットとし、同一AWSリージョンへ作成する。既存の<code>clean</code>バケット名は互換性のため維持するが、実体には<code>clean</code>と<code>bypassed</code>の両状態を格納でき、バケット名を検査結果として扱わない。バケット名とリージョンは設定値とし、公開アクセスを全面遮断する。</li>
     <li><strong>単一障害点：</strong>アプリケーションホスト停止時はサービス全体が停止する。継続提供ではなく、署名済みイメージ、設定、バックアップから交換ホストへ復旧する。</li>
   </ul>
   <h3>ソフトウェア基準</h3>
@@ -1395,14 +1395,14 @@ TLS over Internet
     <li>技術系列はOpenJDK 25 LTS、Spring Boot 4.1、PostgreSQL 18、React 19、Node.js 24 LTS、ClamAV 1.5とする。既存オンプレミス製品の実バージョンは互換試験後に設定取得ガイドへ記録する。</li>
     <li>ビルドはMaven Wrapperとpnpmを使用し、パッチ版と依存関係はSBOM、互換試験、セキュリティ情報を確認してリリースごとに固定する。</li>
     <li>Nginx、ModSecurityとOWASP CRS、Valkeyクライアント、Amazon S3クライアント、ClamAVクライアント、libvips、qpdf、Poppler、FFmpeg、pgBackRest、restic、Prometheus、Grafana、Loki、Alertmanager、Ansibleを運用構成へ含める。</li>
-    <li>アプリ、ワーカー、アップロード入口、監視はDocker Composeで管理する。Kubernetesは初期構成へ導入せず、OCIコンテナによる移植性を維持する。</li>
+    <li>アプリ、ワーカー、ダウンロードgateway、監視exporterはDocker Composeで管理する。Kubernetesは初期構成へ導入せず、OCIコンテナによる移植性を維持する。</li>
     <li>本番イメージは可変タグを禁止し、承認したパッチ版、OCI digest、依存ロック、SBOM、署名をリリース単位で固定する。サポート終了日の90日前までに後継系列への移行計画を承認する。</li>
   </ul>
   <h3>公開面と管理面</h3>
   <ul>
     <li>公開ポートは443だけとし、80はHTTPSへのリダイレクトだけに使う。</li>
     <li>SSH、DB、Valkey、ClamAV、監視、バックアップ、コンテナ管理を公開しない。管理操作はWireGuard、MFA、個人別アカウント、監査を必須とする。</li>
-    <li>公開入口はアプリ用443、分割アップロード用443、ファイル配布用443、Stripe Webhook用443をホストとパスで分離する。アップロード入口は署名済みのPUTパートだけをAmazon S3隔離バケットへ送信し、管理APIと他バケットへ到達させない。ファイル配布はアプリで発行した短命grantをPOST bodyで専用originへ交換し、gatewayがGET、HEAD、各Rangeを再認可してstreamする。利用者へAWS資格情報、内部object key、アプリsession cookieを渡さない。</li>
+    <li>公開入口はアプリ用443、ファイル配布用443、プレビュー用443、Stripe Webhook用443をホストとパスで分離する。分割アップロードはアプリが発行した署名済みの単一パートPUT URLで、ブラウザからAmazon S3隔離バケットへ直接送信する。S3 CORSはアプリorigin、PUT、署名対象headerだけを許可し、管理API、一覧、削除、完了、他バケットへ到達させない。ファイル配布はアプリで発行した短命grantをPOST bodyで専用originへ交換し、gatewayがGET、HEAD、各Rangeを再認可してstreamする。利用者へAWS資格情報、内部object key、アプリsession cookieを渡さない。</li>
     <li>外向き通信はメール中継、Stripe API、DNS、NTP、承認済み更新リポジトリだけをプロキシ許可リスト化する。外部URL添付はサーバーからDNS解決・HTTP取得せず、字句検査と利用者主導の警告遷移だけを行う。到達先およびredirect先の安全性を検査済みと表示しない。</li>
     <li>オンプレ回線で吸収できないDDoSでは、サービス継続より機密性を優先し、依頼受付、アップロード、認証または公開を停止できる。</li>
     <li>Amazon S3、DNS、公開証明書、トランザクションメール中継、Stripeは外部専門サービスを利用できる。業務処理、PostgreSQL、Valkey、ClamAV、監視はオンプレミスに置く。</li>
@@ -1436,7 +1436,7 @@ TLS over Internet
     <li><strong>公開</strong>クリエイターが制作サービス、フロー、修正条件を公開できる。</li>
     <li><strong>依頼</strong>依頼者が登録なしで依頼を送れる。</li>
     <li><strong>合意</strong>価格、日程、成果物、権利、修正条件、複数承認規則を承認できる。</li>
-    <li><strong>制作</strong>担当者が案件フロー、内部タスク、検査済み提出物を管理できる。</li>
+    <li><strong>制作</strong>担当者が案件フロー、内部タスク、受入済み提出物を管理できる。</li>
     <li><strong>確認</strong>依頼者が進捗を見て、版に紐付くコメント、修正、承認を行える。</li>
     <li><strong>調整</strong>依頼者待ち、変更注文、キャンセル、紛争、日程変更を記録し、必要事項を再合意できる。</li>
     <li><strong>納品</strong>成果物と条件をまとめて受領し、案件記録を出力できる。</li>
@@ -1582,7 +1582,7 @@ TLS over Internet
         </tr><tr>
           <td data-label="ID"><a class="req-id" id="DEC-019" href="#DEC-019">DEC-019</a></td>
           <td data-label="決定対象"><strong>オブジェクトストレージ</strong></td>
-          <td data-label="確定方針">Amazon S3の汎用バケットを隔離、検査済み、プレビュー、配信用途に分離し、公開アクセス遮断、バージョニング、暗号化、最小権限を適用する。</td>
+          <td data-label="確定方針">Amazon S3の汎用バケットを隔離、受入済み、プレビュー、配信用途に分離し、公開アクセス遮断、バージョニング、暗号化、最小権限を適用する。受入用<code>clean</code>バケット名と検査状態を分離する。</td>
           <td data-label="根拠">外部S3利用を確定し、用途間の権限分離と復元可能性をAWSの標準機能で検証できる。</td>
           <td data-label="変更条件">別サービスへの移行契約、データ移行、権限、復元、ロールバックを承認した場合</td>
         </tr><tr>
