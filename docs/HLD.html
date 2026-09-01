@@ -469,7 +469,7 @@
       <a href="#traceability"><span>09</span>要件追跡</a>
       <a href="#decisions"><span>10</span>設計判断</a>
     </nav>
-      <p class="rail__source">基準: REQUIREMENTS.html 1.3.0<br>Production V1</p>
+      <p class="rail__source">基準: REQUIREMENTS.html 1.5.0<br>Production V1</p>
   </aside>
 
   <details class="mobile-index">
@@ -484,12 +484,12 @@
   <main class="page" id="main">
     <header class="hero" id="top">
       <div class="section__head">
-        <div class="hero__meta"><span>HLD</span><span>Version 1.4.0</span><span>整理日 2026-08-11</span><span>情報基準日 2026-08-11</span><span>概要設計承認済み</span></div>
+        <div class="hero__meta"><span>HLD</span><span>Version 1.5.0</span><span>整理日 2026-09-01</span><span>情報基準日 2026-08-11</span><span>改訂済み・再承認待ち</span></div>
         <h1>Stage Accord 概要設計書</h1>
         <p class="hero__lede">制作依頼の受付、合意、進行、修正、承認、納品を一つの証跡へつなぐ。アプリケーションは単一オンプレミスホスト、オブジェクトはAmazon S3で運用し、危険な状態では処理を止める。</p>
       </div>
       <dl class="hero__facts">
-        <div><dt>概要設計</dt><dd>Production V1承認済み</dd></div>
+        <div><dt>概要設計</dt><dd>改訂済み・再承認待ち・実装開始不可</dd></div>
         <div><dt>本番投入</dt><dd>未承認・リリース証拠の充足後に判定</dd></div>
         <div><dt>設計基準</dt><dd><a href="REQUIREMENTS.html">REQUIREMENTS.html</a></dd></div>
         <div><dt>配置形態</dt><dd>オンプレ・主系／待機系</dd></div>
@@ -509,7 +509,7 @@
         <div><dt>本書が決めること</dt><dd>実行時境界、依存方向、主要データ所有者、認証・認可境界、ファイル処理、非同期処理、単一ホスト配置、Amazon S3、監視、自動停止、復旧。</dd></div>
         <div><dt>本書が決めないこと</dt><dd>画面ごとのピクセル仕様、全RESTスキーマ、全DDL、フレームワーク内部クラス、運用手順のコマンド列、法的助言の最終判断。</dd></div>
         <div><dt>正本の責務</dt><dd>本書は「どう実現するか」の正本である。「何を満たすか」、優先度、状態、受入条件、事業・法務方針は<a href="REQUIREMENTS.html">要件定義書</a>を正とする。</dd></div>
-        <div><dt>確定性</dt><dd>Production V1の概要設計に未確定事項はない。詳細設計、専門確認、試験、訓練は本書の判断を変更する未決事項ではなく、リリース前に証拠を提出する実行条件である。</dd></div>
+        <div><dt>確定性</dt><dd>Production V1の設計判断は確定している。数値、実機構成、既存基盤の実バージョン、文書追跡CIの未閉鎖事項は<a href="#open-values">OPN-101〜104</a>で管理し、所定の証拠なしに閉鎖しない。</dd></div>
         <div><dt>優先順位</dt><dd>安全性 → 追跡可能性 → 可読性 → 移植性 → 採算性 → 実装速度。同順位なら、障害時に読み取り専用へ縮退できる案を採る。</dd></div>
         <div><dt>単一の正本</dt><dd>業務状態と証跡はPostgreSQLを正本とする。オブジェクト本体はAmazon S3、短命セッションと短期キャッシュはValkeyに置く。削除・失効台帳と監査チェックポイントは主バックアップから独立して保全する。</dd></div>
         <div><dt>変更規則</dt><dd>要件変更は要件書を先に改訂し、設計・実装・テストを追随させる。合意・承認・監査の履歴は上書き訂正せず、追加イベントで修正する。</dd></div>
@@ -1052,11 +1052,11 @@
             <tr><th scope="row"><a href="REQUIREMENTS.html#NFR-ACC-001"><code>NFR-ACC-001</code></a><br>アクセシビリティ</th><td><a href="#operations"><code>operations</code></a></td><td><code>web UI</code></td><td>semantic DOM・focus state・accessible name</td><td>全画面・全操作</td><td>同一機能・同一認可</td><td>自動／手動アクセシビリティ証拠</td><td><code>T-NFR-ACC-001</code></td><td>要件で確定／なし</td></tr>
             <tr><th scope="row"><a href="REQUIREMENTS.html#NFR-UX-001"><code>NFR-UX-001</code></a><br>レスポンシブ表示</th><td><a href="#operations"><code>operations</code></a></td><td><code>web UI</code></td><td>responsive layout state</td><td>320–1440pxの全主要画面</td><td>同一機能・同一認可</td><td>対象幅の実画面証拠</td><td><code>T-NFR-UX-001</code></td><td>要件で確定／なし</td></tr>
             <tr><th scope="row"><a href="REQUIREMENTS.html#NFR-PERF-001"><code>NFR-PERF-001</code></a><br>応答性能</th><td><a href="#HLD-SLO-001"><code>HLD-SLO-001</code></a></td><td><code>app / data</code></td><td>SLI samples・trace</td><td>公開GET／認可REST</td><td>計測から認証情報を除外</td><td>p75／p95集計と違反記録</td><td><code>T-NFR-PERF-001</code></td><td><a href="#DEC-101"><code>DEC-101</code></a>／なし</td></tr>
-            <tr><th scope="row"><a href="REQUIREMENTS.html#NFR-PERF-002"><code>NFR-PERF-002</code></a><br>容量試験</th><td><a href="#HLD-DEP-001"><code>HLD-DEP-001</code></a></td><td><code>app / data / file</code></td><td>capacity metrics・load evidence</td><td>負荷試験／4GB転送</td><td>試験専用資格情報</td><td>2倍負荷／4GB転送の合否記録</td><td><code>T-NFR-PERF-002</code></td><td><a href="#DEC-101"><code>DEC-101</code></a>／なし</td></tr>
-            <tr><th scope="row"><a href="REQUIREMENTS.html#NFR-AVL-001"><code>NFR-AVL-001</code></a><br>可用性</th><td><a href="#HLD-SLO-001"><code>HLD-SLO-001</code></a></td><td><code>全本番モジュール</code></td><td>availability SLI・maintenance record</td><td>公開／認可入口</td><td>正常系と除外時間を固定</td><td>月次SLO判定と障害記録</td><td><code>T-NFR-AVL-001</code></td><td><a href="#DEC-105"><code>DEC-105</code></a>／なし</td></tr>
+            <tr><th scope="row"><a href="REQUIREMENTS.html#NFR-PERF-002"><code>NFR-PERF-002</code></a><br>容量試験</th><td><a href="#HLD-DEP-001"><code>HLD-DEP-001</code></a></td><td><code>app / data / file</code></td><td>capacity metrics・load evidence</td><td>負荷試験／4GB転送</td><td>試験専用資格情報</td><td>2倍負荷／4GB転送の合否記録</td><td><code>T-NFR-PERF-002</code></td><td><a href="#DEC-101"><code>DEC-101</code></a>／<a href="#OPN-102"><code>OPN-102</code></a></td></tr>
+            <tr><th scope="row"><a href="REQUIREMENTS.html#NFR-AVL-001"><code>NFR-AVL-001</code></a><br>可用性</th><td><a href="#HLD-SLO-001"><code>HLD-SLO-001</code></a></td><td><code>全本番モジュール</code></td><td>availability SLI・maintenance record</td><td>公開／認可入口</td><td>正常系と除外時間を固定</td><td>月次SLO判定と障害記録</td><td><code>T-NFR-AVL-001</code></td><td><a href="#DEC-105"><code>DEC-105</code></a>／<a href="#OPN-101"><code>OPN-101</code></a></td></tr>
             <tr><th scope="row"><a href="REQUIREMENTS.html#NFR-AVL-002"><code>NFR-AVL-002</code></a><br>段階的な機能制限</th><td><a href="#HLD-DEP-001"><code>HLD-DEP-001</code></a></td><td><code>edge / app / file</code></td><td>health・replication lag・capacity state</td><td>起動前検査／runtime guard</td><td>危険状態は書込み拒否</td><td>normal／restricted／write-stopと監査</td><td><code>T-NFR-AVL-002</code></td><td><a href="#DEC-105"><code>DEC-105</code></a>／なし</td></tr>
-            <tr><th scope="row"><a href="REQUIREMENTS.html#NFR-BCP-001"><code>NFR-BCP-001</code></a><br>バックアップと一貫復旧</th><td><a href="#HLD-DR-002"><code>HLD-DR-002</code></a></td><td><code>database / object / identity</code></td><td>DB checkpoint・S3 version・file／trust／configuration manifest</td><td>backup／exchange-host restore</td><td>隔離復元・公開ゲート</td><td>captured／verified／restored／publishedと監査</td><td><code>T-NFR-BCP-001</code></td><td><a href="#DEC-114"><code>DEC-114</code></a>／なし</td></tr>
-            <tr><th scope="row"><a href="REQUIREMENTS.html#NFR-BCP-002"><code>NFR-BCP-002</code></a><br>復元検証</th><td><a href="#HLD-DR-002"><code>HLD-DR-002</code></a></td><td><code>database / object / identity</code></td><td>restore evidence・reference hash</td><td>隔離復元環境／検証CLI</td><td>不一致時は公開拒否</td><td>restoring／verified／failedと復元監査</td><td><code>T-NFR-BCP-002</code></td><td><a href="#DEC-114"><code>DEC-114</code></a>／なし</td></tr>
+            <tr><th scope="row"><a href="REQUIREMENTS.html#NFR-BCP-001"><code>NFR-BCP-001</code></a><br>バックアップと一貫復旧</th><td><a href="#HLD-DR-002"><code>HLD-DR-002</code></a></td><td><code>database / object / identity</code></td><td>DB checkpoint・S3 version・file／trust／configuration manifest</td><td>backup／exchange-host restore</td><td>隔離復元・公開ゲート</td><td>captured／verified／restored／publishedと監査</td><td><code>T-NFR-BCP-001</code></td><td><a href="#DEC-114"><code>DEC-114</code></a>／<a href="#OPN-101"><code>OPN-101</code></a></td></tr>
+            <tr><th scope="row"><a href="REQUIREMENTS.html#NFR-BCP-002"><code>NFR-BCP-002</code></a><br>復元検証</th><td><a href="#HLD-DR-002"><code>HLD-DR-002</code></a></td><td><code>database / object / identity</code></td><td>restore evidence・reference hash</td><td>隔離復元環境／検証CLI</td><td>不一致時は公開拒否</td><td>restoring／verified／failedと復元監査</td><td><code>T-NFR-BCP-002</code></td><td><a href="#DEC-114"><code>DEC-114</code></a>／<a href="#OPN-101"><code>OPN-101</code></a></td></tr>
             <tr><th scope="row"><a href="REQUIREMENTS.html#NFR-BCP-003"><code>NFR-BCP-003</code></a><br>復旧後の認証失効</th><td><a href="#HLD-AUT-001"><code>HLD-AUT-001</code></a></td><td><code>identity-access</code></td><td>auth generation・session・link・authenticator</td><td>復元後失効処理／全認証入口</td><td>旧generationをdeny</td><td>restored／revoked／reauthenticatedと監査</td><td><code>T-NFR-BCP-003</code></td><td><a href="#DEC-110"><code>DEC-110</code></a>／なし</td></tr>
             <tr><th scope="row"><a href="REQUIREMENTS.html#NFR-OBS-001"><code>NFR-OBS-001</code></a><br>監視</th><td><a href="#operations"><code>operations</code></a></td><td><code>全本番モジュール</code></td><td>metric・log・trace・alert</td><td>OTel／Prometheus／Loki／Alertmanager</td><td>観測面を管理ネットワークへ限定</td><td>firing／acknowledged／resolvedと運用監査</td><td><code>T-NFR-OBS-001</code></td><td><a href="#DEC-101"><code>DEC-101</code></a>／なし</td></tr>
             <tr><th scope="row"><a href="REQUIREMENTS.html#NFR-OBS-002"><code>NFR-OBS-002</code></a><br>ログの秘匿と保持</th><td><a href="#HLD-AUD-001"><code>HLD-AUD-001</code></a></td><td><code>全本番モジュール</code></td><td>redacted log・retention class・audit event</td><td>logging pipeline／監査sink</td><td>secret／個人情報の記録禁止</td><td>保持／削除／検証の監査</td><td><code>T-NFR-OBS-002</code></td><td><a href="#DEC-111"><code>DEC-111</code></a>／なし</td></tr>
@@ -1069,18 +1069,31 @@
       </div>
       <aside class="callout" aria-label="追跡の読み方">
         <strong>追跡の読み方</strong>
-        <p>各行の主制御は実装の入口であり、要件をその制御だけへ閉じ込める意味ではない。試験IDはリリース証拠の必須識別子であり、試験実施済みを表すものではない。未確定欄は全107件で「なし」である。</p>
+        <p>各行の主制御は実装の入口であり、要件をその制御だけへ閉じ込める意味ではない。試験IDはリリース証拠の必須識別子であり、試験実施済みを表すものではない。要求判断は全107件で追跡し、数値・実機・基盤・検証基盤の未閉鎖事項はOPN IDで参照する。</p>
       </aside>
       <aside class="callout" aria-label="追跡の機械検証">
         <strong>追跡の機械検証</strong>
-        <p>CIでは要件定義書と本書から要件IDを抽出し、集合差分が空であること、一要件につき追跡行が一つであることを確認する。欠落、未知ID、重複ID、リンク切れ、空欄が一件でもあればドキュメント検証を失敗させる。</p>
+        <p>OPN-104で実装するCIは、要件定義書と本書から要件IDを抽出し、集合差分が空であること、一要件につき追跡行が一つであることを確認する。欠落、未知ID、重複ID、リンク切れ、空欄が一件でもあればドキュメント検証を失敗させる。</p>
       </aside>
     </section>
 
 <section class="section" id="decisions">
       <div class="section__head">
         <h2>主要な設計判断</h2>
-        <p>実装開始時に迷いが戻らないよう、採用案、代替案、不採用理由、再検討条件を残す。</p>
+        <p>実装開始時に迷いが戻らないよう、採用案、代替案、不採用理由、再検討条件を残す。設計判断と、証拠取得まで閉じられない値を分離する。</p>
+      </div>
+      <h3 id="open-values">未確定値管理</h3>
+      <div class="table-wrap">
+        <table>
+          <caption>設計判断を変更せず、証拠取得後に閉鎖する項目</caption>
+          <thead><tr><th scope="col">ID</th><th scope="col">種別</th><th scope="col">状態</th><th scope="col">規範強度</th><th scope="col">正本記述</th><th scope="col">閉鎖条件・証拠</th></tr></thead>
+          <tbody>
+            <tr id="OPN-101"><th scope="row"><a href="#OPN-101">OPN-101</a></th><td>SLO／復旧目標</td><td>計測待ち</td><td>本番投入前に必須</td><td>RPO、RTO、月次可用性の目標値を確定する。</td><td>本番相当の完全復元試験、SLI計測条件、測定結果、責任者承認をリリースレコードへ固定する。</td></tr>
+            <tr id="OPN-102"><th scope="row"><a href="#OPN-102">OPN-102</a></th><td>容量</td><td>負荷試験待ち</td><td>本番投入前に必須</td><td>本番アプリケーションホストのCPU、メモリ、保存領域と安全閾値を確定する。</td><td>想定ピークの2倍負荷と4GB転送を含む容量試験、資源使用量、劣化開始点、停止閾値を記録する。</td></tr>
+            <tr id="OPN-103"><th scope="row"><a href="#OPN-103">OPN-103</a></th><td>既存基盤</td><td>構成取得・互換試験待ち</td><td>本番投入前に必須</td><td>既存PostgreSQL、Valkey、ClamAVの実バージョンとパッチ水準を固定する。</td><td>実構成の取得記録、互換試験、設定差分、承認済みパッチとロールバック可否をリリースレコードへ固定する。</td></tr>
+            <tr id="OPN-104"><th scope="row"><a href="#OPN-104">OPN-104</a></th><td>文書追跡CI</td><td>未実装</td><td>実装開始前に必須</td><td>107要件とHLD追跡行の欠落、未知ID、重複、リンク切れ、必須欄空白を機械検査し、失敗時は変更を統合しない。</td><td>CI定義、失敗例を含む自動試験結果、保護ブランチの必須チェック設定を記録する。</td></tr>
+          </tbody>
+        </table>
       </div>
       <div class="table-wrap">
         <table>
@@ -1129,7 +1142,7 @@
         <p>要件と実装の差分を残さないための更新規則。</p>
       </div>
       <dl class="definition-grid">
-        <div><dt>基準文書</dt><dd><a href="REQUIREMENTS.html">Stage Accord 要件定義書 1.3.0</a>。要件本文、優先度、状態、受入条件は同文書を正とする。</dd></div>
+        <div><dt>基準文書</dt><dd><a href="REQUIREMENTS.html">Stage Accord 要件定義書 1.5.0</a>。要件本文、優先度、状態、受入条件は同文書を正とする。</dd></div>
         <div><dt>更新契機</dt><dd>要件変更、モジュール境界変更、データ所有権変更、配置変更、RPO／RTO変更、クラウド移行判断、重大インシデント後。</dd></div>
         <div><dt>レビュー</dt><dd>開発、インフラ、セキュリティ、法務・取引、運用の各責任者が担当章と要件追跡を確認する。</dd></div>
         <div><dt>ロールバック</dt><dd>文書変更はGitの単一コミットで戻す。要件定義書を同時に戻す場合は、適用中の実装・運用判断との不整合を先に確認する。</dd></div>
@@ -1138,7 +1151,7 @@
   </main>
 
   <footer class="page footer">
-    <span>概要設計書 1.4.0</span><span class="footer__brand">Stage Accord</span><a href="REQUIREMENTS.html">要件定義書</a><a href="#top">先頭へ戻る</a><span>整理日 2026-08-11</span><span>情報基準日 2026-08-11</span>
+    <span>概要設計書 1.5.0</span><span class="footer__brand">Stage Accord</span><a href="REQUIREMENTS.html">要件定義書</a><a href="#top">先頭へ戻る</a><span>整理日 2026-09-01</span><span>情報基準日 2026-08-11</span>
   </footer>
 </body>
 </html>

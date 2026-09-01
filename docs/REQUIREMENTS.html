@@ -207,15 +207,15 @@ td p { margin: .2rem 0 0; color: var(--color-muted); font-size: .93rem; line-hei
 <a class="skip-link" href="#main">本文へ移動</a>
 <div class="document">
 <header class="document-header">
-  <p class="kicker">Product Requirements Document · 要求仕様承認済み／本番投入未承認</p>
+  <p class="kicker">Product Requirements Document · 改訂済み／再承認待ち／実装開始不可</p>
   <h1 class="document-title">Stage Accord</h1>
   <p class="document-subtitle">クリエイターと依頼者のための制作フロー共有・段階承認プラットフォーム</p>
   <dl class="meta-strip">
-    <div class="meta-item"><dt>要求仕様</dt><dd>Production V1承認済み</dd></div>
+    <div class="meta-item"><dt>要求仕様</dt><dd>改訂済み・再承認待ち</dd></div>
     <div class="meta-item"><dt>本番投入</dt><dd>未承認・リリース条件充足後に判定</dd></div>
     <div class="meta-item"><dt>ファイル</dt><dd>REQUIREMENTS.html</dd></div>
-    <div class="meta-item"><dt>版</dt><dd>1.3.0</dd></div>
-    <div class="meta-item"><dt>日付</dt><dd>整理日 2026-08-11<br>情報基準日 2026-08-11</dd></div>
+    <div class="meta-item"><dt>版</dt><dd>1.5.0</dd></div>
+    <div class="meta-item"><dt>日付</dt><dd>整理日 2026-09-01<br>情報基準日 2026-08-11</dd></div>
   </dl>
 </header>
 <div class="layout">
@@ -248,8 +248,8 @@ td p { margin: .2rem 0 0; color: var(--color-muted); font-size: .93rem; line-hei
     <div><dt>本書の正本範囲</dt><dd>プロダクトの目的、対象・対象外、業務規則、FR 83件、NFR 24件、受入条件、事業・法務・本番運用制約、DEC 24件、リリース条件。</dd></div>
     <div><dt>概要設計書の正本範囲</dt><dd>実行時境界、モジュール、データ所有権、主要フロー、認証・認可、オンプレ配置、復旧、観測、要件の実現先。詳細は<a href="HLD.html">HLD.html</a>を正とする。</dd></div>
     <div><dt>対象外の解釈</dt><dd>未実装の暫定措置ではない。責任境界、採算、安全性を理由にProduction V1へ含めない確定方針である。</dd></div>
-    <div><dt>確定性</dt><dd>Production V1の要求仕様に未確定事項はない。専門確認、試験、訓練、商標調査、容量実測は設計判断ではなく、本番公開前に証拠を提出するリリース条件である。</dd></div>
-    <div><dt>次の作業</dt><dd>本書とHLDを基準に詳細設計、実装、試験証拠、運用手順を作成し、リリース条件を一件ずつ閉じる。</dd></div>
+    <div><dt>確定性</dt><dd>Production V1の要求判断は確定している。一方、RPO／RTO／可用性目標、単一ホスト容量、既存基盤の実バージョン、文書追跡CIは未閉鎖であり、<a href="HLD.html#open-values">HLDのOPN-101〜104</a>で状態と閉鎖証拠を管理する。</dd></div>
+    <div><dt>次の作業</dt><dd>本書、HLD、LLDを再承認し、OPN-104の文書追跡CIを実装してから実装開始を判定する。本番投入前にはOPN-101〜103を含むリリース条件を一件ずつ閉じる。</dd></div>
   </dl>
 </section>
 
@@ -1719,7 +1719,7 @@ TLS over Internet
 </main>
 </div>
 <footer class="document-footer">
-  <p>Stage Accord Requirements · Version 1.4.0 · 要求仕様承認済み／本番投入未承認 · <a href="HLD.html">概要設計書</a> · 整理日 2026-08-11 · 情報基準日 2026-08-11</p>
+  <p>Stage Accord Requirements · Version 1.5.0 · 改訂済み／再承認待ち／実装開始不可 · <a href="HLD.html">概要設計書</a> · 整理日 2026-09-01 · 情報基準日 2026-08-11</p>
 </footer>
 </div>
 </body>
