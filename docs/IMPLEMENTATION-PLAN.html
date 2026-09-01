@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Stage Accord Production V1を、承認、実装、検証、本番判定まで安全に進めるための実装計画書。">
+  <title>Stage Accord 実装計画書</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --font-display: "Bahnschrift", "Arial Narrow", ui-sans-serif, sans-serif;
+      --font-body: "Aptos", "Segoe UI", "Yu Gothic UI", "Yu Gothic", ui-sans-serif, sans-serif;
+      --font-mono: "Cascadia Mono", "Consolas", ui-monospace, monospace;
+      --color-paper: oklch(97.5% 0.009 258);
+      --color-paper-raised: oklch(99% 0.006 258);
+      --color-paper-subtle: oklch(94.5% 0.014 258);
+      --color-ink: oklch(19% 0.025 258);
+      --color-ink-soft: oklch(37% 0.028 258);
+      --color-muted: oklch(49% 0.025 258);
+      --color-rule: oklch(82% 0.022 258);
+      --color-rule-strong: oklch(67% 0.035 258);
+      --color-accent: oklch(52% 0.19 258);
+      --color-accent-strong: oklch(42% 0.18 258);
+      --color-accent-soft: oklch(92% 0.045 258);
+      --color-focus: oklch(56% 0.2 258);
+      --color-positive: oklch(42% 0.11 151);
+      --color-positive-soft: oklch(93% 0.035 151);
+      --color-warning: oklch(47% 0.105 76);
+      --color-warning-soft: oklch(94% 0.045 76);
+      --color-danger: oklch(44% 0.16 28);
+      --color-danger-soft: oklch(93% 0.045 28);
+      --color-shadow: oklch(19% 0.025 258 / 0.09);
+      --space-3xs: 0.125rem;
+      --space-2xs: 0.25rem;
+      --space-xs: 0.5rem;
+      --space-sm: 0.75rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2.5rem;
+      --space-2xl: 4rem;
+      --space-3xl: 6rem;
+      --space-4xl: 9rem;
+      --text-xs: 0.75rem;
+      --text-sm: 0.875rem;
+      --text-base: 1rem;
+      --text-md: 1.25rem;
+      --text-lg: 1.5625rem;
+      --text-xl: 1.953rem;
+      --text-2xl: 2.441rem;
+      --text-3xl: 3.052rem;
+      --text-display: clamp(2.45rem, 5vw + 0.5rem, 5.25rem);
+      --leading-display: 1.08;
+      --leading-heading: 1.2;
+      --leading-body: 1.65;
+      --measure: 72ch;
+      --page-max: 96rem;
+      --rail-width: 13rem;
+      --radius-xs: 0.125rem;
+      --radius-sm: 0.25rem;
+      --radius-md: 0.5rem;
+      --border-hairline: 0.0625rem;
+      --border-strong: 0.125rem;
+      --shadow-whisper: 0 0.125rem 0.5rem var(--color-shadow);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { overflow-x: clip; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--color-paper);
+      color: var(--color-ink);
+      font-family: var(--font-body);
+      font-size: var(--text-base);
+      line-height: var(--leading-body);
+      text-rendering: optimizeLegibility;
+    }
+    img, svg { display: block; max-width: 100%; }
+    a { color: var(--color-accent-strong); text-decoration-thickness: var(--border-hairline); text-underline-offset: var(--space-2xs); }
+    a:hover { color: var(--color-accent); }
+    a:focus-visible, summary:focus-visible { outline: var(--border-strong) solid var(--color-focus); outline-offset: var(--space-2xs); }
+    code, kbd, samp { font-family: var(--font-mono); font-size: .92em; font-variant-numeric: tabular-nums; }
+    code { padding: var(--space-3xs) var(--space-2xs); background: var(--color-paper-subtle); border-radius: var(--radius-xs); }
+    pre { margin: 0; padding: var(--space-lg); overflow: auto; background: var(--color-ink); color: var(--color-paper-raised); border-radius: var(--radius-sm); font: var(--text-sm)/1.6 var(--font-mono); tab-size: 2; }
+    h1, h2, h3, h4 { margin: 0; min-width: 0; font-family: var(--font-display); font-style: normal; line-height: var(--leading-heading); letter-spacing: -.025em; overflow-wrap: anywhere; }
+    h1 { max-width: 13ch; font-size: var(--text-display); line-height: var(--leading-display); }
+    h2 { max-width: 26ch; font-size: clamp(var(--text-xl), 4vw, var(--text-3xl)); }
+    h3 { font-size: var(--text-lg); }
+    h4 { font-size: var(--text-md); }
+    p, ul, ol, dl { margin: 0; }
+    ul, ol { padding-inline-start: var(--space-lg); }
+    li + li { margin-block-start: var(--space-xs); }
+    table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+    caption { padding-block-end: var(--space-sm); color: var(--color-ink-soft); font-weight: 700; text-align: start; }
+    th, td { padding: var(--space-sm) var(--space-md); border-block-end: var(--border-hairline) solid var(--color-rule); text-align: start; vertical-align: top; }
+    th { background: var(--color-paper-subtle); font-weight: 700; }
+    tbody tr:last-child > * { border-block-end: 0; }
+    .skip-link { position: fixed; inset: var(--space-xs) auto auto var(--space-xs); z-index: 100; transform: translateY(-180%); padding: var(--space-sm) var(--space-md); background: var(--color-ink); color: var(--color-paper-raised); border-radius: var(--radius-sm); }
+    .skip-link:focus { transform: none; }
+    .document { width: min(100%, var(--page-max)); margin-inline: auto; }
+    .rail { display: none; }
+    .mobile-index { margin: var(--space-md); padding: var(--space-md); background: var(--color-paper-raised); border: var(--border-hairline) solid var(--color-rule); border-radius: var(--radius-sm); }
+    .mobile-index summary { cursor: pointer; font-weight: 700; }
+    .mobile-index ol { margin-block-start: var(--space-md); }
+    .page { min-width: 0; }
+    .hero { padding: var(--space-2xl) clamp(var(--space-md), 5vw, var(--space-3xl)) var(--space-3xl); border-block-end: var(--border-hairline) solid var(--color-rule); }
+    .eyebrow { margin-block-end: var(--space-lg); color: var(--color-accent-strong); font: 700 var(--text-xs)/1.2 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+    .lede { max-width: 58ch; margin-block-start: var(--space-lg); color: var(--color-ink-soft); font-size: var(--text-md); }
+    .document-contract { display: grid; gap: var(--space-md) var(--space-lg); margin-block-start: var(--space-xl); }
+    .document-contract div { padding-block-start: var(--space-sm); border-block-start: var(--border-hairline) solid var(--color-rule); }
+    .document-contract dt { color: var(--color-muted); font: 700 var(--text-xs)/1.2 var(--font-mono); letter-spacing: .04em; }
+    .document-contract dd { margin: var(--space-2xs) 0 0; font-weight: 650; }
+    .section { max-width: var(--measure); margin-inline: auto; padding: var(--space-2xl) clamp(var(--space-md), 5vw, var(--space-3xl)); scroll-margin-block-start: var(--space-lg); }
+    .section + .section { border-block-start: var(--border-hairline) solid var(--color-rule); }
+    .section--wide { max-width: 78rem; }
+    .section > * + *, .section__body > * + * { margin-block-start: var(--space-lg); }
+    .section__header { display: flex; flex-direction: column; gap: var(--space-sm); margin-block-end: var(--space-xl); }
+    .section__label { color: var(--color-accent-strong); font: 700 var(--text-xs)/1.2 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+    .section__lede { max-width: 58ch; color: var(--color-ink-soft); font-size: var(--text-md); }
+    .record-strip { display: grid; gap: var(--space-md); margin-block-start: var(--space-xl); }
+    .record { padding: var(--space-lg); background: var(--color-paper-raised); border: var(--border-hairline) solid var(--color-rule); border-radius: var(--radius-sm); }
+    .record:target { outline: var(--border-strong) solid var(--color-focus); outline-offset: var(--space-2xs); }
+    .record__header { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm); }
+    .record__id { color: var(--color-accent-strong); font: 700 var(--text-xs)/1.2 var(--font-mono); }
+    .record__title { font-size: var(--text-md); }
+    .record__meta { display: grid; gap: var(--space-xs) var(--space-md); margin-block-start: var(--space-md); }
+    .record__meta div { display: grid; grid-template-columns: minmax(6rem, auto) minmax(0, 1fr); gap: var(--space-sm); padding-block: var(--space-xs); border-block-start: var(--border-hairline) solid var(--color-rule); }
+    .record__meta dt { color: var(--color-muted); font: 700 var(--text-xs)/1.4 var(--font-mono); }
+    .record__meta dd { margin: 0; }
+    .record__statement { margin-block-start: var(--space-lg); font-size: var(--text-md); font-weight: 700; line-height: 1.5; }
+    .record details { margin-block-start: var(--space-lg); padding-block-start: var(--space-md); border-block-start: var(--border-hairline) solid var(--color-rule); }
+    .record summary { cursor: pointer; color: var(--color-accent-strong); font-weight: 700; }
+    .record details > * + * { margin-block-start: var(--space-md); }
+    .status { display: inline-flex; align-items: center; min-height: 1.75rem; padding: var(--space-2xs) var(--space-sm); border: var(--border-hairline) solid currentColor; border-radius: var(--radius-sm); font: 700 var(--text-xs)/1 var(--font-mono); white-space: nowrap; }
+    .status--approved { color: var(--color-positive); background: var(--color-positive-soft); }
+    .status--open { color: var(--color-warning); background: var(--color-warning-soft); }
+    .status--prohibited { color: var(--color-danger); background: var(--color-danger-soft); }
+    .diagram { margin: 0; padding: var(--space-lg); background: var(--color-paper-raised); border: var(--border-hairline) solid var(--color-rule); border-radius: var(--radius-sm); }
+    .diagram svg { width: 100%; height: auto; }
+    .diagram figcaption { margin-block-start: var(--space-md); color: var(--color-ink-soft); }
+    .diagram .node { fill: var(--color-paper-raised); stroke: var(--color-rule-strong); stroke-width: 1.5; }
+    .diagram .node--focus { fill: var(--color-accent-soft); stroke: var(--color-accent); }
+    .diagram .node--stop { fill: var(--color-danger-soft); stroke: var(--color-danger); }
+    .diagram .edge { fill: none; stroke: var(--color-rule-strong); stroke-width: 1.5; marker-end: url(#arrow); }
+    .diagram text { fill: var(--color-ink); font-family: var(--font-body); font-size: 13px; }
+    .table-wrap { overflow-x: auto; border-block: var(--border-hairline) solid var(--color-rule-strong); }
+    .steps { padding: 0; list-style: none; counter-reset: stage; }
+    .steps li { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-md); padding-block: var(--space-lg); border-block-end: var(--border-hairline) solid var(--color-rule); counter-increment: stage; }
+    .steps li::before { content: counter(stage, decimal-leading-zero); color: var(--color-accent-strong); font: 700 var(--text-sm)/1.3 var(--font-mono); }
+    .steps li > div > * + * { margin-block-start: var(--space-sm); }
+    .callout { padding: var(--space-lg); background: var(--color-accent-soft); border: var(--border-hairline) solid var(--color-rule); border-radius: var(--radius-sm); }
+    .callout--warning { background: var(--color-warning-soft); }
+    .callout--danger { background: var(--color-danger-soft); }
+    .phase { padding-block: var(--space-xl); border-block-end: var(--border-hairline) solid var(--color-rule); }
+    .phase:last-child { border-block-end: 0; }
+    .phase__header { display: grid; gap: var(--space-sm); margin-block-end: var(--space-lg); }
+    .phase__id { color: var(--color-accent-strong); font: 700 var(--text-xs)/1.2 var(--font-mono); letter-spacing: .06em; }
+    .phase__grid { display: grid; gap: var(--space-lg); }
+    .phase__grid > div { min-width: 0; }
+    .phase__grid h4 { margin-block-end: var(--space-sm); font-size: var(--text-base); }
+    .chain { padding: var(--space-lg); background: var(--color-danger-soft); border-inline-start: var(--border-strong) solid var(--color-danger); }
+    .chain p + p { margin-block-start: var(--space-sm); }
+    .mono-list code { white-space: nowrap; }
+    .foot { padding: var(--space-lg) clamp(var(--space-md), 5vw, var(--space-3xl)); border-block-start: var(--border-hairline) solid var(--color-rule); color: var(--color-muted); font-size: var(--text-sm); }
+    @media (min-width: 44rem) {
+      .document-contract { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .record-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .record-strip .record--wide { grid-column: 1 / -1; }
+      .phase__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (min-width: 64rem) {
+      .rail { position: fixed; inset: 0 auto 0 0; z-index: 20; display: flex; width: var(--rail-width); flex-direction: column; gap: var(--space-xl); padding: var(--space-lg); background: var(--color-paper-raised); border-inline-end: var(--border-hairline) solid var(--color-rule); overflow-y: auto; }
+      .rail__title { font-family: var(--font-display); font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
+      .rail ol { padding: 0; list-style: none; }
+      .rail li + li { margin-block-start: var(--space-sm); }
+      .rail a { color: var(--color-ink-soft); font-size: var(--text-sm); text-decoration: none; }
+      .rail a:hover { color: var(--color-accent); text-decoration: underline; }
+      .mobile-index { display: none; }
+      .page, .foot { margin-inline-start: var(--rail-width); }
+      .document-contract { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .phase__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+    @media print {
+      .rail, .mobile-index, .skip-link { display: none; }
+      .page, .foot { margin: 0; }
+      body { background: var(--color-paper-raised); color: var(--color-ink); }
+      .section, .record, .diagram, .phase { break-inside: avoid; }
+      h2, h3 { break-after: avoid; }
+      a { color: inherit; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">本文へ移動</a>
+  <div class="document">
+    <aside class="rail" aria-label="文書内索引">
+      <p class="rail__title">実装計画書</p>
+      <nav aria-label="主要章">
+        <ol>
+          <li><a href="#conclusion">結論</a></li>
+          <li><a href="#contract">文書契約</a></li>
+          <li><a href="#baseline">現行基準</a></li>
+          <li><a href="#strategy">実装方針</a></li>
+          <li><a href="#roadmap">実装工程</a></li>
+          <li><a href="#traceability">要件追跡</a></li>
+          <li><a href="#risk">公開運用リスク</a></li>
+          <li><a href="#verification">検証計画</a></li>
+          <li><a href="#rollback">ロールバック</a></li>
+          <li><a href="#open-items">未確定事項</a></li>
+        </ol>
+      </nav>
+    </aside>
+
+    <details class="mobile-index">
+      <summary>文書内索引</summary>
+      <nav aria-label="モバイル文書内索引">
+        <ol>
+          <li><a href="#conclusion">結論</a></li>
+          <li><a href="#contract">文書契約</a></li>
+          <li><a href="#baseline">現行基準</a></li>
+          <li><a href="#strategy">実装方針</a></li>
+          <li><a href="#roadmap">実装工程</a></li>
+          <li><a href="#traceability">要件追跡</a></li>
+          <li><a href="#risk">公開運用リスク</a></li>
+          <li><a href="#verification">検証計画</a></li>
+          <li><a href="#rollback">ロールバック</a></li>
+          <li><a href="#open-items">未確定事項</a></li>
+        </ol>
+      </nav>
+    </details>
+
+    <main class="page" id="main">
+      <header class="hero" id="top">
+        <p class="eyebrow">Implementation Plan / Production V1</p>
+        <h1>Stage Accord 実装計画書</h1>
+        <p class="lede">概要設計を、実装開始ゲート、依存順の作業単位、検証証拠、本番判定へ変換する。</p>
+        <dl class="document-contract">
+          <div><dt>状態</dt><dd>提案済み、承認待ち</dd></div>
+          <div><dt>現行判定</dt><dd>実装開始不可、本番投入不可</dd></div>
+          <div><dt>対象</dt><dd>Production V1の製品実装、基盤、検証、公開判定</dd></div>
+          <div><dt>対象外</dt><dd>要件と設計の変更、未計測値の確定、法的助言</dd></div>
+          <div><dt>基準文書</dt><dd><a href="REQUIREMENTS.html">REQUIREMENTS 1.5.0</a>、<a href="HLD.html">HLD 1.5.0</a>、<a href="LLD.html">LLD 1.4.0</a></dd></div>
+          <div><dt>現行実装</dt><dd>起動骨格、本番構成ガード、単一ホスト配備の一部</dd></div>
+          <div><dt>計画版</dt><dd>0.1.0</dd></div>
+          <div><dt>最終確認</dt><dd>2026-09-01</dd></div>
+        </dl>
+      </header>
+
+      <section class="section" id="conclusion">
+        <header class="section__header">
+          <p class="section__label">01 / Verdict</p>
+          <h2>現時点の判定</h2>
+          <p class="section__lede">製品機能の実装と本番公開は、異なるゲートで停止している。</p>
+        </header>
+        <div class="callout callout--danger">
+          <p><strong>結論：</strong>本番投入不可。</p>
+          <p>REQUIREMENTS、HLD、LLDが再承認待ちであり、実装開始前の必須条件である<a href="HLD.html#OPN-104">HLD OPN-104</a>も未閉鎖である。</p>
+        </div>
+        <dl class="document-contract">
+          <div><dt>証拠レベル</dt><dd>実ファイル確認済み、ローカル自動試験実行済み</dd></div>
+          <div><dt>未確認</dt><dd>実UI、実機、本番ホスト、実ログ、外部サービス疎通</dd></div>
+          <div><dt>開始可能な作業</dt><dd>再承認、OPN-104、OpenAPIと試験台帳、検証基盤の整備</dd></div>
+          <div><dt>開始できない作業</dt><dd>Production V1の業務機能実装</dd></div>
+        </dl>
+        <article class="record" id="CON-201">
+          <header class="record__header">
+            <span class="record__id">CON-201</span>
+            <h3 class="record__title">製品機能の実装開始ゲート</h3>
+            <span class="status status--prohibited">未確定、未充足</span>
+          </header>
+          <dl class="record__meta">
+            <div><dt>種別</dt><dd>制約</dd></div>
+            <div><dt>規範強度</dt><dd>必須</dd></div>
+            <div><dt>適用範囲</dt><dd>Phase 1以降の製品コード</dd></div>
+          </dl>
+          <p class="record__statement">REQUIREMENTS、HLD、LLDの再承認とHLD OPN-104の閉鎖が証拠化されるまで、製品機能の実装を開始しない。</p>
+        </article>
+        <article class="record" id="CON-202">
+          <header class="record__header">
+            <span class="record__id">CON-202</span>
+            <h3 class="record__title">本番公開ゲート</h3>
+            <span class="status status--prohibited">未確定、未充足</span>
+          </header>
+          <dl class="record__meta">
+            <div><dt>種別</dt><dd>制約</dd></div>
+            <div><dt>規範強度</dt><dd>必須</dd></div>
+            <div><dt>適用範囲</dt><dd>Production V1の本番公開</dd></div>
+          </dl>
+          <p class="record__statement">HLD OPN-101からOPN-103、107要件の受入証拠、復元、セキュリティ、性能、法務、運用の全ゲートが合格するまで公開しない。</p>
+        </article>
+      </section>
+
+      <section class="section" id="contract">
+        <header class="section__header">
+          <p class="section__label">02 / Contract</p>
+          <h2>目的と利用条件</h2>
+          <p class="section__lede">開発者と承認者が、次に着手できる作業と停止条件を同じ基準で判断するために使う。</p>
+        </header>
+        <p>本書は、HLDの設計IDとLLDの実装契約を工程へ割り当てる。</p>
+        <p>要件本文、設計判断、API、DDL、状態遷移を本書へ複製せず、対応する正本への参照だけを保持する。</p>
+        <div class="table-wrap">
+          <table>
+            <caption>文書間の責務と競合時の優先順</caption>
+            <thead><tr><th scope="col">順序</th><th scope="col">正本</th><th scope="col">責務</th><th scope="col">本書での扱い</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">1</th><td><a href="REQUIREMENTS.html">REQUIREMENTS.html</a></td><td>目的、範囲、要求、受入条件、事業と法務の制約</td><td>実装対象と受入証拠を参照する。</td></tr>
+              <tr><th scope="row">2</th><td><a href="HLD.html">HLD.html</a></td><td>実行境界、モジュール、主要フロー、配置、復旧、設計判断</td><td>工程の依存と停止条件を参照する。</td></tr>
+              <tr><th scope="row">3</th><td><a href="LLD.html">LLD.html</a></td><td>API、データ、状態、認可、処理、例外、試験契約</td><td>作業パッケージの入出力を参照する。</td></tr>
+              <tr><th scope="row">4</th><td>IMPLEMENTATION-PLAN.html</td><td>順序、成果物、完了条件、検証証拠</td><td>上位文書を変更しない。</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <aside class="callout callout--warning">
+          <p><a href="REVIEW-HLD.html">REVIEW-HLD.html</a>は過去レビューの履歴であり、現行実装判断へ使わない。</p>
+          <p>同文書に残る旧版の構成や旧判定と現行HLDが異なる場合は、現行HLDを正とする。</p>
+        </aside>
+        <div class="record-strip">
+          <article class="record" id="CON-203">
+            <header class="record__header"><span class="record__id">CON-203</span><h3 class="record__title">変更単位</h3><span class="status status--open">提案</span></header>
+            <dl class="record__meta"><div><dt>種別</dt><dd>制約</dd></div><div><dt>規範強度</dt><dd>必須</dd></div><div><dt>適用範囲</dt><dd>全実装コミット</dd></div></dl>
+            <p class="record__statement">一つのコミットには、レビュワーが五分で説明できる一つの責務だけを含める。</p>
+          </article>
+          <article class="record" id="CON-204">
+            <header class="record__header"><span class="record__id">CON-204</span><h3 class="record__title">計画変更</h3><span class="status status--open">提案</span></header>
+            <dl class="record__meta"><div><dt>種別</dt><dd>制約</dd></div><div><dt>規範強度</dt><dd>必須</dd></div><div><dt>適用範囲</dt><dd>要求、HLD、LLD、工程の変更</dd></div></dl>
+            <p class="record__statement">上位文書へ影響する変更は上位文書を先に改訂して再承認し、追跡検査が合格してから本書と実装を更新する。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section section--wide" id="baseline">
+        <header class="section__header">
+          <p class="section__label">03 / Baseline</p>
+          <h2>現行実装と残差</h2>
+          <p class="section__lede">2026-09-01時点のワークスペースを実ファイルとローカル試験で確認した。</p>
+        </header>
+        <div class="table-wrap">
+          <table>
+            <caption>現行成果と未実装範囲</caption>
+            <thead><tr><th scope="col">領域</th><th scope="col">確認した成果</th><th scope="col">状態</th><th scope="col">次の残差</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">文書</th><td>REQUIREMENTS 1.5.0、HLD 1.5.0、LLD 1.4.0</td><td>改訂済み、再承認待ち</td><td>承認記録、OPN-104、OpenAPI、試験台帳</td></tr>
+              <tr><th scope="row">バックエンド</th><td>Spring Boot 4.1、JDK 25、applicationとworkerの起動クラス</td><td>起動骨格あり</td><td>業務モジュール、API、DB migration、認可、監査、Outbox</td></tr>
+              <tr><th scope="row">構成安全性</th><td>本番構成ガード、秘密ファイル検査、S3と検査モードの検証</td><td>一部実装済み</td><td>実接続、時刻、容量、複製、証明書、復元証拠との統合</td></tr>
+              <tr><th scope="row">配備</th><td>Docker Compose、Nginx、Ansible骨格、構成マニフェスト、事前検査</td><td>一部実装済み</td><td>実イメージ、ネットワーク実証、監視、署名、NとN-1の切替</td></tr>
+              <tr><th scope="row">フロントエンド</th><td>該当ディレクトリなし</td><td>未実装</td><td>React、TypeScript、Vite、共通テーマ、画面、状態、E2E</td></tr>
+              <tr><th scope="row">公開契約</th><td>LLD内のAPI操作台帳</td><td>文書内のみ</td><td><code>openapi/stage-accord-v1.yaml</code>と生成クライアント</td></tr>
+              <tr><th scope="row">要件追跡</th><td>HLDとLLDの追跡表</td><td>機械検査なし</td><td>107要件の集合差分、重複、リンク、必須欄を拒否するCI</td></tr>
+              <tr><th scope="row">リリース証拠</th><td>構成契約の検査スクリプト</td><td>実値未設定</td><td>実機、実ログ、実UI、復元、性能、法務、運用訓練</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <caption>調査時に実行した検査</caption>
+            <thead><tr><th scope="col">検査</th><th scope="col">結果</th><th scope="col">解釈</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">HLD文書監査</th><td><code>ERROR 0 / WARNING 0</code></td><td>HLDの機械検査対象は合格した。</td></tr>
+              <tr><th scope="row">Maven試験</th><td>6件成功、失敗0</td><td>現行の起動骨格と構成検査は成功した。</td></tr>
+              <tr><th scope="row">本番事前検査の単体試験</th><td>5件成功、失敗0</td><td>現行の構成スキーマ検査は成功した。</td></tr>
+              <tr><th scope="row">構成スキーマ検査</th><td>成功</td><td>例示設定とマニフェストのキー集合は一致した。</td></tr>
+              <tr><th scope="row">リリース成果物検査</th><td><code>APP_PUBLIC_HOST</code>未確定で失敗</td><td>実本番値がない現状では期待される拒否であり、本番準備完了を示さない。</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section section--wide" id="strategy">
+        <header class="section__header">
+          <p class="section__label">04 / Strategy</p>
+          <h2>実装方針と代替案</h2>
+          <p class="section__lede">横断的な安全基盤を先に固定し、その上で利用者価値を縦に完成させる。</p>
+        </header>
+        <article class="record record--wide" id="DEC-201">
+          <header class="record__header">
+            <span class="record__id">DEC-201</span>
+            <h3 class="record__title">安全基盤と縦断実装の組合せ</h3>
+            <span class="status status--open">提案</span>
+          </header>
+          <dl class="record__meta">
+            <div><dt>種別</dt><dd>決定</dd></div>
+            <div><dt>規範強度</dt><dd>必須</dd></div>
+            <div><dt>適用範囲</dt><dd>Production V1の実装順序</dd></div>
+          </dl>
+          <p class="record__statement">追跡、観測、テナント境界、監査、冪等性、Outboxを共通基盤として先に成立させ、その後は画面、API、ドメイン、永続化、監査、試験を機能群ごとに縦断して完成させる。</p>
+          <details>
+            <summary>理由と影響</summary>
+            <p>共通安全基盤を後付けすると、全モジュールのデータ境界と例外処理を再実装することになる。</p>
+            <p>一方で基盤だけを長期間作ると、実際のユースケースが通らず、契約の誤りを検出できない。</p>
+            <p>両者を組み合わせることで、横断制約を一度だけ実装し、各機能群でその制約が実際に働くことを早期に検証できる。</p>
+          </details>
+        </article>
+        <div class="table-wrap">
+          <table>
+            <caption>代替案と不採用理由</caption>
+            <thead><tr><th scope="col">案</th><th scope="col">利点</th><th scope="col">不採用理由</th><th scope="col">再検討条件</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">全基盤を完成してから業務機能へ進む</th><td>横断構造を先に統一できる。</td><td>実ユースケースとの接続が遅れ、不要な抽象化と契約誤りを検出しにくい。</td><td>法令または外部監査が業務実装前の独立基盤認証を要求する場合。</td></tr>
+              <tr><th scope="row">画面単位で先に作る</th><td>見える進捗が早い。</td><td>認可、監査、状態遷移、復旧の境界が画面ごとに重複し、サーバー側の正本が崩れる。</td><td>採用しない。</td></tr>
+              <tr><th scope="row">107要件を並列に一括実装する</th><td>多数の担当者を投入しやすい。</td><td>共通契約の変更が広範囲へ波及し、未完成の依存をモックで隠す。</td><td>共通基盤と公開契約が安定し、独立した作業境界をCIで強制できる場合。</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>コーディング原則の適用</h3>
+        <div class="table-wrap">
+          <table>
+            <caption>設計原則と実装上の判定</caption>
+            <thead><tr><th scope="col">原則</th><th scope="col">適用</th><th scope="col">レビューで拒否する例</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">DRY</th><td>エラー契約、認可コンテキスト、監査、冪等性を共通化し、業務規則は所有モジュールへ一度だけ置く。</td><td>同じ状態遷移をController、画面、workerへ複製する。</td></tr>
+              <tr><th scope="row">KISS</th><td>HLDのモジュラーモノリスとPostgreSQL Outboxを維持する。</td><td>必要性の計測なしにマイクロサービスや専用ブローカーを導入する。</td></tr>
+              <tr><th scope="row">YAGNI</th><td>Production V1とリリースゲートに必要な機能だけを実装する。</td><td>クラウド移行や複数ノードを先行実装する。</td></tr>
+              <tr><th scope="row">SOLID</th><td>HTTP、アプリケーション、ドメイン、ポート、インフラの依存方向を固定する。</td><td>ドメインがSpring、HTTP、他モジュールのRepositoryへ依存する。</td></tr>
+              <tr><th scope="row">デメテルの法則</th><td>モジュール間は公開アプリケーション契約またはイベントだけを使う。</td><td>他モジュールの内部クラスやテーブルを辿る。</td></tr>
+              <tr><th scope="row">GRASP</th><td>状態と不変条件を情報を所有する集約へ置き、Controllerは変換と委譲に限定する。</td><td>権限と状態判定を画面または汎用ユーティリティへ集約する。</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <aside class="callout">
+          <p>フロントエンドの色、書体、余白、角丸、影は単一テーマへ置き、コンポーネント内へ値を直書きしない。</p>
+          <p>各画面はLLDのAPI応答を正本とし、業務状態や権限をクライアント側で推測しない。</p>
+        </aside>
+      </section>
+
+      <section class="section section--wide" id="roadmap">
+        <header class="section__header">
+          <p class="section__label">05 / Roadmap</p>
+          <h2>依存順の実装工程</h2>
+          <p class="section__lede">各フェーズは前段の完了証拠を入力とし、未充足なら次段へ進まない。</p>
+        </header>
+        <figure class="diagram">
+          <svg viewBox="0 0 980 300" role="img" aria-labelledby="roadmap-title roadmap-description">
+            <title id="roadmap-title">実装フェーズの依存関係</title>
+            <desc id="roadmap-description">承認と追跡ゲートから、安全基盤、認証、受付、合意と案件、ファイル、協働、管理、公開検証へ進む。</desc>
+            <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="oklch(67% 0.035 258)"></path></marker></defs>
+            <path class="edge" d="M140 75 H200 M340 75 H400 M540 75 H600 M740 75 H800"></path>
+            <path class="edge" d="M870 115 V175 H740 M600 215 H540 M400 215 H340 M200 215 H140"></path>
+            <rect class="node node--stop" x="20" y="35" width="120" height="80" rx="4"></rect>
+            <rect class="node node--focus" x="200" y="35" width="140" height="80" rx="4"></rect>
+            <rect class="node" x="400" y="35" width="140" height="80" rx="4"></rect>
+            <rect class="node" x="600" y="35" width="140" height="80" rx="4"></rect>
+            <rect class="node" x="800" y="35" width="140" height="80" rx="4"></rect>
+            <rect class="node" x="600" y="175" width="140" height="80" rx="4"></rect>
+            <rect class="node" x="400" y="175" width="140" height="80" rx="4"></rect>
+            <rect class="node" x="200" y="175" width="140" height="80" rx="4"></rect>
+            <rect class="node node--stop" x="20" y="175" width="120" height="80" rx="4"></rect>
+            <text x="80" y="67" text-anchor="middle"><tspan x="80">Phase 0</tspan><tspan x="80" dy="20">承認と追跡</tspan></text>
+            <text x="270" y="67" text-anchor="middle"><tspan x="270">Phase 1と2</tspan><tspan x="270" dy="20">骨格と安全基盤</tspan></text>
+            <text x="470" y="67" text-anchor="middle"><tspan x="470">Phase 3</tspan><tspan x="470" dy="20">認証と所属</tspan></text>
+            <text x="670" y="67" text-anchor="middle"><tspan x="670">Phase 4</tspan><tspan x="670" dy="20">公開と受付</tspan></text>
+            <text x="870" y="67" text-anchor="middle"><tspan x="870">Phase 5</tspan><tspan x="870" dy="20">合意と案件</tspan></text>
+            <text x="670" y="207" text-anchor="middle"><tspan x="670">Phase 6</tspan><tspan x="670" dy="20">ファイル</tspan></text>
+            <text x="470" y="207" text-anchor="middle"><tspan x="470">Phase 7と8</tspan><tspan x="470" dy="20">協働と管理</tspan></text>
+            <text x="270" y="207" text-anchor="middle"><tspan x="270">Phase 9</tspan><tspan x="270" dy="20">UIと全体検証</tspan></text>
+            <text x="80" y="207" text-anchor="middle"><tspan x="80">Phase 10</tspan><tspan x="80" dy="20">公開判定</tspan></text>
+          </svg>
+          <figcaption>Phase 0の停止ゲートを閉じてから製品コードへ進み、Phase 10で本番公開を別途判定する。</figcaption>
+        </figure>
+
+        <article class="phase" id="phase-00">
+          <header class="phase__header"><span class="phase__id">PHASE 0 / START GATE</span><h3>再承認と追跡基盤</h3><p>製品コードへ入る前に、正本と機械検査を固定する。</p></header>
+          <div class="phase__grid">
+            <div><h4>入力</h4><p>REQUIREMENTS 1.5.0、HLD 1.5.0、LLD 1.4.0、現行リポジトリ。</p></div>
+            <div><h4>作業</h4><p>三文書の再承認、OPN-104の追跡CI、OpenAPI、107要件の試験台帳、保護ブランチ必須チェックを整備する。</p></div>
+            <div><h4>成果物</h4><p>承認記録、<code>openapi/stage-accord-v1.yaml</code>、機械可読試験台帳、成功と失敗のCI証拠。</p></div>
+            <div><h4>完了条件</h4><p>欠落、未知ID、重複、リンク切れ、必須欄空白の各失敗fixtureが統合を拒否し、承認者が開始を許可する。</p></div>
+          </div>
+          <aside class="callout callout--danger"><p>Phase 0が不合格なら、Phase 1以降を開始しない。</p></aside>
+        </article>
+
+        <article class="phase" id="phase-01">
+          <header class="phase__header"><span class="phase__id">PHASE 1 / EXECUTABLE SKELETON</span><h3>実行骨格と開発品質</h3><p>既存の起動骨格へ、モジュール境界、Web、契約生成、観測の入口を追加する。</p></header>
+          <div class="phase__grid">
+            <div><h4>入力</h4><p>Phase 0の承認済み契約と現行のbackend、deploy。</p></div>
+            <div><h4>作業</h4><p>パッケージ境界、アーキテクチャ試験、Flyway骨格、ReactとTypeScript、単一テーマ、OpenAPI生成クライアント、相関ID、health、metrics、traceを実装する。</p></div>
+            <div><h4>成果物</h4><p>起動可能なapplication、worker、web、空の業務モジュール、CI品質コマンド。</p></div>
+            <div><h4>完了条件</h4><p>全プロセスが秘密値を出力せず起動し、禁止依存をアーキテクチャ試験が拒否し、OpenAPI差分が0になる。</p></div>
+          </div>
+        </article>
+
+        <article class="phase" id="phase-02">
+          <header class="phase__header"><span class="phase__id">PHASE 2 / SAFETY SUBSTRATE</span><h3>テナント境界、監査、冪等性、Outbox</h3><p>すべての業務機能が共有する安全制約を先に成立させる。</p></header>
+          <div class="phase__grid">
+            <div><h4>入力</h4><p>Phase 1のモジュール骨格とLLDの共通契約。</p></div>
+            <div><h4>作業</h4><p>認可コンテキスト、workspace複合制約、共通エラー、冪等キー、楽観ロック、監査append function、ハッシュ連鎖、Outboxリースと隔離、runtime guardを実装する。</p></div>
+            <div><h4>成果物</h4><p>共通ポート、DBロールとmigration、監査検証CLI、Outbox worker、拒否理由コード。</p></div>
+            <div><h4>完了条件</h4><p>越境、監査なし成功、二重副作用、順序逆転、評価不能時の許可を負の試験がすべて拒否する。</p></div>
+          </div>
+        </article>
+
+        <article class="phase" id="phase-03">
+          <header class="phase__header"><span class="phase__id">PHASE 3 / IDENTITY</span><h3>認証、復旧、ワークスペース所属</h3><p>後続機能が信頼できる主体、認証強度、認可世代を確立する。</p></header>
+          <div class="phase__grid">
+            <div><h4>主な正本</h4><p><a href="HLD.html#HLD-AUT-001">HLD-AUT-001</a>、<a href="HLD.html#HLD-TEN-001">HLD-TEN-001</a>、<a href="HLD.html#DEC-110">DEC-110</a>。</p></div>
+            <div><h4>作業</h4><p>登録、パスキー、パスワードとTOTP、復旧コード、依頼者リンク、サーバーセッション、再認証、招待、役割、所有権移転を縦断実装する。</p></div>
+            <div><h4>成果物</h4><p>identity-accessとworkspace-membership、認証画面、認証監査、失効処理。</p></div>
+            <div><h4>完了条件</h4><p>FR-ACC群とNFR-BCP-003が正常、拒否、期限切れ、再発行、Valkey消失、復旧後失効で合格する。</p></div>
+          </div>
+        </article>
+
+        <article class="phase" id="phase-04">
+          <header class="phase__header"><span class="phase__id">PHASE 4 / PUBLIC INTAKE</span><h3>公開カタログと依頼受付</h3><p>公開可能な情報だけを射影し、公開版へ依頼を固定する。</p></header>
+          <div class="phase__grid">
+            <div><h4>主な正本</h4><p><a href="HLD.html#HLD-CTX-001">HLD-CTX-001</a>、<a href="HLD.html#HLD-CAT-001">HLD-CAT-001</a>、<a href="HLD.html#HLD-INT-001">HLD-INT-001</a>。</p></div>
+            <div><h4>作業</h4><p>公開プロフィール、サービス、フォーム、フローテンプレート、受付上限、迷惑対策、審査、依頼履歴を縦断実装する。</p></div>
+            <div><h4>成果物</h4><p>公開許可リストDTO、公開画面、所有者画面、受付API、版と監査。</p></div>
+            <div><h4>完了条件</h4><p>FR-PRO、FR-SVC、FR-WF、FR-REQ群が合格し、内部ID、実名、メール、役割、内部状態が公開応答と画面へ出ない。</p></div>
+          </div>
+        </article>
+
+        <article class="phase" id="phase-05">
+          <header class="phase__header"><span class="phase__id">PHASE 5 / AGREEMENT AND PROJECT</span><h3>合意、案件、チェックポイント、日程</h3><p>受付から合意、案件生成、進行、保留、日程変更までの正本フローを成立させる。</p></header>
+          <div class="phase__grid">
+            <div><h4>主な正本</h4><p><a href="HLD.html#HLD-AGR-001">HLD-AGR-001</a>、<a href="HLD.html#HLD-PRJ-001">HLD-PRJ-001</a>、<a href="HLD.html#HLD-SCH-001">HLD-SCH-001</a>。</p></div>
+            <div><h4>作業</h4><p>条件版、RFC 8785正規化、当事者受諾、案件複製、チェックポイント、内部タスク、保留、取消、紛争、営業日と日程案を縦断実装する。</p></div>
+            <div><h4>成果物</h4><p>agreement、project、schedule-notificationの中核、クリエイター画面、依頼者ポータル。</p></div>
+            <div><h4>完了条件</h4><p>FR-AGR、FR-PRJ、FR-CHK、FR-TSK、FR-SCH群が合格し、対象版不一致、時刻劣化、承認不足では遷移しない。</p></div>
+          </div>
+        </article>
+
+        <article class="phase" id="phase-06">
+          <header class="phase__header"><span class="phase__id">PHASE 6 / FILE SAFETY</span><h3>ファイル取込、検査、昇格、配布</h3><p>四つのS3領域と検査状態を分離し、配布条件をフェイルクローズにする。</p></header>
+          <div class="phase__grid">
+            <div><h4>主な正本</h4><p><a href="HLD.html#HLD-FIL-001">HLD-FIL-001</a>から<a href="HLD.html#HLD-FIL-003">HLD-FIL-003</a>、<a href="HLD.html#HLD-OBJ-001">HLD-OBJ-001</a>、<a href="HLD.html#HLD-DEL-001">HLD-DEL-001</a>。</p></div>
+            <div><h4>作業</h4><p>multipart、part checksum、全体hash、requiredとbypass、ClamAV、昇格receipt、preview sandbox、download grantとgateway、外部URL、削除台帳を実装する。</p></div>
+            <div><h4>成果物</h4><p>fileモジュール、検査worker、preview worker、filesとpreviewの各origin、削除再適用CLI。</p></div>
+            <div><h4>完了条件</h4><p>FR-FIL群とNFR-SEC-005が4GB、失敗、部分読込、再試行、陽性、bypass、権限失効、復元後再適用で合格する。</p></div>
+          </div>
+          <aside class="callout callout--danger"><p><code>ready</code>、許可された検査状態、S3 version、サイズ、SHA-256、昇格receiptの一つでも不一致なら配布しない。</p></aside>
+        </article>
+
+        <article class="phase" id="phase-07">
+          <header class="phase__header"><span class="phase__id">PHASE 7 / COLLABORATION</span><h3>進捗、コメント、修正、承認、納品</h3><p>案件内のやり取りを合意版と対象版へ結び付ける。</p></header>
+          <div class="phase__grid">
+            <div><h4>主な正本</h4><p><a href="HLD.html#HLD-COL-001">HLD-COL-001</a>、<a href="HLD.html#HLD-OUT-001">HLD-OUT-001</a>。</p></div>
+            <div><h4>作業</h4><p>進捗、公開範囲、コメント文脈、修正区分、複数承認、通知、最終納品、受領、案件出力を縦断実装する。</p></div>
+            <div><h4>成果物</h4><p>collaboration、通知worker、タイムライン、承認と納品画面。</p></div>
+            <div><h4>完了条件</h4><p>FR-UPD、FR-COM、FR-REV、FR-APP、FR-NOT、FR-DEL群が合格し、自動承認と未合意変更を拒否する。</p></div>
+          </div>
+        </article>
+
+        <article class="phase" id="phase-08">
+          <header class="phase__header"><span class="phase__id">PHASE 8 / BILLING AND ADMIN</span><h3>購読請求、利用権、運営、安全管理</h3><p>購読状態と運営権限を、業務本文から分離して最小権限で実装する。</p></header>
+          <div class="phase__grid">
+            <div><h4>主な正本</h4><p><a href="HLD.html#HLD-BIL-001">HLD-BIL-001</a>、<a href="HLD.html#HLD-SUP-001">HLD-SUP-001</a>、<a href="HLD.html#HLD-AUD-001">HLD-AUD-001</a>。</p></div>
+            <div><h4>作業</h4><p>Stripe署名と日次照合、利用量台帳、猶予と読取専用、通報、ブロック、支援権限、緊急停止、削除と持出しを縦断実装する。</p></div>
+            <div><h4>成果物</h4><p>billing、audit-admin、管理画面、利用者向け監査、削除と持出し処理。</p></div>
+            <div><h4>完了条件</h4><p>FR-BIL、FR-AUD、FR-ADM、NFR-PRV群が合格し、外部障害時に権限と利用権を拡大しない。</p></div>
+          </div>
+        </article>
+
+        <article class="phase" id="phase-09">
+          <header class="phase__header"><span class="phase__id">PHASE 9 / SYSTEM COMPLETION</span><h3>UI、アクセシビリティ、全体試験</h3><p>各縦断実装で作った画面と状態を、主要利用経路として連結して検証する。</p></header>
+          <div class="phase__grid">
+            <div><h4>入力</h4><p>Phase 3からPhase 8までの完成機能と全試験ID。</p></div>
+            <div><h4>作業</h4><p>画面遷移、loading、完了、empty、拒否、期限切れ、競合、縮退、モーダル、通知、responsive、keyboard、screen readerを検証する。</p></div>
+            <div><h4>成果物</h4><p>主要画面の実スクリーンショット、E2E、アクセシビリティ証拠、107要件の実施結果。</p></div>
+            <div><h4>完了条件</h4><p>320pxから1440pxの影響幅と主要状態を実画面で目視し、欠け、横溢れ、重なり、誤表示、権限差がない。</p></div>
+          </div>
+        </article>
+
+        <article class="phase" id="phase-10">
+          <header class="phase__header"><span class="phase__id">PHASE 10 / RELEASE GATE</span><h3>本番相当検証と公開判定</h3><p>実装完了と本番投入可を分け、実環境の証拠で公開可否を決める。</p></header>
+          <div class="phase__grid">
+            <div><h4>入力</h4><p>Release Candidate、実基盤、運用当番、Runbook、NとN-1。</p></div>
+            <div><h4>作業</h4><p>実構成互換、2倍負荷、4GB転送、完全検査、交換ホスト復元、再露出防止、SLO計測、脆弱性、法務、運用訓練を実施する。</p></div>
+            <div><h4>成果物</h4><p>HLD OPN-101からOPN-103の閉鎖証拠、署名済みdigest、SBOM、復元記録、公開判定記録。</p></div>
+            <div><h4>完了条件</h4><p>全ゲートが合格し、危険設定が残れば起動、配備、公開を機械的に停止できる。</p></div>
+          </div>
+          <aside class="callout callout--danger"><p>一件でも証拠が欠落または不合格なら本番投入不可とし、期限を理由に例外公開しない。</p></aside>
+        </article>
+      </section>
+
+      <section class="section section--wide" id="traceability">
+        <header class="section__header">
+          <p class="section__label">06 / Traceability</p>
+          <h2>要件群と実装フェーズ</h2>
+          <p class="section__lede">個別要件の本文と試験IDはHLDの107件追跡表を正とし、本表は工程への割当だけを示す。</p>
+        </header>
+        <div class="table-wrap">
+          <table>
+            <caption>要求系列の工程割当</caption>
+            <thead><tr><th scope="col">要求系列</th><th scope="col">主フェーズ</th><th scope="col">主制御</th><th scope="col">横断検証</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">FR-ACC</th><td>Phase 3</td><td>HLD-AUT-001、HLD-TEN-001</td><td>Phase 2、9、10</td></tr>
+              <tr><th scope="row">FR-PRO、FR-SVC、FR-WF、FR-REQ</th><td>Phase 4</td><td>HLD-CTX-001、HLD-CAT-001、HLD-INT-001</td><td>Phase 2、9、10</td></tr>
+              <tr><th scope="row">FR-AGR</th><td>Phase 5</td><td>HLD-AGR-001</td><td>Phase 2、3、9、10</td></tr>
+              <tr><th scope="row">FR-PRJ、FR-CHK、FR-TSK、FR-SCH</th><td>Phase 5</td><td>HLD-PRJ-001、HLD-SCH-001</td><td>Phase 2、3、9、10</td></tr>
+              <tr><th scope="row">FR-FIL</th><td>Phase 6</td><td>HLD-FIL-001から003、HLD-NET-001</td><td>Phase 2、5、9、10</td></tr>
+              <tr><th scope="row">FR-UPD、FR-COM、FR-REV、FR-APP、FR-NOT、FR-DEL</th><td>Phase 7</td><td>HLD-COL-001、HLD-OUT-001</td><td>Phase 2、3、5、6、9、10</td></tr>
+              <tr><th scope="row">FR-BIL、FR-AUD、FR-ADM</th><td>Phase 8</td><td>HLD-BIL-001、HLD-AUD-001から002、HLD-SUP-001</td><td>Phase 2、3、9、10</td></tr>
+              <tr><th scope="row">NFR-SEC、NFR-PRV</th><td>Phase 2、6、8</td><td>認可、公開DTO、秘密、削除、ネットワーク</td><td>全フェーズの負の試験</td></tr>
+              <tr><th scope="row">NFR-ACC、NFR-UX</th><td>各UIフェーズとPhase 9</td><td>semantic DOM、focus、responsive</td><td>実画面スクリーンショットと手動試験</td></tr>
+              <tr><th scope="row">NFR-PERF、NFR-AVL、NFR-BCP</th><td>Phase 10</td><td>HLD-SLO-001、HLD-DEP-001、HLD-DR-001から002</td><td>本番相当の負荷と復元</td></tr>
+              <tr><th scope="row">NFR-OBS、NFR-OPS、NFR-PORT、NFR-I18N</th><td>Phase 1、2、5、10</td><td>観測、runtime guard、migration、地域設定</td><td>CI、閉域検証、切替と復旧</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section section--wide" id="risk">
+        <header class="section__header">
+          <p class="section__label">07 / Public Risk</p>
+          <h2>公開運用の露出と失敗モード</h2>
+          <p class="section__lede">公開面、管理面、保存面、復元面を別々に検証する。</p>
+        </header>
+        <h3>アクター</h3>
+        <div class="table-wrap">
+          <table>
+            <caption>検証で分離するアクター</caption>
+            <thead><tr><th scope="col">アクター</th><th scope="col">確認する権限と露出</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">本人</th><td>自身の公開情報、内部情報、認証要素、削除と持出し。</td></tr>
+              <tr><th scope="row">一般利用者</th><td>認証済みだが対象案件や対象workspaceに関係しない主体。</td></tr>
+              <tr><th scope="row">一般参加者</th><td>案件へ参加するクリエイター側または依頼者側の限定役割。</td></tr>
+              <tr><th scope="row">視聴者</th><td>画面共有または配信画面を偶然または意図的に見る第三者。</td></tr>
+              <tr><th scope="row">管理者</th><td>運営者、支援権限の申請者、承認者、緊急停止担当者。</td></tr>
+              <tr><th scope="row">サーバー管理者</th><td>基盤、設定、バックアップへ触れるが、業務本文を常時閲覧しない主体。</td></tr>
+              <tr><th scope="row">ログ閲覧者</th><td>運用ログ、監査ログ、クラッシュログ、外部通知を閲覧する主体。</td></tr>
+              <tr><th scope="row">アーカイブ視聴者</th><td>過去の録画、メール、出力、バックアップ由来の情報を見る主体。</td></tr>
+              <tr><th scope="row">切り抜きと転載の作成者</th><td>画面、通知、公開プロフィールを画像または短い動画として保存する主体。</td></tr>
+              <tr><th scope="row">外部プロフィール閲覧者</th><td>公開URLと外部アカウントの情報を結合する主体。</td></tr>
+              <tr><th scope="row">攻撃的に調査する人</th><td>ID、URL、時刻、表示差、エラー差から内部情報を推測する主体。</td></tr>
+              <tr><th scope="row">SNSで拡散する人</th><td>保存済み情報へ推測や誤解を付けて再配布する主体。</td></tr>
+              <tr><th scope="row">後から検証する第三者</th><td>削除後、復元後、障害後の証拠と履歴を照合する主体。</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>露出面</h3>
+        <div class="table-wrap">
+          <table>
+            <caption>公開前に確認する露出面</caption>
+            <thead><tr><th scope="col">露出面</th><th scope="col">確認内容</th><th scope="col">証拠</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">アプリ内UI</th><td>公開、所有者、依頼者、運営者の各画面と全状態。</td><td>実画面スクリーンショットとE2E。</td></tr>
+              <tr><th scope="row">一覧、メンバー、プロフィール</th><td>実名、メール、内部ID、役割、権限、他workspaceが混入しない。</td><td>DTO契約試験と役割別画面。</td></tr>
+              <tr><th scope="row">コメント、通知、システムメッセージ</th><td>本文、対象版、送信先、外部メール、失敗通知の秘匿。</td><td>通知fixtureと配送ログ。</td></tr>
+              <tr><th scope="row">アイコン、バッジ、権限表示</th><td>非公開の運営者状態や支援アクセスを一般画面へ出さない。</td><td>公開DTOと画面差分。</td></tr>
+              <tr><th scope="row">マップ、スコア、ランキング、統計</th><td>Production V1の要件には存在しないため、未承認の集計画面や順位表示が追加されていない。</td><td>route台帳とUI一覧。</td></tr>
+              <tr><th scope="row">管理画面と運用コンソール</th><td>VPN、MFA、期限、目的、二者承認、マスク、全操作監査。</td><td>権限試験と監査イベント。</td></tr>
+              <tr><th scope="row">サーバー、監査、クラッシュ、接続ログ</th><td>本文、token、Cookie、署名URL、秘密、不要な個人情報がない。</td><td>ログ検査と秘密スキャン。</td></tr>
+              <tr><th scope="row">設定、権限、認証ファイル</th><td>Git非追跡、用途別、読取専用、所有者とmode、秘密値非出力。</td><td>起動前検査と実ホスト検査。</td></tr>
+              <tr><th scope="row">外部アカウントとプラットフォームID</th><td>公開情報と内部主体を不要に結合できない。</td><td>公開応答、URL、メールのレビュー。</td></tr>
+              <tr><th scope="row">配信画面とキャプチャ範囲</th><td>通知、タブ名、URL、管理画面、個人情報が映っても公開事故にならない運用状態。</td><td>実配信構成の事前録画確認。</td></tr>
+              <tr><th scope="row">アーカイブ、クリップ、スクリーンショット</th><td>後から削除できない前提で公開項目を制限する。</td><td>公開前許可リストの承認。</td></tr>
+              <tr><th scope="row">外部投稿と通知</th><td>メール、SNS、運用通知へ秘密や本文を含めない。</td><td>送信fixtureと宛先制御。</td></tr>
+              <tr><th scope="row">キャッシュ、バックアップ、履歴、復元データ</th><td>削除、失効、非公開、法的保持を復元後に再適用する。</td><td>削除台帳と交換ホスト復元試験。</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>具体的な露出連鎖</h3>
+        <div class="chain">
+          <p>公開プロフィールへ内部役割または識別子が混入する。</p>
+          <p>外部閲覧者が識別子を外部プロフィールや過去投稿と照合する。</p>
+          <p>閲覧者が人物、権限、案件関与、過去行動を推測する。</p>
+          <p>スクリーンショット、切り抜き、SNS投稿が保存され、誤解や信用毀損を伴って拡散する。</p>
+          <p>現行画面から削除しても、アクセスログ、通知、キャッシュ、バックアップ、第三者保存物に残る。</p>
+          <p>古いバックアップの復元またはロールバックで公開射影が再生成されると、同じ情報が再露出する。</p>
+        </div>
+        <p>Phase 4で公開許可リストを入口にし、Phase 8で削除と失効を独立台帳へ残し、Phase 10で復元後の再適用を公開ゲートにする。</p>
+        <h3>想定失敗モードと検知</h3>
+        <div class="table-wrap">
+          <table>
+            <caption>実装と公開を停止する失敗</caption>
+            <thead><tr><th scope="col">失敗モード</th><th scope="col">直接影響</th><th scope="col">検知</th><th scope="col">停止制御</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">正本と実装の追跡ずれ</th><td>要求が未実装または未試験のまま完了扱いになる。</td><td>要件、HLD、LLD、OpenAPI、試験台帳の集合差分。</td><td>CI統合拒否。</td></tr>
+              <tr><th scope="row">テナント越境</th><td>他workspaceまたは他案件の情報が閲覧、更新される。</td><td>複合制約、全役割の負のAPI試験、管理とworkerの境界試験。</td><td>評価不能と不一致を拒否。</td></tr>
+              <tr><th scope="row">監査と業務更新の分離</th><td>成功した操作を説明できず、改変や欠落を検知できない。</td><td>transaction fault injection、hash chain検証、DBロール試験。</td><td>監査追記失敗時に業務transactionをrollback。</td></tr>
+              <tr><th scope="row">Outboxの重複または逆順</th><td>二重通知、二重承認、古い請求状態への回帰が起きる。</td><td>重複event、lease切れ、順序逆転、再試行の統合試験。</td><td>冪等キー、一意制約、集約内連番、隔離キュー。</td></tr>
+              <tr><th scope="row">検査不完了ファイルの配布</th><td>未検査、陽性、部分読込、誤版のファイルが第三者へ渡る。</td><td>状態、byte数、hash、S3 version、receiptの不一致fixture。</td><td>配布gatewayが各取得で再認可し、不一致を拒否。</td></tr>
+              <tr><th scope="row">復元後の削除と失効の復活</th><td>削除済みデータ、旧セッション、旧支援権限が再露出する。</td><td>独立台帳のterminal hash、対象件数、復元前後の差分。</td><td>再適用と一致確認まで公開入口を閉じる。</td></tr>
+              <tr><th scope="row">UI状態の誤表示</th><td>利用者が未成立の合意、承認、配布可能状態を成立済みと誤認する。</td><td>API状態別E2E、loadingと完了の実画面、競合応答。</td><td>API応答を正本にし、不明状態では操作を出さない。</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section section--wide" id="verification">
+        <header class="section__header">
+          <p class="section__label">08 / Verification</p>
+          <h2>検証計画と成功条件</h2>
+          <p class="section__lede">自動試験、実画面、実ログ、実機、本番相当復元を別の証拠として保存する。</p>
+        </header>
+        <h3>実装単位の順序</h3>
+        <ol class="steps">
+          <li><div><h4>観測点</h4><p>相関ID、metric、trace、監査イベント、失敗理由コードを先に定義する。</p></div></li>
+          <li><div><h4>入力と境界</h4><p>型、長さ、主体、workspace、案件関係、対象版、認証強度、運用状態を拒否側から実装する。</p></div></li>
+          <li><div><h4>最小コアロジック</h4><p>一つのユースケースと一つの正当な状態遷移だけを実装する。</p></div></li>
+          <li><div><h4>エラー処理</h4><p>競合、期限切れ、依存停止、再試行、隔離、縮退を安定コードへ割り当てる。</p></div></li>
+          <li><div><h4>試験と証拠</h4><p>正常、権限拒否、境界、重複、期限切れ、依存障害、復旧後を試験IDへ結び付ける。</p></div></li>
+        </ol>
+        <h3>状態別の公開確認</h3>
+        <div class="table-wrap">
+          <table>
+            <caption>時間と復元で変化する状態</caption>
+            <thead><tr><th scope="col">状態</th><th scope="col">確認</th><th scope="col">不合格時</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">設定変更前</th><td>現行公開、権限、ログ、保存データの基準を取得する。</td><td>差分比較を開始しない。</td></tr>
+              <tr><th scope="row">設定変更直後</th><td>構成差分、秘密参照、公開DTO、検査モード、kill switch。</td><td>反映を中止する。</td></tr>
+              <tr><th scope="row">アプリ再起動前と再起動後</th><td>起動前検査、証明書、時刻、DB、Valkey、S3、ClamAV、監視。</td><td>公開入口を開かない。</td></tr>
+              <tr><th scope="row">クライアント再接続前と再接続後</th><td>旧session、旧link、旧download grant、認可世代が復活しない。</td><td>認証済み操作を停止する。</td></tr>
+              <tr><th scope="row">初回ロード中と完了後</th><td>loading中に権限や状態を推測せず、完了後のAPI状態と一致する。</td><td>該当画面を未完了とする。</td></tr>
+              <tr><th scope="row">本番開始前</th><td>全リリース証拠、NとN-1、rollback、運用当番、外形監視。</td><td>デプロイを拒否する。</td></tr>
+              <tr><th scope="row">本番中</th><td>読書き、通知、Outbox、容量、時刻、検査、bypass、外部依存。</td><td>対象機能を縮退または停止する。</td></tr>
+              <tr><th scope="row">本番終了後とアーカイブ後</th><td>ログ、出力、通知、録画、クリップ、保持期限、削除要求。</td><td>削除または隔離の未完了を追跡する。</td></tr>
+              <tr><th scope="row">ロールバック後</th><td>旧設定、旧資格情報、旧検査モード、旧公開射影が復活しない。</td><td>前進修復し、公開を維持しない。</td></tr>
+              <tr><th scope="row">バックアップ復元後</th><td>削除、失効、非公開、法的保持、bypass状態、S3 versionを再適用する。</td><td>隔離を維持する。</td></tr>
+              <tr><th scope="row">別環境への移行後</th><td>同じ認可、監査、公開DTO、削除台帳、秘密分離が成立する。</td><td>切替を完了しない。</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>CLI検証契約</h3>
+        <p>「予定」と記したコマンドはPhase 0またはPhase 1で追加し、以後の必須インターフェースとして固定する。</p>
+        <div class="table-wrap mono-list">
+          <table>
+            <caption>作業ディレクトリ、対象、コマンド、期待結果</caption>
+            <thead><tr><th scope="col">状態</th><th scope="col">作業ディレクトリ</th><th scope="col">対象</th><th scope="col">コマンド</th><th scope="col">期待結果</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">現行</th><td><code>C:\work\StageAccord\backend</code></td><td>Java実装と構成</td><td><code>.\mvnw.cmd test</code></td><td><code>BUILD SUCCESS</code>、失敗0。</td></tr>
+              <tr><th scope="row">現行</th><td><code>C:\work\StageAccord</code></td><td>本番事前検査</td><td><code>python -m unittest deploy/scripts/test_preflight_production.py</code></td><td>全試験成功。</td></tr>
+              <tr><th scope="row">現行</th><td><code>C:\work\StageAccord</code></td><td>構成キー契約</td><td><code>python deploy/scripts/preflight_production.py --schema-only</code></td><td><code>PREFLIGHT PASSED</code>。</td></tr>
+              <tr><th scope="row">現行</th><td><code>C:\work\StageAccord</code></td><td>実本番設定とdigest</td><td><code>python deploy/scripts/verify_release_artifacts.py</code></td><td>本番値がすべて確定した環境だけで成功し、プレースホルダーは失敗。</td></tr>
+              <tr><th scope="row">予定</th><td><code>C:\work\StageAccord</code></td><td>107要件と文書追跡</td><td><code>pnpm verify:traceability</code></td><td>欠落、未知、重複、リンク切れ、空欄が0。</td></tr>
+              <tr><th scope="row">予定</th><td><code>C:\work\StageAccord</code></td><td>OpenAPIと生成物</td><td><code>pnpm verify:openapi</code></td><td>LLD操作台帳との差分0、破壊的変更0。</td></tr>
+              <tr><th scope="row">予定</th><td><code>C:\work\StageAccord</code></td><td>全静的品質</td><td><code>pnpm lint &amp;&amp; pnpm typecheck</code></td><td>警告を許可リスト化し、未承認警告0。</td></tr>
+              <tr><th scope="row">予定</th><td><code>C:\work\StageAccord</code></td><td>Web単体と統合</td><td><code>pnpm --filter stage-accord-web test</code></td><td>失敗0。</td></tr>
+              <tr><th scope="row">予定</th><td><code>C:\work\StageAccord</code></td><td>主要画面と状態</td><td><code>pnpm --filter stage-accord-web test:e2e</code></td><td>実画面証拠を保存し、主要経路の失敗0。</td></tr>
+              <tr><th scope="row">予定</th><td><code>C:\work\StageAccord</code></td><td>リリース全ゲート</td><td><code>pnpm verify:release</code></td><td>署名、SBOM、試験、復元、構成の必須証拠が揃った場合だけ成功。</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>UIの目視検証</h3>
+        <ul>
+          <li>UI変更ごとに、変更後のアプリを起動し、対象画面と状態をデスクトップ幅とモバイル幅で撮影する。</li>
+          <li>loading、完了、empty、validation、403、409、423、503、modal、操作後を変更範囲に応じて個別に撮影する。</li>
+          <li>作成者が画像を表示し、文字、余白、色、境界、重なり、欠け、横溢れ、縦溢れ、固定要素、focusを目視する。</li>
+          <li>一時的なCSS注入、モックだけの画面、自動差分だけを合格証拠にしない。</li>
+          <li>スクリーンショットを確認できない変更は未完了として扱う。</li>
+        </ul>
+      </section>
+
+      <section class="section" id="fail-close">
+        <header class="section__header">
+          <p class="section__label">09 / Fail Close</p>
+          <h2>機械的な停止条件</h2>
+          <p class="section__lede">担当者の注意ではなく、危険状態で処理が進まない仕組みを合格条件にする。</p>
+        </header>
+        <div class="table-wrap">
+          <table>
+            <caption>停止対象と解除証拠</caption>
+            <thead><tr><th scope="col">危険状態</th><th scope="col">停止対象</th><th scope="col">解除に必要な証拠</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">追跡差分</th><td>変更の統合</td><td>全正本と生成物の集合差分0。</td></tr>
+              <tr><th scope="row">秘密、プレースホルダー、過剰権限</th><td>起動と配備</td><td>起動前検査と所有者、modeの合格。</td></tr>
+              <tr><th scope="row">認可評価不能</th><td>対象APIと画面操作</td><td>主体、workspace、関係、属性、運用状態の再評価成功。</td></tr>
+              <tr><th scope="row">時刻劣化</th><td>合意、承認、受領</td><td>複数時刻源で所定時間の回復と二者確認。</td></tr>
+              <tr><th scope="row">監査追記不能</th><td>業務書込み</td><td>DB監査または許可された復旧spoolの成功。</td></tr>
+              <tr><th scope="row">S3または検査不一致</th><td>取込、昇格、配布</td><td>状態、hash、version、receiptの一致。</td></tr>
+              <tr><th scope="row">復元マニフェスト不一致</th><td>一般公開</td><td>DB、S3、trust、configuration、削除台帳の一致。</td></tr>
+              <tr><th scope="row">証拠欠落</th><td>リリースとロールバック</td><td>新しい成功証拠と承認。</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section" id="rollback">
+        <header class="section__header">
+          <p class="section__label">10 / Rollback</p>
+          <h2>ロールバックと前進修復</h2>
+          <p class="section__lede">コード、DB、設定、公開状態を同じ方法で戻さない。</p>
+        </header>
+        <h3>復旧手順</h3>
+        <ol class="steps">
+          <li><div><h4>公開入口を閉じる</h4><p>外部trafficを保守表示へ切り替え、障害時刻、対象版、影響範囲を監査する。</p></div></li>
+          <li><div><h4>戻せる対象を判定する</h4><p>アプリとWebは署名済みN-1へ戻せるが、DB schemaはNとN-1の共存契約が合格した場合に限る。</p></div></li>
+          <li><div><h4>DBを前進修復する</h4><p>contract前は切替flagと読取先を戻し、破壊済みschemaを逆変換しない。</p></div></li>
+          <li><div><h4>秘密と認証を失効する</h4><p>影響したsession、client link、support grant、download grant、資格情報を失効し、旧値の復活を拒否する。</p></div></li>
+          <li><div><h4>削除と失効を再適用する</h4><p>独立台帳をDB、公開射影、Valkey、S3、通知queueへ再適用し、件数とterminal hashを照合する。</p></div></li>
+          <li><div><h4>閉域で再検証する</h4><p>読取、代表書込、監査、Outbox、認証、file配布、backupを確認し、全項目の合格後だけ公開する。</p></div></li>
+        </ol>
+        <aside class="callout callout--danger">
+          <p>ロールバック先に失効前の秘密、危険な公開設定、暗黙の検査bypass、非対応schemaが含まれる場合はロールバックしない。</p>
+          <p>その場合は公開を閉じたまま前進修復する。</p>
+        </aside>
+      </section>
+
+      <section class="section" id="open-items">
+        <header class="section__header">
+          <p class="section__label">11 / Open</p>
+          <h2>未確定事項と承認時の質問</h2>
+          <p class="section__lede">値を推測せず、工程の開始条件または見積条件として残す。</p>
+        </header>
+        <article class="record" id="OPN-201">
+          <header class="record__header"><span class="record__id">OPN-201</span><h3 class="record__title">体制とカレンダー見積</h3><span class="status status--open">未確定</span></header>
+          <dl class="record__meta"><div><dt>種別</dt><dd>未確定事項</dd></div><div><dt>規範強度</dt><dd>計画確定前に必須</dd></div><div><dt>解消条件</dt><dd>担当人数、役割、稼働率、承認者、外部環境の利用可能日を確定する。</dd></div></dl>
+          <p class="record__statement">工数と日付は、体制、並列可能数、外部基盤、レビュー所要時間が未確定のため約束値を置かない。</p>
+        </article>
+        <article class="record" id="OPN-202">
+          <header class="record__header"><span class="record__id">OPN-202</span><h3 class="record__title">破壊禁止事項とロールバック前提</h3><span class="status status--open">未確定</span></header>
+          <dl class="record__meta"><div><dt>種別</dt><dd>未確定事項</dd></div><div><dt>規範強度</dt><dd>Phase 0承認前に必須</dd></div><div><dt>解消条件</dt><dd>既存基盤、データ、設定、公開URL、外部契約の変更禁止範囲を承認記録へ固定する。</dd></div></dl>
+          <p class="record__statement">既存オンプレ基盤と外部サービスに対して、変更可能な範囲と復旧責任者を明示する。</p>
+        </article>
+        <div class="table-wrap">
+          <table>
+            <caption>Phase 0の承認で回答する事項</caption>
+            <thead><tr><th scope="col">分類</th><th scope="col">確認事項</th><th scope="col">未回答時</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">前提条件</th><td>利用できるPostgreSQL、Valkey、ClamAV、S3、Stripe、SMTP、監視、検証環境は何か。</td><td>外部接続を伴う作業へ進まない。</td></tr>
+              <tr><th scope="row">破壊禁止</th><td>既存データ、共有基盤、公開URL、外部契約、設定のうち変更禁止の対象は何か。</td><td>変更を行わない。</td></tr>
+              <tr><th scope="row">優先制約</th><td>安全性、互換性、可読性、納期、費用の競合時に、HLDの優先順位をそのまま適用するか。</td><td>HLDの優先順位を維持し、競合を承認へ戻す。</td></tr>
+              <tr><th scope="row">実装粒度</th><td>一つのPRまたはコミットで許容する要求数、レビュー時間、並列作業数はどこまでか。</td><td>CON-203の一責務単位を上限にする。</td></tr>
+              <tr><th scope="row">ロールバック</th><td>N-1保持期間、DB contractの承認者、停止時間、前進修復責任者は誰か。</td><td>破壊的変更とcontractを実行しない。</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>承認後の次の行動</h3>
+        <ol>
+          <li>本計画、REQUIREMENTS、HLD、LLDの承認状態を更新する。</li>
+          <li>Phase 0を、一つの説明可能な責務ごとのコミットへ分解する。</li>
+          <li>OPN-104、OpenAPI、試験台帳、保護ブランチの順に実装して証拠を保存する。</li>
+          <li>Phase 0の完了判定後に限り、Phase 1の製品コード実装方針を提示して承認を得る。</li>
+        </ol>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <p>提案済み、承認待ち、実装開始不可、本番投入不可 · 計画版 0.1.0 · 最終確認 2026-09-01 · 正本 docs/IMPLEMENTATION-PLAN.html</p>
+    </footer>
+  </div>
+</body>
+</html>
