@@ -1428,7 +1428,7 @@
           <li><div><h4>入力を正規化</h4><p>function内部で許可field、型、UTF-8、最大64KiBを検査し、RFC 8785 canonical JSONを再生成する。呼出し側が渡したhash、sequence、previous hashは受理しない。</p></div></li>
           <li><div><h4>連鎖を原子更新</h4><p>advisory transaction lockを取得し、直前sequence／hashを同じtransactionで読取り、新sequence、previous hash、event hashを計算して一件だけINSERTする。canonicalization、INSERT、業務commandのどれかが失敗したらtransaction全体をrollbackする。</p></div></li>
           <li><div><h4>同時実行</h4><p>一意制約 <code>(sequence)</code> と <code>(event_id)</code>、直前hash一致制約により競合を直列化する。transaction失敗時は業務commandもrollbackし、監査なしの成功を返さない。</p></div></li>
-          <li><div><h4>緊急spool</h4><p>DB全体が利用不能で、かつ事前承認された復旧操作だけは、hostごとのTPM封印鍵で署名した <code>hostId + bootId + monotonicSequence + observedAt + monotonicTime + payloadHash</code> を暗号化append-only spoolへ書く。一般業務commandは停止する。</p></div></li>
+          <li><div><h4>緊急spool</h4><p>DB全体が利用不能で、かつ事前承認された復旧操作だけは、監査専用のGit管理外平文ファイルから読み込んだEd25519鍵で <code>hostId + bootId + monotonicSequence + observedAt + monotonicTime + payloadHash</code> を署名し、暗号化append-only spoolへ書く。一般業務commandは停止する。</p></div></li>
           <li><div><h4>統合</h4><p>DB回復後、host署名とhost内sequence連続性を検証し、<code>observedAt、hostId、bootId、monotonicSequence</code> の安定順にmergeする。取込eventは元時刻とhost sequenceを保持し、新しいDB sequenceを付与する。</p></div></li>
           <li><div><h4>検証</h4><p>各spool recordと取込recordの対応hash、未取込件数0、terminal hash、日次署名を二者確認するまでruntimeを<code>recovery_verification</code>から戻さない。曖昧な順序を隠さず<code>orderingConfidence</code>を記録する。</p></div></li>
         </ol>
@@ -1488,7 +1488,7 @@
               <tr><th scope="row"><code>MALWARE_SCAN_MODE</code>、<code>CLAMAV_HOST</code>、<code>CLAMAV_PORT</code>、<code>CLAMAV_CONNECT_TIMEOUT</code>、<code>CLAMAV_READ_TIMEOUT</code></th><td><code>required</code>または<code>bypass</code>。ClamAV接続値はrequired時だけ使用</td><td>Git管理外の平文設定ファイル</td><td>未知値・欠落は起動拒否。requiredは接続・定義・EICAR、bypassはsocket接続0と監査eventを確認</td></tr>
               <tr><th scope="row"><code>WEBAUTHN_RP_ID</code>、<code>WEBAUTHN_ALLOWED_ORIGINS</code></th><td>Passkey境界</td><td>Git管理外の平文設定ファイル</td><td>公開hostと完全一致、http・wildcard・local origin拒否</td></tr>
               <tr><th scope="row"><code>STRIPE_WEBHOOK_SECRET_FILE</code>、<code>STRIPE_API_KEY_FILE</code></th><td>本サービス請求だけ</td><td>Git管理外の用途別平文秘密ファイル</td><td>test/live mode一致、別用途共有なし、rotation状態</td></tr>
-              <tr><th scope="row"><code>AUDIT_SIGNING_KEY_REF</code>、<code>DELETION_LEDGER_ENDPOINT</code></th><td>監査固定点、独立台帳</td><td>TPM封印host鍵と管理network</td><td>key ID、公開鍵履歴、terminal hash、spool容量</td></tr>
+              <tr><th scope="row"><code>AUDIT_SIGNING_KEY_REF</code>、<code>DELETION_LEDGER_ENDPOINT</code></th><td>監査固定点、DB障害時spool署名、独立台帳</td><td>監査専用のGit管理外平文秘密ファイルと管理network</td><td>秘密ファイルの所有者・mode・読取り専用mount、key ID、公開鍵履歴、90日以内の更新期限、terminal hash、spool容量</td></tr>
               <tr><th scope="row"><code>FEATURE_KILL_SWITCH_SOURCE</code></th><td>認証、intake、upload、重要書込みの停止状態</td><td>監査schema＋署名済みruntime cache</td><td>取得不能は対象feature停止</td></tr>
             </tbody>
           </table>
@@ -1533,7 +1533,7 @@
         <h3>N／N-1互換性</h3>
         <div class="table-wrap table-wrap--compact">
           <table>
-            <caption>COMPAT-MATRIX — rolling deployとrollbackの許可範囲</caption>
+            <caption>COMPAT-MATRIX — N／N-1互換と単一ホストrollbackの許可範囲</caption>
             <thead><tr><th scope="col">組合せ</th><th scope="col">許可条件</th><th scope="col">拒否条件</th></tr></thead>
             <tbody>
               <tr><th scope="row">app N-1／DB expand N</th><td>新column nullableまたはserver default、旧CHECKが新値を拒まず、旧queryで未知行を安全に無視</td><td>rename、drop、型縮小、旧codeが未知stateを誤許可</td></tr>
@@ -1717,7 +1717,7 @@
               <tr><th scope="row"><a href="HLD.html#HLD-CNT-001"><code>HLD-CNT-001</code></a></th><td>non-root、read-only、cap drop、resource、digest、health</td><td>起動前構成検査、期限切れ例外、image署名</td></tr>
               <tr><th scope="row"><a href="HLD.html#HLD-AUD-001"><code>HLD-AUD-001</code></a></th><td>audit canonical fields、hash chain、DB role、日次checkpoint</td><td>変更、削除、並替、挿入、key rotation</td></tr>
               <tr><th scope="row"><a href="HLD.html#HLD-AUD-002"><code>HLD-AUD-002</code></a></th><td>time guard、monotonic fields、signed spool、80％停止、回復取込</td><td>NTPずれ、DB停止、spool満杯、順序保持</td></tr>
-              <tr><th scope="row"><a href="HLD.html#HLD-KEY-001"><code>HLD-KEY-001</code></a></th><td>secret mount、用途分離、TPM host key参照、rotation metadata</td><td>secret scan、漏えい訓練、旧公開鍵検証</td></tr>
+              <tr><th scope="row"><a href="HLD.html#HLD-KEY-001"><code>HLD-KEY-001</code></a></th><td>Git管理外のread-only secret mount、用途分離、監査鍵参照、rotation metadata</td><td>secret scan、所有者・mode検査、漏えい訓練、旧公開鍵検証</td></tr>
               <tr><th scope="row"><a href="HLD.html#HLD-DEL-001"><code>HLD-DEL-001</code></a></th><td>削除状態、独立台帳、再適用先、件数・hash gate</td><td>削除前backup復元、cache／projection／object／queue再露出</td></tr>
               <tr><th scope="row"><a href="HLD.html#HLD-SUP-001"><code>HLD-SUP-001</code></a></th><td>support request／grant、申請者分離、60分、mask、kill switch</td><td>無ticket、期限、範囲外、解除者同一、利用者監査</td></tr>
               <tr><th scope="row"><a href="HLD.html#HLD-DEP-001"><code>HLD-DEP-001</code></a></th><td>runtime service、network、構成key、readiness、capacity guard</td><td>node停止、容量閾値、依存順再起動</td></tr>
@@ -1855,8 +1855,8 @@
           <li><div><h4>静的品質</h4><p>format、compile、type check、lint、ArchUnit、SAST、secret scan、dependency／license、SBOM、container scanを実行する。</p></div></li>
           <li><div><h4>実行品質</h4><p>unit、module integration、API contract、認可、E2E、async fault、file securityを実行する。</p></div></li>
           <li><div><h4>release安全性</h4><p>backup age、隔離restore、migration N/N-1、rollback image、TLS、ClamAV、runtime guard、署名を検査する。</p></div></li>
-          <li><div><h4>限定反映</h4><p>本番hostへdigest固定imageを反映し、外部trafficを閉じたままsynthetic、error rate、p95、Outbox、DB、Amazon S3、capacityを確認する。</p></div></li>
-          <li><div><h4>全体反映とcontract</h4><p>段階切替後も旧imageを退避可能に保つ。DB contractはbackfill完了、二回のrelease成功、14日、旧trafficゼロ、restore成功後だけ行う。</p></div></li>
+          <li><div><h4>保守停止とN版反映</h4><p>単一hostの外部trafficを保守表示へ閉じ、digest固定N版を反映する。署名済みN-1 imageと互換する設定を、DB contractまでrollback可能な状態で保持する。</p></div></li>
+          <li><div><h4>閉域検証、公開、contract</h4><p>外部trafficを閉じたままsynthetic、error rate、p95、Outbox、DB、Amazon S3、capacityを確認し、全項目の合格後だけ公開する。不合格ならN-1へ戻すか前進修復する。DB contractはbackfill完了、二回のrelease成功、14日、旧trafficゼロ、restore成功後だけ行う。</p></div></li>
         </ol>
 
         <aside class="callout callout--danger"><strong>release判定</strong><p>要求test、security、復元、UI目視、法務確認、運用当番、rollbackの証拠が一件でも欠ける場合は本番投入不可とする。本書のレビュー承認だけでは本番投入可にならない。</p></aside>

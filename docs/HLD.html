@@ -763,11 +763,9 @@
           <caption>ルート・オブ・トラスト</caption>
           <thead><tr><th scope="col">階層</th><th scope="col">用途</th><th scope="col">保管と使用</th><th scope="col">更新・災害復旧</th></tr></thead>
           <tbody>
-            <tr><td>アプリケーション秘密</td><td>Cookie、token、データ暗号化、Webhook検証</td><td>用途別のGit管理外ファイル。対象サービスUIDだけが読める</td><td>漏えい、担当変更、定期更新時。旧値は移行期間後に失効</td></tr>
-            <tr><td>外部資格情報</td><td>PostgreSQL、Valkey、Amazon S3、Stripe、SMTP</td><td>接続先と用途別に分離し、最小権限を付与する</td><td>漏えい、権限変更、提供元の期限到達時</td></tr>
-            <tr><td>監査署名鍵</td><td>監査連鎖の日次署名</td><td>通常アプリのデータ暗号鍵と分離した平文ファイル</td><td>年次または危殆化時。公開鍵と切替時刻を監査へ残す</td></tr>
-            <tr><td>アプリ秘密</td><td>DB、Stripe、メール、セッション、署名URL</td><td>用途別・環境別に分離し、実行時secret mountだけへ注入</td><td>90日。漏えい時は外部依存→セッション→DBの順に影響を閉じて更新</td></tr>
-            <tr><td>監査署名鍵</td><td>日次チェックポイントのEd25519署名</td><td>監査専用ホスト鍵から分離し、公開鍵履歴を永続保存</td><td>90日。旧公開鍵と有効期間を削除しない</td></tr>
+            <tr><td>アプリケーション生成秘密</td><td>セッション、CSRF、フィールド暗号化、token digest</td><td>用途別・環境別のGit管理外平文ファイル。対象サービスUIDだけが読み取り専用で使用する</td><td>90日を上限とし、漏えい、担当変更、権限変更時は即時更新する。旧値は移行期間後に失効する</td></tr>
+            <tr><td>外部資格情報</td><td>PostgreSQL、Valkey、Amazon S3、Stripe、SMTP</td><td>接続先・用途・環境別のGit管理外平文ファイルへ分離し、最小権限を付与する。共通ファイルへ集約しない</td><td>提供元の期限、漏えい、担当・権限変更時に対象ごとに失効・再発行する</td></tr>
+            <tr><td>監査署名鍵</td><td>日次チェックポイントとDB障害時spoolのEd25519署名</td><td>通常アプリの暗号鍵と分離した監査専用のGit管理外平文ファイル。秘密鍵を通常ログ・DBへ保存せず、公開鍵履歴を永続保存する</td><td>90日を上限とし、危殆化時は即時更新する。旧公開鍵、key ID、有効期間、切替時刻を削除しない</td></tr>
             <tr><td>バックアップ鍵</td><td>DB、設定、削除台帳の暗号化</td><td>通常アプリから到達不能な運用者管理ファイルとして保管</td><td>1年。新鍵で新規取得し、旧鍵は保持期限終了まで復号専用</td></tr>
           </tbody>
         </table>
@@ -916,8 +914,8 @@
       <ol class="step-list">
         <li><div><h3>ビルドと供給網検査</h3><p>固定依存、SBOM、ライセンス、静的解析、テスト、秘密検査、コンテナ脆弱性検査を実行し、成果物へ署名する。</p></div></li>
         <li><div><h3>前方互換マイグレーション</h3><p>expandを先行し、現行N版と直前N-1版が同じDBへ接続できることを検証する。バックアップと復元検証が期限内でなければ実行しない。</p></div></li>
-        <li><div><h3>限定反映</h3><p>一部インスタンスへ反映し、起動前検査、合成試験、エラー率、p95、Outbox、DB負荷を確認する。</p></div></li>
-        <li><div><h3>全体反映</h3><p>段階的に切り替え、旧版を即時退避できる状態で維持する。フェイルクローズ条件に触れた場合は自動停止する。</p></div></li>
+        <li><div><h3>保守停止とN版反映</h3><p>単一ホストへの外部トラフィックを保守表示へ閉じ、digest固定N版を反映する。N-1版はDB contractまで署名済みdigestと設定互換性を検証した状態で保持する。</p></div></li>
+        <li><div><h3>閉域検証と公開</h3><p>外部トラフィックを閉じたまま起動前検査、合成試験、エラー率、p95、Outbox、DB負荷、Amazon S3、容量を確認する。全項目が合格した場合だけ公開し、不合格ならN-1へ戻すか前進修復する。</p></div></li>
         <li><div><h3>契約整理</h3><p>backfill完了、二回の本番リリース成功、14日経過、旧版トラフィックゼロを確認した後だけcontractを実行する。以後はDB逆変換をせず前進修復する。</p></div></li>
       </ol>
       <div class="table-wrap">
@@ -1109,7 +1107,7 @@
             <tr id="DEC-103"><th scope="row"><a href="#DEC-103">DEC-103</a></th><td>非同期基盤</td><td>PostgreSQL Transactional Outbox</td><td>専用メッセージブローカーは現時点の量に対して運用部品を増やす。</td><td>Outbox処理量、保持、配信遅延がPostgreSQLの主要負荷になる。</td></tr>
             <tr id="DEC-104"><th scope="row"><a href="#DEC-104">DEC-104</a></th><td>ファイル受入</td><td>Amazon S3の隔離／受入／プレビュー／配信bucket分離、アップロード制御API、BrowserからS3への直接multipart転送</td><td>専用data ingressやアプリ本文中継は4GB転送の帯域・メモリ・タイムアウト・単一障害点を増やす。同一公開バケット内のタグ制御は誤公開時の影響が広い。</td><td>用途分離、version ID、検査状態、checksum、公開アクセス遮断を維持できる方式。</td></tr>
             <tr id="DEC-105"><th scope="row"><a href="#DEC-105">DEC-105</a></th><td>本番配置</td><td>単一オンプレミスアプリケーションホストと外部接続型の既存オンプレミス基盤</td><td>複数アプリケーションノードは現在の運用方針と費用範囲を超える。</td><td>実測SLOまたは容量が単一ホストで達成不能となった場合。</td></tr>
-            <tr id="DEC-106"><th scope="row"><a href="#DEC-106">DEC-106</a></th><td>DB変更</td><td>expand／migrate／contract</td><td>破壊的な一括マイグレーションはロールバックと段階反映を妨げる。</td><td>原則維持。例外は停止時間と復元を事前実証した単発保守のみ。</td></tr>
+            <tr id="DEC-106"><th scope="row"><a href="#DEC-106">DEC-106</a></th><td>DB変更</td><td>expand／migrate／contract</td><td>破壊的な一括マイグレーションはN／N-1互換、単一ホストrollback、前進修復を妨げる。</td><td>原則維持。例外は停止時間と復元を事前実証した単発保守のみ。</td></tr>
             <tr id="DEC-107"><th scope="row"><a href="#DEC-107">DEC-107</a></th><td>クラウド</td><td>採算・安全・改善の全条件を満たした場合のみ移行</td><td>技術的な利便性だけの移行は粗利、エグレス、データ統制の悪化を見落とす。</td><td>要件定義の全ゲートを3か月実績で満たす。</td></tr>
             <tr id="DEC-108"><th scope="row"><a href="#DEC-108">DEC-108</a></th><td>テナント隔離</td><td>workspace_idをDB複合制約、リポジトリ、検索、バッチ、管理操作へ通す</td><td>アプリ画面とサービス層だけの検査は単一の認可漏れで越境する。</td><td>同等以上のDB強制と境界テストを持つ方式。</td></tr>
             <tr id="DEC-109"><th scope="row"><a href="#DEC-109">DEC-109</a></th><td>合意の正本</td><td>RFC 8785正規化JSON、SHA-256、renderer version、locale、time zoneを固定</td><td>表示HTMLそのものは実装変更で変動し、過去合意を安定再現できない。</td><td>同じ意味が環境に依存せず同じハッシュになる標準へ移行。</td></tr>
