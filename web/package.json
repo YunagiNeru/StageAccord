@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:test": "tsc -b && vite build --mode test",
     "typecheck": "tsc -b --pretty false",
     "test": "vitest run",
-    "test:e2e": "playwright test",
+    "test:e2e": "pnpm build:test && playwright test",
     "preview": "vite preview",
     "generate:api": "openapi-typescript ../contracts/openapi.json -o src/api/schema.d.ts"
   },

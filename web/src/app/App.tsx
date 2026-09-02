@@ -2,12 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import type { SessionSnapshot } from "../domain/session";
 import { SessionService } from "../domain/session";
-import { DemoSessionRepository } from "../infrastructure/DemoSessionRepository";
+import { HttpSessionRepository } from "../infrastructure/HttpSessionRepository";
+import { useApiEnvironment } from "../api/ApiContext";
 import { AppShell } from "../components/AppShell";
 import { DashboardPage } from "../pages/DashboardPage";
 import { RequestsPage } from "../pages/RequestsPage";
 import { ServicesPage, WorkflowsPage } from "../pages/CatalogPages";
 import { ProjectPage } from "../pages/ProjectPage";
+import { ProjectsPage } from "../pages/ProjectsPage";
 import { SettingsPage } from "../pages/SettingsPage";
 import { AdminPage } from "../pages/AdminPage";
 import { ClientPortalPage, CreatorProfilePage, ServiceDetailPage } from "../pages/PublicPages";
@@ -18,7 +20,10 @@ import { StatusView } from "../components/StatusView";
 const initialSession: SessionSnapshot = { status: "initializing" };
 
 export function App() {
-  const service = useMemo(() => new SessionService(new DemoSessionRepository()), []);
+  const environment = useApiEnvironment();
+  const service = useMemo(() => new SessionService(new HttpSessionRepository(
+    environment.client, environment.workspaceId,
+  )), [environment]);
   const [session, setSession] = useState(initialSession);
   const location = useLocation();
 
@@ -48,6 +53,7 @@ export function App() {
         <Route path="/app/requests" element={<RequestsPage />} />
         <Route path="/app/services" element={<ServicesPage />} />
         <Route path="/app/workflows" element={<WorkflowsPage />} />
+        <Route path="/app/projects" element={<ProjectsPage />} />
         <Route path="/app/projects/:projectId" element={<ProjectPage />} />
         <Route path="/app/settings/:section" element={<SettingsPage />} />
         <Route path="/admin/:section" element={<AdminPage />} />

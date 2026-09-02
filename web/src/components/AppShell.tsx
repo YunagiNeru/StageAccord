@@ -1,12 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Bell, BriefcaseBusiness, Command, Inbox, LayoutDashboard, Menu, Settings2, Shapes, X } from "lucide-react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import type { SessionSnapshot } from "../domain/session";
+import { useApiEnvironment, useApiResource } from "../api/ApiContext";
 
 const navigation = [
   { to: "/app", label: "概要", icon: LayoutDashboard, end: true },
   { to: "/app/requests", label: "受付", icon: Inbox, end: false },
-  { to: "/app/projects/demo-project", label: "プロジェクト", icon: BriefcaseBusiness, end: false },
+  { to: "/app/projects", label: "プロジェクト", icon: BriefcaseBusiness, end: false },
   { to: "/app/services", label: "サービス", icon: Shapes, end: false },
   { to: "/app/settings/notifications", label: "設定", icon: Settings2, end: false },
 ] as const;
@@ -18,6 +19,9 @@ export function AppShell({ session }: { readonly session: SessionSnapshot }) {
   const searchRef = useRef<HTMLInputElement>(null);
   const paletteRef = useRef<HTMLDialogElement>(null);
   const navigate = useNavigate();
+  const { client } = useApiEnvironment();
+  const notificationLoader = useCallback(() => client.listNotifications(), [client]);
+  const notifications = useApiResource(notificationLoader, [notificationLoader]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -65,7 +69,11 @@ export function AppShell({ session }: { readonly session: SessionSnapshot }) {
           <button className="icon-button mobile-only" aria-label="メニューを開く" onClick={() => setMenuOpen(true)}><Menu /></button>
           <button className="command-trigger" onClick={() => setPaletteOpen(true)}><Command size={16} /><span>移動・検索</span><kbd>⌘ K</kbd></button>
           <button className="icon-button" aria-label="通知" aria-expanded={notificationsOpen} onClick={() => setNotificationsOpen((open) => !open)}><Bell /></button>
-          {notificationsOpen && <aside className="notification-popover" aria-label="通知一覧"><header><strong>通知</strong><button className="icon-button" aria-label="通知を閉じる" onClick={() => setNotificationsOpen(false)}><X /></button></header><ol><li><span className="activity-dot activity-dot--waiting" /><div><strong>確認期限が近づいています</strong><small>ブランドサイト制作 · 9月5日</small></div></li><li><span className="activity-dot activity-dot--new" /><div><strong>新しい依頼が届きました</strong><small>今日 09:18</small></div></li></ol></aside>}
+          {notificationsOpen && <aside className="notification-popover" aria-label="通知一覧"><header><strong>通知</strong><button className="icon-button" aria-label="通知を閉じる" onClick={() => setNotificationsOpen(false)}><X /></button></header>
+            {notifications.status === "loading" && <p aria-busy="true">読み込み中…</p>}
+            {notifications.status === "error" && <button className="secondary-button" type="button" onClick={notifications.reload}>再読み込み</button>}
+            {notifications.status === "ready" && (notifications.data.length === 0 ? <p>新しい通知はありません。</p> : <ol>{notifications.data.slice(0, 8).map((item) => <li key={item.id}><span className={`activity-dot ${item.readAt ? "activity-dot--complete" : "activity-dot--new"}`} /><div><strong>{item.templateKey}</strong><small>{item.category} · {new Intl.DateTimeFormat("ja-JP", { dateStyle: "short", timeStyle: "short" }).format(new Date(item.createdAt))}</small>{!item.readAt && <button className="row-action" type="button" onClick={async () => { await client.markNotificationRead(item.id); notifications.reload(); }}>既読にする</button>}</div></li>)}</ol>)}
+          </aside>}
         </header>
         <main className="main-content"><Outlet /></main>
       </div>

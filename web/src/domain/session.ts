@@ -2,6 +2,7 @@ export type SessionStatus = "initializing" | "anonymous" | "authenticated" | "de
 
 export interface SessionSnapshot {
   readonly status: SessionStatus;
+  readonly workspaceId?: string;
   readonly workspaceName?: string;
   readonly actorName?: string;
 }

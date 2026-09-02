@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { AlertTriangle, CheckCircle2, CircleSlash2, LoaderCircle, SearchX } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
+import type { ResourceState } from "../api/ApiContext";
 
 export type Tone = "neutral" | "info" | "success" | "warning" | "danger";
 
@@ -35,6 +36,32 @@ export function ScenarioBoundary({ children, emptyTitle = "表示する項目は
   return <>{children}</>;
 }
 
+export function ResourceBoundary<T>({ resource, children, empty, emptyTitle = "表示する項目はありません" }: {
+  readonly resource: ResourceState<T>;
+  readonly children: (data: T) => ReactNode;
+  readonly empty?: (data: T) => boolean;
+  readonly emptyTitle?: string;
+}) {
+  if (resource.status === "loading") return <div className="skeleton-list" aria-label="読み込み中" aria-busy="true"><i /><i /><i /></div>;
+  if (resource.status === "error") {
+    const views = {
+      anonymous: [CircleSlash2, "ログイン状態を確認できません", "ログインし直してください。"],
+      forbidden: [CircleSlash2, "この画面を表示する権限がありません", "権限が更新された場合は、再度ログインしてください。"],
+      expired: [AlertTriangle, "操作期限が切れました", "現在の状態を読み込み直してください。"],
+      conflict: [AlertTriangle, "ほかの操作が先に反映されました", "最新状態を読み込んでから、もう一度操作してください。"],
+      degraded: [LoaderCircle, "一部の情報を取得できません", "復旧するまで、この画面からの変更はできません。"],
+      invalid: [AlertTriangle, "要求を完了できませんでした", resource.message],
+      unexpected: [AlertTriangle, "情報を取得できませんでした", resource.message],
+    } as const;
+    const [Icon, title, detail] = views[resource.kind];
+    return <section className="inline-state" role={resource.kind === "degraded" || resource.kind === "unexpected" ? "alert" : "status"}>
+      <Icon aria-hidden="true" /><h2>{title}</h2><p>{detail}</p><button className="secondary-button" type="button" onClick={resource.reload}>再読み込み</button>
+    </section>;
+  }
+  if (empty?.(resource.data)) return <section className="inline-state" role="status"><SearchX aria-hidden="true" /><h2>{emptyTitle}</h2></section>;
+  return <>{children(resource.data)}</>;
+}
+
 export function SegmentedTabs({ tabs, active, onChange, label }: {
   readonly tabs: readonly string[]; readonly active: string;
   readonly onChange: (tab: string) => void; readonly label: string;
@@ -43,6 +70,7 @@ export function SegmentedTabs({ tabs, active, onChange, label }: {
     <button key={tab} type="button" role="tab" aria-selected={active === tab} onClick={() => onChange(tab)}>{tab}</button>)}</div>;
 }
 
-export function ActionResult({ children }: { readonly children: ReactNode }) {
-  return <p className="action-result" role="status"><CheckCircle2 aria-hidden="true" size={17} />{children}</p>;
+export function ActionResult({ children, tone = "success" }: { readonly children: ReactNode; readonly tone?: "success" | "danger" }) {
+  const Icon = tone === "success" ? CheckCircle2 : AlertTriangle;
+  return <p className={`action-result action-result--${tone}`} role={tone === "danger" ? "alert" : "status"}><Icon aria-hidden="true" size={17} />{children}</p>;
 }
