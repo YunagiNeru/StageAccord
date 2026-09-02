@@ -20,6 +20,7 @@ Thumbs.db
 
 # ローカル移行元・秘密・配備台帳
 .env.local
+backend/src/main/resources/application.properties
 deploy/ansible/inventory/production/hosts.yml
 deploy/ansible/inventory/production/host_vars/
 deploy/secrets/application/

@@ -12,7 +12,10 @@ public class StageAccordWorker {
 
     public static void main(String[] args) {
         SpringApplication application = new SpringApplication(StageAccordWorker.class);
-        application.setDefaultProperties(Map.of("spring.profiles.active", "local,worker"));
+        application.setDefaultProperties(Map.of(
+                "spring.profiles.active", "local,worker",
+                "spring.config.additional-location",
+                "optional:file:./src/main/resources/application.properties,optional:file:./config/application.properties"));
         application.run(args);
     }
 }

@@ -1,11 +1,10 @@
 package com.stageaccord.bootstrap;
 
 import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.boot.EnvironmentPostProcessor;
@@ -17,18 +16,35 @@ import org.springframework.core.env.Profiles;
 final class RuntimeConfigurationGuard implements EnvironmentPostProcessor {
 
     private static final Set<String> LOOPBACK_HOSTS = Set.of("localhost", "127.0.0.1", "::1", "0.0.0.0");
-    private static final List<String> SHARED_FILES = List.of(
-            "stage-accord.secrets.db-username-file", "stage-accord.secrets.db-password-file",
-            "stage-accord.secrets.valkey-username-file", "stage-accord.secrets.valkey-password-file",
-            "stage-accord.secrets.field-encryption-key-file");
-    private static final List<String> APPLICATION_FILES = List.of(
-            "stage-accord.secrets.s3-access-key-id-file", "stage-accord.secrets.s3-secret-access-key-file",
-            "stage-accord.secrets.stripe-api-key-file", "stage-accord.secrets.stripe-webhook-secret-file",
-            "stage-accord.secrets.session-hmac-key-file", "stage-accord.secrets.csrf-hmac-key-file");
-    private static final List<String> WORKER_FILES = List.of(
-            "stage-accord.secrets.s3-worker-access-key-id-file",
-            "stage-accord.secrets.s3-worker-secret-access-key-file",
-            "stage-accord.secrets.mail-username-file", "stage-accord.secrets.mail-password-file");
+    private static final Map<String, Integer> SECRET_MINIMUM_LENGTHS = Map.ofEntries(
+            Map.entry("stage-accord.database.username", 1),
+            Map.entry("stage-accord.database.password", 1),
+            Map.entry("stage-accord.valkey.username", 1),
+            Map.entry("stage-accord.valkey.password", 1),
+            Map.entry("stage-accord.object-storage.application.access-key-id", 16),
+            Map.entry("stage-accord.object-storage.application.secret-access-key", 32),
+            Map.entry("stage-accord.object-storage.worker.access-key-id", 16),
+            Map.entry("stage-accord.object-storage.worker.secret-access-key", 32),
+            Map.entry("stage-accord.billing.stripe.api-key", 16),
+            Map.entry("stage-accord.billing.stripe.webhook-secret", 16),
+            Map.entry("stage-accord.mail.ses.access-key-id", 1),
+            Map.entry("stage-accord.mail.ses.secret-access-key", 16),
+            Map.entry("stage-accord.security.session-hmac-key", 32),
+            Map.entry("stage-accord.security.csrf-hmac-key", 32),
+            Map.entry("stage-accord.security.field-encryption-key", 32));
+    private static final List<String> SHARED_SECRETS = List.of(
+            "stage-accord.database.username", "stage-accord.database.password",
+            "stage-accord.valkey.username", "stage-accord.valkey.password",
+            "stage-accord.security.field-encryption-key");
+    private static final List<String> APPLICATION_SECRETS = List.of(
+            "stage-accord.object-storage.application.access-key-id",
+            "stage-accord.object-storage.application.secret-access-key",
+            "stage-accord.billing.stripe.api-key", "stage-accord.billing.stripe.webhook-secret",
+            "stage-accord.security.session-hmac-key", "stage-accord.security.csrf-hmac-key");
+    private static final List<String> WORKER_SECRETS = List.of(
+            "stage-accord.object-storage.worker.access-key-id",
+            "stage-accord.object-storage.worker.secret-access-key",
+            "stage-accord.mail.ses.access-key-id", "stage-accord.mail.ses.secret-access-key");
 
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
@@ -50,7 +66,7 @@ final class RuntimeConfigurationGuard implements EnvironmentPostProcessor {
         validateAmazonS3(environment);
         validateScanMode(environment);
         validateWebAuthn(environment);
-        validateSecretFiles(environment, application, worker);
+        validateSecrets(environment, application, worker);
         if (application) validateStripeMode(environment);
     }
 
@@ -107,26 +123,22 @@ final class RuntimeConfigurationGuard implements EnvironmentPostProcessor {
         }
     }
 
-    private void validateSecretFiles(Environment environment, boolean application, boolean worker) {
-        List<String> required = new ArrayList<>(SHARED_FILES);
-        if (application) required.addAll(APPLICATION_FILES);
-        if (worker) required.addAll(WORKER_FILES);
+    private void validateSecrets(Environment environment, boolean application, boolean worker) {
+        List<String> required = new ArrayList<>(SHARED_SECRETS);
+        if (application) required.addAll(APPLICATION_SECRETS);
+        if (worker) required.addAll(WORKER_SECRETS);
         for (String property : required) {
-            Path path = Path.of(require(environment, property));
-            if (!path.isAbsolute() || !Files.isRegularFile(path) || !Files.isReadable(path)) {
+            String value = require(environment, property);
+            if (value.length() < SECRET_MINIMUM_LENGTHS.get(property)
+                    || value.contains("CHANGE_ME") || value.startsWith("test-")) {
                 throw invalid(property);
             }
         }
     }
 
     private void validateStripeMode(Environment environment) {
-        Path path = Path.of(require(environment, "stage-accord.secrets.stripe-api-key-file"));
-        try {
-            if (!Files.readString(path).strip().startsWith("sk_live_")) {
-                throw invalid("stage-accord.secrets.stripe-api-key-file");
-            }
-        } catch (java.io.IOException exception) {
-            throw new IllegalStateException("本番秘密ファイルを検証できません: stripe-api-key-file", exception);
+        if (!require(environment, "stage-accord.billing.stripe.api-key").startsWith("sk_live_")) {
+            throw invalid("stage-accord.billing.stripe.api-key");
         }
     }
 

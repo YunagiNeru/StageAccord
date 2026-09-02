@@ -22,7 +22,9 @@ class ApplicationConfigurationSyntaxTest {
     void singlePropertiesFileResolvesLocalApplicationProfile() {
         SpringApplication application = new SpringApplication(ConfigurationProbe.class);
         application.setWebApplicationType(WebApplicationType.NONE);
-        try (ConfigurableApplicationContext context = application.run("--spring.profiles.active=local,app")) {
+        try (ConfigurableApplicationContext context = application.run(
+                "--spring.config.name=application-test-fixture",
+                "--spring.profiles.active=local,app")) {
             assertThat(context.getEnvironment().getProperty("stage-accord.environment")).isEqualTo("local");
             assertThat(context.getEnvironment().getProperty("server.port")).isEqualTo("8080");
             assertThat(context.getEnvironment().getProperty("stage-accord.worker.inbound-business-routes-enabled"))
@@ -34,7 +36,9 @@ class ApplicationConfigurationSyntaxTest {
     void singlePropertiesFileResolvesLocalWorkerProfile() {
         SpringApplication application = new SpringApplication(ConfigurationProbe.class);
         application.setWebApplicationType(WebApplicationType.NONE);
-        try (ConfigurableApplicationContext context = application.run("--spring.profiles.active=local,worker")) {
+        try (ConfigurableApplicationContext context = application.run(
+                "--spring.config.name=application-test-fixture",
+                "--spring.profiles.active=local,worker")) {
             assertThat(context.getEnvironment().getProperty("stage-accord.environment")).isEqualTo("local");
             assertThat(context.getEnvironment().getProperty("server.port")).isEqualTo("8081");
             assertThat(context.getEnvironment().getProperty("stage-accord.worker.inbound-business-routes-enabled"))
@@ -45,7 +49,7 @@ class ApplicationConfigurationSyntaxTest {
     @Test
     void obsoleteApplicationYamlResourcesAreAbsent() {
         ClassLoader loader = getClass().getClassLoader();
-        assertThat(loader.getResource("application.properties")).isNotNull();
+        assertThat(loader.getResource("application-test-fixture.properties")).isNotNull();
         assertThat(List.of("application.yml", "application-production.yml", "application-app.yml",
                 "application-worker.yml")).allSatisfy(name -> assertThat(loader.getResource(name)).isNull());
     }

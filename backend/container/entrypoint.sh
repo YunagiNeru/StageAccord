@@ -19,12 +19,8 @@ if [ "${APP_ENVIRONMENT:-}" != "production" ]; then
   echo "production image refuses non-production environment" >&2
   exit 1
 fi
-if [ ! -d /run/secrets/application ]; then
-  echo "application secret directory is unavailable" >&2
-  exit 1
-fi
-if [ "${role}" = "worker" ] && [ ! -d /run/secrets/worker ]; then
-  echo "worker secret directory is unavailable" >&2
+if [ ! -r /opt/stageaccord/config/application.properties ]; then
+  echo "application.properties is unavailable" >&2
   exit 1
 fi
 

@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-"""単一のSpring設定と本番秘密ファイルを、秘密値を表示せず検証する。"""
+"""単一のSpring設定を、秘密値を表示せず検証する。"""
 from __future__ import annotations
 
 import argparse
 import ipaddress
 import os
 import re
-import stat
 import sys
 from pathlib import Path
 from urllib.parse import urlparse
@@ -17,42 +16,25 @@ HOST = re.compile(r"^(?=.{1,253}$)(?!.*\.\.)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9
 OCI = re.compile(r"^.+@sha256:[0-9a-f]{64}$")
 REGION = re.compile(r"^[a-z]{2}(?:-gov)?-[a-z]+-\d$")
 DURATION = re.compile(r"^[1-9]\d*(?:ms|s|m|h)$")
-INLINE_SECRET = re.compile(r"(?i)(sk_(?:live|test)_|AKIA[0-9A-Z]{16}|BEGIN [A-Z ]*PRIVATE KEY)")
 EXPECTED_PROFILES = {"app", "worker", "local", "production"}
 LOOPBACK_HOSTS = {"localhost", "127.0.0.1", "::1", "0.0.0.0"}
 
-SECRET_BINDINGS = {
-    "stage-accord.object-storage.application.access-key-id": "s3-application-access-key-id",
-    "stage-accord.object-storage.application.secret-access-key": "s3-application-secret-access-key",
-    "stage-accord.billing.stripe.api-key": "stripe-api-key",
-    "stage-accord.billing.stripe.webhook-secret": "stripe-webhook-secret",
-    "stage-accord.mail.ses.access-key-id": "ses-access-key-id",
-    "stage-accord.mail.ses.secret-access-key": "ses-secret-access-key",
-    "stage-accord.security.session-hmac-key": "session-hmac-key",
-    "stage-accord.security.csrf-hmac-key": "csrf-hmac-key",
-    "stage-accord.database.username": "db-username",
-    "stage-accord.database.password": "db-password",
-    "stage-accord.object-storage.worker.access-key-id": "s3-worker-access-key-id",
-    "stage-accord.object-storage.worker.secret-access-key": "s3-worker-secret-access-key",
-    "stage-accord.security.field-encryption-key": "field-encryption-key",
-}
-
-PRODUCTION_SECRET_PATHS = {
-    "stage-accord.secrets.db-username-file": ("application", "db-username", 1),
-    "stage-accord.secrets.db-password-file": ("application", "db-password", 16),
-    "stage-accord.secrets.valkey-username-file": ("application", "valkey-username", 1),
-    "stage-accord.secrets.valkey-password-file": ("application", "valkey-password", 16),
-    "stage-accord.secrets.s3-access-key-id-file": ("application", "s3-application-access-key-id", 16),
-    "stage-accord.secrets.s3-secret-access-key-file": ("application", "s3-application-secret-access-key", 32),
-    "stage-accord.secrets.s3-worker-access-key-id-file": ("worker", "s3-worker-access-key-id", 16),
-    "stage-accord.secrets.s3-worker-secret-access-key-file": ("worker", "s3-worker-secret-access-key", 32),
-    "stage-accord.secrets.stripe-api-key-file": ("application", "stripe-api-key", 16),
-    "stage-accord.secrets.stripe-webhook-secret-file": ("application", "stripe-webhook-secret", 16),
-    "stage-accord.secrets.mail-username-file": ("worker", "smtp-username", 1),
-    "stage-accord.secrets.mail-password-file": ("worker", "smtp-password", 16),
-    "stage-accord.secrets.session-hmac-key-file": ("application", "session-hmac-key", 32),
-    "stage-accord.secrets.csrf-hmac-key-file": ("application", "csrf-hmac-key", 32),
-    "stage-accord.secrets.field-encryption-key-file": ("application", "field-encryption-key", 32),
+SECRET_MINIMUM_LENGTHS = {
+    "stage-accord.database.username": 1,
+    "stage-accord.database.password": 1,
+    "stage-accord.valkey.username": 1,
+    "stage-accord.valkey.password": 1,
+    "stage-accord.object-storage.application.access-key-id": 16,
+    "stage-accord.object-storage.application.secret-access-key": 32,
+    "stage-accord.object-storage.worker.access-key-id": 16,
+    "stage-accord.object-storage.worker.secret-access-key": 32,
+    "stage-accord.billing.stripe.api-key": 16,
+    "stage-accord.billing.stripe.webhook-secret": 16,
+    "stage-accord.mail.ses.access-key-id": 1,
+    "stage-accord.mail.ses.secret-access-key": 16,
+    "stage-accord.security.session-hmac-key": 32,
+    "stage-accord.security.csrf-hmac-key": 32,
+    "stage-accord.security.field-encryption-key": 32,
 }
 
 
@@ -112,36 +94,20 @@ def validate_bucket(value: str, name: str) -> None:
     raise PreflightError(f"bucket名をIP形式にできません: {name}")
 
 
-def validate_secret_file(path: Path, minimum_bytes: int) -> None:
-    if not path.is_file() or path.stat().st_size < minimum_bytes:
-        raise PreflightError(f"秘密fileがないか短すぎます: {path}")
-    mode = stat.S_IMODE(path.stat().st_mode)
-    if mode & 0o027:
-        raise PreflightError(f"秘密fileの権限が過剰です: {path}")
-
-
 def validate_contract(common: dict[str, str], profiles: dict[str, dict[str, str]], schema_only: bool) -> None:
     if set(profiles) != EXPECTED_PROFILES:
         raise PreflightError(f"profile集合が不正です: {sorted(profiles)}")
     if common.get("spring.profiles.default") != "none":
         raise PreflightError("既定profileはnoneでなければなりません。")
-    expected_common_import = "optional:configtree:/run/secrets/application/,optional:configtree:/run/secrets/worker/"
-    if common.get("spring.config.import") != expected_common_import:
-        raise PreflightError("本番configtree importが不正です。")
-    expected_local_import = "optional:configtree:secrets/application/,optional:configtree:secrets/worker/"
-    if profiles["local"].get("spring.config.import") != expected_local_import:
-        raise PreflightError("local configtree importが不正です。")
-
     all_values = [common, *profiles.values()]
     for document in all_values:
         for name, value in document.items():
             if re.fullmatch(r"[A-Z][A-Z0-9_]*", name):
                 raise PreflightError(f"環境変数形式の旧設定キーを使用できません: {name}")
-            if INLINE_SECRET.search(value):
-                raise PreflightError(f"application.propertiesへ秘密値を直書きできません: {name}")
-    for name, filename in SECRET_BINDINGS.items():
-        if common.get(name) != "${" + filename + ":}":
-            raise PreflightError(f"秘密値のconfigtree参照が不正です: {name}")
+    for name, minimum_length in SECRET_MINIMUM_LENGTHS.items():
+        value = require(common, name)
+        if len(value) < minimum_length or "CHANGE_ME" in value or value.startswith("test-"):
+            raise PreflightError(f"秘密値が未設定または短すぎます: {name}")
 
     production = common | profiles["production"]
     if production.get("stage-accord.environment") != "production":
@@ -198,20 +164,11 @@ def validate_contract(common: dict[str, str], profiles: dict[str, dict[str, str]
     if not schema_only:
         validate_url(require(production, "stage-accord.valkey.url"), {"rediss"}, "stage-accord.valkey.url")
 
-    for name, (consumer, filename, minimum_bytes) in PRODUCTION_SECRET_PATHS.items():
-        expected = Path("/run/secrets") / consumer / filename
-        actual = Path(require(production, name))
-        if actual != expected:
-            raise PreflightError(f"本番秘密file pathが不正です: {name}")
-        if not schema_only:
-            validate_secret_file(actual, minimum_bytes)
-
     if not schema_only:
         for name in ("APP_IMAGE", "EDGE_IMAGE"):
             if not OCI.fullmatch(os.environ.get(name, "")):
                 raise PreflightError(f"OCI imageがdigest固定ではありません: {name}")
-        stripe_file = Path(require(production, "stage-accord.secrets.stripe-api-key-file"))
-        if not stripe_file.read_text(encoding="utf-8").strip().startswith("sk_live_"):
+        if not require(production, "stage-accord.billing.stripe.api-key").startswith("sk_live_"):
             raise PreflightError("本番Stripe keyがlive modeではありません。")
 
 

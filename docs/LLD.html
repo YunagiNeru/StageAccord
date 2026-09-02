@@ -1482,18 +1482,18 @@
             <thead><tr><th scope="col">key群</th><th scope="col">内容</th><th scope="col">供給元</th><th scope="col">起動前検査</th></tr></thead>
             <tbody>
               <tr><th scope="row"><code>stage-accord.environment</code></th><td><code>local</code>または<code>production</code>。実行ロールの<code>app</code>または<code>worker</code>と組み合わせる</td><td><code>application.properties</code>の環境別区画</td><td>環境とロールを各一つだけ許可し、値とactive profileの不一致を拒否</td></tr>
-              <tr><th scope="row"><code>stage-accord.database.*</code></th><td>PostgreSQLへの専用接続</td><td><code>application.properties</code>とGit管理外の秘密ファイル</td><td>資格情報をURLとpropertiesへ埋め込まず、TLS、専用role、schema version、N/N-1互換、DDL権限なし</td></tr>
-              <tr><th scope="row"><code>stage-accord.valkey.*</code></th><td>Valkeyのsession、rate、cache</td><td><code>application.properties</code>とGit管理外の秘密ファイル</td><td>TLS、認証、専用namespace、write/read。失敗時はauth入口を開かない</td></tr>
-              <tr><th scope="row"><code>stage-accord.object-storage.*</code></th><td>Amazon S3。quarantine、clean、preview、deliveryと用途別credentialを分離</td><td><code>application.properties</code>とGit管理外の秘密ファイル</td><td>productionでは公式endpoint、bucket policy、versioning、公開block、暗号化、用途外操作拒否</td></tr>
+              <tr><th scope="row"><code>stage-accord.database.*</code></th><td>PostgreSQLへの専用接続</td><td>Git・image・JAR管理外の単一<code>application.properties</code></td><td>資格情報をURLへ埋め込まず、TLS、専用role、schema version、N/N-1互換、DDL権限なし</td></tr>
+              <tr><th scope="row"><code>stage-accord.valkey.*</code></th><td>Valkeyのsession、rate、cache</td><td>Git・image・JAR管理外の単一<code>application.properties</code></td><td>TLS、認証、専用namespace、write/read。失敗時はauth入口を開かない</td></tr>
+              <tr><th scope="row"><code>stage-accord.object-storage.*</code></th><td>Amazon S3。quarantine、clean、preview、deliveryと用途別credentialを分離</td><td>Git・image・JAR管理外の単一<code>application.properties</code></td><td>productionでは公式endpoint、bucket policy、versioning、公開block、暗号化、用途外操作拒否</td></tr>
               <tr><th scope="row"><code>stage-accord.malware-scan.*</code></th><td><code>required</code>または<code>bypass</code>。ClamAV接続値はrequired時だけ使用</td><td><code>application.properties</code></td><td>未知値・欠落は起動拒否。requiredは接続・定義・EICAR、bypassはsocket接続0と監査eventを確認</td></tr>
               <tr><th scope="row"><code>stage-accord.webauthn.*</code></th><td>Passkey境界</td><td><code>application.properties</code></td><td>productionでは公開hostと完全一致、http・wildcard・local origin拒否</td></tr>
-              <tr><th scope="row"><code>stage-accord.billing.stripe.*</code></th><td>本サービス請求だけ</td><td><code>application.properties</code>とGit管理外の用途別秘密ファイル</td><td>test/live mode一致、別用途共有なし、rotation状態</td></tr>
-              <tr><th scope="row"><code>AUDIT_SIGNING_KEY_REF</code>、<code>DELETION_LEDGER_ENDPOINT</code></th><td>監査固定点、DB障害時spool署名、独立台帳</td><td>監査専用のGit管理外平文秘密ファイルと管理network</td><td>秘密ファイルの所有者・mode・読取り専用mount、key ID、公開鍵履歴、90日以内の更新期限、terminal hash、spool容量</td></tr>
+              <tr><th scope="row"><code>stage-accord.billing.stripe.*</code></th><td>本サービス請求だけ</td><td>Git・image・JAR管理外の単一<code>application.properties</code></td><td>test/live mode一致、別用途共有なし、rotation状態</td></tr>
+              <tr><th scope="row"><code>AUDIT_SIGNING_KEY_REF</code>、<code>DELETION_LEDGER_ENDPOINT</code></th><td>監査固定点、DB障害時spool署名、独立台帳</td><td>Git・image・JAR管理外の単一<code>application.properties</code>と管理network</td><td>key ID、公開鍵履歴、90日以内の更新期限、terminal hash、spool容量</td></tr>
               <tr><th scope="row"><code>FEATURE_KILL_SWITCH_SOURCE</code></th><td>認証、intake、upload、重要書込みの停止状態</td><td>監査schema＋署名済みruntime cache</td><td>取得不能は対象feature停止</td></tr>
             </tbody>
           </table>
         </div>
-        <p>秘密値は管理者がGit管理外の専用ファイルへ直接記載し、containerへread-only mountする。環境変数、repository、image layer、Compose定義へ値を埋め込まない。設定dump、Actuator、exception、support画面はkey名だけを示し、値をredactする。</p>
+        <p>秘密値は管理者がGit管理外の単一<code>application.properties</code>へ直接記載し、containerへread-only mountする。repository、image layer、JAR、Compose定義へ値を埋め込まない。設定dump、Actuator、exception、support画面はkey名だけを示し、値をredactする。</p>
 
         <h3>runtime guardとフェイルクローズ</h3>
         <div class="table-wrap">
@@ -1604,7 +1604,7 @@
             <tbody>
               <tr id="PHY-APPLICATION"><th scope="row">application-host-01</th><td>オンプレ1台。CPU、memory、diskは性能試験と4GB file同時実行試験で確定</td><td>edge、application、worker、download gateway、preview sandbox、監査spool、監視exporter</td><td>UPS、管理network、disk暗号化、交換host手順。DB、Valkey、Amazon S3はhost外</td><td>停止中はサービス停止。交換hostへ再構築し、復旧検証後に限定公開</td></tr>
               <tr id="PHY-DEPENDENCIES"><th scope="row">on-prem dependencies</th><td>既存運用中のPostgreSQL、Valkey、ClamAV専用host、監視、backup</td><td>既存基盤の担当範囲。アプリ専用DB／role／namespace／接続許可を払い出す</td><td>接続元allowlist、TLS、最小権限、運用連絡経路</td><td>依存別fail-close。アプリhost内へ代替DBやValkeyを自動起動しない</td></tr>
-              <tr id="PHY-S3"><th scope="row">Amazon S3</th><td>AWS選択region内の4用途bucket</td><td>quarantine、clean、preview、delivery。versioning、暗号化、公開block</td><td>AWS credentialは用途別秘密ファイル。browserへcredentialを渡さない</td><td>到達不能時はfile操作停止。オンプレobject storeへ自動切替しない</td></tr>
+              <tr id="PHY-S3"><th scope="row">Amazon S3</th><td>AWS選択region内の4用途bucket</td><td>quarantine、clean、preview、delivery。versioning、暗号化、公開block</td><td>AWS credentialは単一<code>application.properties</code>内で用途別keyを使用する。browserへcredentialを渡さない</td><td>到達不能時はfile操作停止。オンプレobject storeへ自動切替しない</td></tr>
               <tr id="PHY-OPERATOR"><th scope="row">operator zone</th><td>管理端末、踏み台、監視。一般利用端末と分離</td><td>VPN、MFA、support approval、Ansible、監視UI、backup verification</td><td>端末証明書、期限付きaccess、録画／監査</td><td>到達不能でも一般系を危険に開かず管理操作を停止</td></tr>
             </tbody>
           </table>

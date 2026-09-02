@@ -11,7 +11,7 @@ SPEC.loader.exec_module(preflight)
 class ProductionPreflightTest(unittest.TestCase):
     def setUp(self):
         self.common, self.profiles = preflight.load_properties_documents(
-            ROOT / "backend/src/main/resources/application.properties"
+            ROOT / "backend/src/test/resources/application-test-fixture.properties"
         )
 
     def test_current_single_file_schema_contract(self):
