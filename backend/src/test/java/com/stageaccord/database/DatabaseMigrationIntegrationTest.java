@@ -512,7 +512,7 @@ class DatabaseMigrationIntegrationTest {
                 .locations("classpath:db/migration")
                 .load();
         flyway.clean();
-        assertThat(flyway.migrate().migrationsExecuted).isEqualTo(10);
+        assertThat(flyway.migrate().migrationsExecuted).isEqualTo(11);
         return flyway;
     }
 
