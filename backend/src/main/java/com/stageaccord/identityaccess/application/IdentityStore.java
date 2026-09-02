@@ -75,4 +75,8 @@ public interface IdentityStore {
     Optional<String> findPasskeyExternalId(UUID accountId, UUID credentialId);
 
     void activateAccount(UUID accountId);
+
+    Optional<ClientSessionDescriptor> findClientSession(byte[] tokenDigest, String digestKeyId);
+
+    void touchClientSession(UUID workspaceId, UUID sessionId, Instant lastSeenAt);
 }

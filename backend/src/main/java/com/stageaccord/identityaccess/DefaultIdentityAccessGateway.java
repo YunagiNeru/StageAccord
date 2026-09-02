@@ -3,6 +3,7 @@ package com.stageaccord.identityaccess;
 import org.springframework.stereotype.Component;
 
 import com.stageaccord.identityaccess.api.AuthenticatedPrincipal;
+import com.stageaccord.identityaccess.api.AuthenticatedClient;
 import com.stageaccord.identityaccess.api.IdentityAccessGateway;
 import com.stageaccord.identityaccess.api.IssuedOpaqueToken;
 import com.stageaccord.identityaccess.application.IdentityAccessService;
@@ -28,6 +29,21 @@ public final class DefaultIdentityAccessGateway implements IdentityAccessGateway
         var account = store.findAuthenticationByAccountId(session.accountId()).orElseThrow();
         return new AuthenticatedPrincipal(session.accountId(), account.emailDigest(),
                 session.strength().name().toLowerCase(java.util.Locale.ROOT), session.authenticatedAt());
+    }
+
+    @Override
+    public AuthenticatedClient resolveClient(String sessionToken) {
+        if (sessionToken == null || sessionToken.isBlank()) {
+            throw com.stageaccord.identityaccess.application.IdentityApplicationException.of(
+                    com.stageaccord.identityaccess.application.IdentityApplicationException.Code.AUTHENTICATION_REQUIRED);
+        }
+        var session = store.findClientSession(secrets.tokenDigest(sessionToken), "identity-v1")
+                .filter(item -> item.revokedAt() == null && java.time.Instant.now().isBefore(item.absoluteExpiresAt()))
+                .orElseThrow(() -> com.stageaccord.identityaccess.application.IdentityApplicationException.of(
+                        com.stageaccord.identityaccess.application.IdentityApplicationException.Code.AUTHENTICATION_REQUIRED));
+        store.touchClientSession(session.workspaceId(), session.id(), java.time.Instant.now());
+        return new AuthenticatedClient(session.workspaceId(), session.id(), session.projectId(), session.role(),
+                session.authGeneration(), session.authenticatedAt(), session.absoluteExpiresAt());
     }
 
     @Override

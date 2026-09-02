@@ -17,6 +17,7 @@ import com.stageaccord.identityaccess.application.AccountAuthentication;
 import com.stageaccord.identityaccess.application.AuthChallenge;
 import com.stageaccord.identityaccess.application.AuthFactorDescriptor;
 import com.stageaccord.identityaccess.application.ClientAccessGrant;
+import com.stageaccord.identityaccess.application.ClientSessionDescriptor;
 import com.stageaccord.identityaccess.application.IdentityStore;
 import com.stageaccord.identityaccess.application.ProtectedValue;
 import com.stageaccord.identityaccess.application.SessionDescriptor;
@@ -347,6 +348,26 @@ public class JdbcIdentityStore implements IdentityStore {
         int updated = jdbc.update("UPDATE iam.account SET status='active',version=version+1 "
                 + "WHERE id=? AND status='pending'", accountId);
         if (updated > 1) throw new IllegalStateException("multiple accounts updated");
+    }
+
+    @Override
+    public Optional<ClientSessionDescriptor> findClientSession(byte[] tokenDigest, String digestKeyId) {
+        return jdbc.query("""
+                SELECT workspace_id,id,project_id,client_role,auth_generation,authenticated_at,
+                       last_seen_at,absolute_expires_at,revoked_at
+                FROM iam.client_session WHERE token_digest=? AND digest_key_id=?
+                """, (r, n) -> new ClientSessionDescriptor(r.getObject(1, UUID.class),
+                        r.getObject(2, UUID.class), r.getObject(3, UUID.class), r.getString(4), r.getInt(5),
+                        r.getTimestamp(6).toInstant(), r.getTimestamp(7).toInstant(),
+                        r.getTimestamp(8).toInstant(), instant(r.getTimestamp(9))),
+                tokenDigest, digestKeyId).stream().findFirst();
+    }
+
+    @Override
+    public void touchClientSession(UUID workspaceId, UUID sessionId, Instant lastSeenAt) {
+        requireSingle(jdbc.update("UPDATE iam.client_session SET last_seen_at=? "
+                + "WHERE workspace_id=? AND id=? AND revoked_at IS NULL",
+                Timestamp.from(lastSeenAt), workspaceId, sessionId));
     }
 
     private AuthChallenge mapChallenge(ResultSet result, int row) throws SQLException {
