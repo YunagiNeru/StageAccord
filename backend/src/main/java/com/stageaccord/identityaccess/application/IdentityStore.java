@@ -41,4 +41,32 @@ public interface IdentityStore {
     void revokeSession(UUID accountId, UUID sessionId, Instant revokedAt);
 
     void revokeAllSessions(UUID accountId, Instant revokedAt);
+
+    void refreshSession(UUID sessionId, Instant authenticatedAt);
+
+    List<AuthFactorDescriptor> listFactors(UUID accountId);
+
+    int countActiveCredentials(UUID accountId, String type);
+
+    void revokeCredentials(UUID accountId, String type, UUID credentialId);
+
+    int replacePasswordAndAdvanceGeneration(UUID accountId, String encodedPassword);
+
+    int advanceAuthGeneration(UUID accountId);
+
+    void invalidateRecoveryCodes(UUID accountId, Instant usedAt);
+
+    UUID createRecoveryCase(UUID accountId, String method, Instant requestedAt, Instant notBefore);
+
+    Optional<RecoveryCase> lockRecoveryCase(UUID id);
+
+    boolean consumeRecoveryCode(UUID accountId, int generation, byte[] digest, Instant usedAt);
+
+    void completeRecoveryCase(UUID id, Instant completedAt);
+
+    Optional<ClientAccessGrant> lockClientAccessGrant(byte[] tokenDigest, String digestKeyId);
+
+    void consumeClientAccessGrant(UUID workspaceId, UUID id, Instant consumedAt);
+
+    void createClientSession(ClientAccessGrant grant, SessionDescriptor session);
 }

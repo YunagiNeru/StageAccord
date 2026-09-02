@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -35,6 +36,7 @@ import jakarta.validation.constraints.Size;
 @RequestMapping("/api/v1/auth")
 public final class IdentityController {
     static final String SESSION_COOKIE = "__Host-stageaccord-session";
+    static final String CLIENT_SESSION_COOKIE = "__Host-stageaccord-client";
     private static final Duration SESSION_LIFETIME = Duration.ofDays(7);
 
     private final IdentityAccessService identities;
@@ -89,6 +91,36 @@ public final class IdentityController {
                 .build();
     }
 
+    @PostMapping("/re-authentications")
+    public ResponseEntity<Void> reauthenticate(
+            @CookieValue(value = SESSION_COOKIE, required = false) String token,
+            @Valid @RequestBody ReauthenticationRequest request) {
+        identities.reauthenticate(token, request.password(), request.totpCode());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/client-links/redemptions")
+    public ResponseEntity<ClientLinkResponse> redeemClientLink(@Valid @RequestBody TokenRequest request) {
+        var session = identities.redeemClientLink(request.token());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, clientSessionCookie(session.token()).toString())
+                .body(new ClientLinkResponse(session.sessionId(), session.projectId(), session.expiresAt()));
+    }
+
+    @PostMapping("/recoveries")
+    public ResponseEntity<RecoveryStartedResponse> startRecovery(@Valid @RequestBody EmailRequest request) {
+        return ResponseEntity.accepted().body(new RecoveryStartedResponse(identities.startRecovery(request.email())));
+    }
+
+    @PostMapping("/recoveries/{id}/completions")
+    public ResponseEntity<RecoveryCompletedResponse> recoverAccount(@PathVariable UUID id,
+            @Valid @RequestBody RecoveryRequest request) {
+        var completed = identities.recoverAccount(id, request.recoveryCode(), request.newPassword());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, sessionCookie(completed.session().token()).toString())
+                .body(new RecoveryCompletedResponse(completed.recoveryCodes()));
+    }
+
     @GetMapping("/session")
     public CurrentSessionResponse getCurrentSession(@CookieValue(value = SESSION_COOKIE, required = false) String token) {
         return current(identities.resolveSession(token));
@@ -98,6 +130,35 @@ public final class IdentityController {
     public List<CurrentSessionResponse> listSessions(
             @CookieValue(value = SESSION_COOKIE, required = false) String token) {
         return identities.listSessions(token).stream().map(IdentityController::current).toList();
+    }
+
+    @GetMapping("/factors")
+    public List<AuthFactorResponse> listAuthFactors(
+            @CookieValue(value = SESSION_COOKIE, required = false) String token) {
+        return identities.listAuthFactors(token).stream()
+                .map(item -> new AuthFactorResponse(item.credentialId(), item.type(), item.status())).toList();
+    }
+
+    @DeleteMapping("/totp")
+    public ResponseEntity<Void> deleteTotp(
+            @CookieValue(value = SESSION_COOKIE, required = false) String token) {
+        identities.deleteTotp(token);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/recovery-code-rotations")
+    public RecoveryCodesResponse rotateRecoveryCodes(
+            @CookieValue(value = SESSION_COOKIE, required = false) String token) {
+        return new RecoveryCodesResponse(identities.rotateRecoveryCodes(token));
+    }
+
+    @PutMapping("/password")
+    public ResponseEntity<Void> replacePassword(
+            @CookieValue(value = SESSION_COOKIE, required = false) String token,
+            @Valid @RequestBody ReplacePasswordRequest request) {
+        var session = identities.replacePassword(token, request.currentPassword(), request.newPassword());
+        return ResponseEntity.noContent()
+                .header(HttpHeaders.SET_COOKIE, sessionCookie(session.token()).toString()).build();
     }
 
     @DeleteMapping("/sessions/{sessionId}")
@@ -134,6 +195,11 @@ public final class IdentityController {
                 .sameSite("Lax").path("/").maxAge(Duration.ZERO).build();
     }
 
+    private static ResponseCookie clientSessionCookie(String token) {
+        return ResponseCookie.from(CLIENT_SESSION_COOKIE, token).httpOnly(true).secure(true)
+                .sameSite("Lax").path("/").maxAge(Duration.ofHours(24)).build();
+    }
+
     public record EmailRequest(@NotBlank @Email @Size(max = 320) String email) {}
     public record TokenRequest(@NotBlank @Size(max = 256) String token) {}
     public record RegistrationRequest(@NotNull UUID emailChallengeId,
@@ -152,4 +218,14 @@ public final class IdentityController {
             @NotBlank @Size(min = 6, max = 6) String totpCode) {}
     public record CurrentSessionResponse(UUID sessionId, UUID accountId, String authStrength,
             Instant authenticatedAt, Instant lastSeenAt, Instant absoluteExpiresAt, boolean revoked) {}
+    public record ReauthenticationRequest(@NotBlank @Size(max = 128) String password,
+            @NotBlank @Size(min = 6, max = 6) String totpCode) {}
+    public record ClientLinkResponse(UUID sessionId, UUID projectId, Instant expiresAt) {}
+    public record RecoveryStartedResponse(UUID recoveryId) {}
+    public record RecoveryRequest(@NotBlank @Size(max = 256) String recoveryCode,
+            @NotBlank @Size(min = 12, max = 128) String newPassword) {}
+    public record RecoveryCompletedResponse(List<String> recoveryCodes) {}
+    public record AuthFactorResponse(UUID credentialId, String type, String status) {}
+    public record ReplacePasswordRequest(@NotBlank @Size(max = 128) String currentPassword,
+            @NotBlank @Size(min = 12, max = 128) String newPassword) {}
 }

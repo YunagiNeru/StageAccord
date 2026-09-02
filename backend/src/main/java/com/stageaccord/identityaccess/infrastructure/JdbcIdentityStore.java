@@ -15,9 +15,12 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import com.stageaccord.identityaccess.application.AccountAuthentication;
 import com.stageaccord.identityaccess.application.AuthChallenge;
+import com.stageaccord.identityaccess.application.AuthFactorDescriptor;
+import com.stageaccord.identityaccess.application.ClientAccessGrant;
 import com.stageaccord.identityaccess.application.IdentityStore;
 import com.stageaccord.identityaccess.application.ProtectedValue;
 import com.stageaccord.identityaccess.application.SessionDescriptor;
+import com.stageaccord.identityaccess.application.RecoveryCase;
 import com.stageaccord.identityaccess.domain.AuthStrength;
 
 @Repository
@@ -201,6 +204,124 @@ public class JdbcIdentityStore implements IdentityStore {
     public void revokeAllSessions(UUID accountId, Instant revokedAt) {
         jdbc.update("UPDATE iam.session_record SET revoked_at = ? WHERE account_id = ? AND revoked_at IS NULL",
                 Timestamp.from(revokedAt), accountId);
+    }
+
+    @Override
+    public void refreshSession(UUID sessionId, Instant authenticatedAt) {
+        requireSingle(jdbc.update("UPDATE iam.session_record SET authenticated_at=?,last_seen_at=? "
+                + "WHERE id=? AND revoked_at IS NULL", Timestamp.from(authenticatedAt),
+                Timestamp.from(authenticatedAt), sessionId));
+    }
+
+    @Override
+    public List<AuthFactorDescriptor> listFactors(UUID accountId) {
+        return jdbc.query("SELECT credential_id,type,status FROM iam.credential WHERE account_id=? ORDER BY type,credential_id",
+                (r, n) -> new AuthFactorDescriptor(r.getObject(1, UUID.class), r.getString(2), r.getString(3)),
+                accountId);
+    }
+
+    @Override
+    public int countActiveCredentials(UUID accountId, String type) {
+        return jdbc.queryForObject("SELECT count(*) FROM iam.credential WHERE account_id=? AND type=? AND status='active'",
+                Integer.class, accountId, type);
+    }
+
+    @Override
+    public void revokeCredentials(UUID accountId, String type, UUID credentialId) {
+        String credentialClause = credentialId == null ? "" : " AND credential_id=?";
+        Object[] arguments = credentialId == null
+                ? new Object[] { accountId, type }
+                : new Object[] { accountId, type, credentialId };
+        int updated = jdbc.update("UPDATE iam.credential SET status='revoked' "
+                + "WHERE account_id=? AND type=? AND status='active'" + credentialClause, arguments);
+        if (updated < 1) throw new IllegalStateException("active credential not found");
+    }
+
+    @Override
+    public int replacePasswordAndAdvanceGeneration(UUID accountId, String encodedPassword) {
+        requireSingle(jdbc.update("UPDATE iam.credential SET credential_material=?::jsonb "
+                + "WHERE account_id=? AND type='password' AND status='active'",
+                write(new PasswordMaterial(encodedPassword)), accountId));
+        requireSingle(jdbc.update("UPDATE iam.account SET auth_generation=auth_generation+1,version=version+1 WHERE id=?",
+                accountId));
+        return jdbc.queryForObject("SELECT auth_generation FROM iam.account WHERE id=?", Integer.class, accountId);
+    }
+
+    @Override
+    public int advanceAuthGeneration(UUID accountId) {
+        requireSingle(jdbc.update("UPDATE iam.account SET auth_generation=auth_generation+1,version=version+1 WHERE id=?",
+                accountId));
+        return jdbc.queryForObject("SELECT auth_generation FROM iam.account WHERE id=?", Integer.class, accountId);
+    }
+
+    @Override
+    public void invalidateRecoveryCodes(UUID accountId, Instant usedAt) {
+        jdbc.update("UPDATE iam.recovery_code SET used_at=? WHERE account_id=? AND used_at IS NULL",
+                Timestamp.from(usedAt), accountId);
+    }
+
+    @Override
+    public UUID createRecoveryCase(UUID accountId, String method, Instant requestedAt, Instant notBefore) {
+        UUID id = UUID.randomUUID();
+        requireSingle(jdbc.update("INSERT INTO iam.recovery_case"
+                + "(id,account_id,method,status,requested_at,not_before,requested_by) "
+                + "VALUES (?,?,?,'pending',?,?,?)", id, accountId, method,
+                Timestamp.from(requestedAt), Timestamp.from(notBefore), accountId));
+        return id;
+    }
+
+    @Override
+    public Optional<RecoveryCase> lockRecoveryCase(UUID id) {
+        return jdbc.query("SELECT id,account_id,method,status,not_before,completed_at "
+                + "FROM iam.recovery_case WHERE id=? FOR UPDATE",
+                (r, n) -> new RecoveryCase(r.getObject(1, UUID.class), r.getObject(2, UUID.class),
+                        r.getString(3), r.getString(4), r.getTimestamp(5).toInstant(),
+                        instant(r.getTimestamp(6))), id).stream().findFirst();
+    }
+
+    @Override
+    public boolean consumeRecoveryCode(UUID accountId, int generation, byte[] digest, Instant usedAt) {
+        return jdbc.update("UPDATE iam.recovery_code SET used_at=? WHERE account_id=? AND generation=? "
+                + "AND digest_key_id='identity-v1' AND code_digest=? AND used_at IS NULL AND expires_at>?",
+                Timestamp.from(usedAt), accountId, generation, digest, Timestamp.from(usedAt)) == 1;
+    }
+
+    @Override
+    public void completeRecoveryCase(UUID id, Instant completedAt) {
+        requireSingle(jdbc.update("UPDATE iam.recovery_case SET status='completed',completed_at=? "
+                + "WHERE id=? AND status='pending'", Timestamp.from(completedAt), id));
+    }
+
+    @Override
+    public Optional<ClientAccessGrant> lockClientAccessGrant(byte[] tokenDigest, String digestKeyId) {
+        return jdbc.query("""
+                SELECT workspace_id,id,project_id,email_digest_v2,client_role,auth_generation,
+                       expires_at,consumed_at,revoked_at
+                FROM iam.client_access_grant WHERE token_digest=? AND digest_key_id=? FOR UPDATE
+                """, (r, n) -> new ClientAccessGrant(r.getObject(1, UUID.class), r.getObject(2, UUID.class),
+                        r.getObject(3, UUID.class), r.getBytes(4), r.getString(5), r.getInt(6),
+                        r.getTimestamp(7).toInstant(), instant(r.getTimestamp(8)), instant(r.getTimestamp(9))),
+                tokenDigest, digestKeyId).stream().findFirst();
+    }
+
+    @Override
+    public void consumeClientAccessGrant(UUID workspaceId, UUID id, Instant consumedAt) {
+        requireSingle(jdbc.update("UPDATE iam.client_access_grant SET consumed_at=? "
+                + "WHERE workspace_id=? AND id=? AND consumed_at IS NULL AND revoked_at IS NULL",
+                Timestamp.from(consumedAt), workspaceId, id));
+    }
+
+    @Override
+    public void createClientSession(ClientAccessGrant grant, SessionDescriptor session) {
+        requireSingle(jdbc.update("""
+                INSERT INTO iam.client_session(workspace_id,id,project_id,token_digest,digest_key_id,
+                    email_digest_v2,client_role,auth_generation,authenticated_at,last_seen_at,
+                    absolute_expires_at,revoked_at)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+                """, grant.workspaceId(), session.id(), grant.projectId(), session.tokenDigest(),
+                session.digestKeyId(), grant.emailDigest(), grant.role(), grant.authGeneration(),
+                Timestamp.from(session.authenticatedAt()), Timestamp.from(session.lastSeenAt()),
+                Timestamp.from(session.absoluteExpiresAt()), timestamp(session.revokedAt())));
     }
 
     private AuthChallenge mapChallenge(ResultSet result, int row) throws SQLException {

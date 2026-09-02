@@ -139,6 +139,53 @@ class IdentityAccessServiceTest {
         verify(store, never()).findSession(any(), any());
     }
 
+    @Test
+    void refusesToDeleteTotpWhenItWouldLeaveOnlyAPassword() {
+        UUID accountId = UUID.randomUUID();
+        UUID sessionId = UUID.randomUUID();
+        SessionDescriptor session = session(sessionId, accountId, NOW);
+        when(store.findSession(TOKEN_DIGEST, "identity-v1")).thenReturn(Optional.of(session));
+        when(store.findAuthenticationByAccountId(accountId)).thenReturn(Optional.of(
+                new AccountAuthentication(accountId, EMAIL_DIGEST, "active", 0, "password", null)));
+        when(store.countActiveCredentials(accountId, "passkey")).thenReturn(0);
+
+        assertThatThrownBy(() -> service.deleteTotp("token"))
+                .isInstanceOfSatisfying(IdentityApplicationException.class,
+                        failure -> assertThat(failure.code()).isEqualTo(Code.BUSINESS_RULE_VIOLATION));
+
+        when(store.countActiveCredentials(accountId, "passkey")).thenReturn(1);
+        service.deleteTotp("token");
+        verify(store).revokeCredentials(accountId, "totp", null);
+        verify(store).advanceAuthGeneration(accountId);
+        verify(store).revokeAllSessions(accountId, NOW);
+    }
+
+    @Test
+    void recoveryCodeIsConsumedBeforePasswordAndGenerationAreReplaced() {
+        UUID accountId = UUID.randomUUID();
+        UUID caseId = UUID.randomUUID();
+        when(store.lockRecoveryCase(caseId)).thenReturn(Optional.of(
+                new RecoveryCase(caseId, accountId, "recovery_code", "pending", NOW, null)));
+        when(store.findAuthenticationByAccountId(accountId)).thenReturn(Optional.of(
+                new AccountAuthentication(accountId, EMAIL_DIGEST, "active", 2, "old", null)));
+        when(secrets.tokenDigest("recovery-code")).thenReturn(filledDigest((byte) 7));
+        when(store.consumeRecoveryCode(eq(accountId), eq(2), any(), eq(NOW))).thenReturn(true);
+        when(store.replacePasswordAndAdvanceGeneration(accountId, "dummy-argon2")).thenReturn(3);
+
+        var completed = service.recoverAccount(caseId, "recovery-code", "a new long password");
+
+        assertThat(completed.recoveryCodes()).hasSize(10);
+        assertThat(completed.session().descriptor().authGeneration()).isEqualTo(3);
+        verify(store).completeRecoveryCase(caseId, NOW);
+        verify(store).revokeAllSessions(accountId, NOW);
+    }
+
+    private static SessionDescriptor session(UUID sessionId, UUID accountId, Instant authenticatedAt) {
+        return new SessionDescriptor(sessionId, accountId, TOKEN_DIGEST, "identity-v1",
+                com.stageaccord.identityaccess.domain.AuthStrength.PASSWORD_TOTP, 0,
+                authenticatedAt, authenticatedAt, authenticatedAt.plusSeconds(3600), null);
+    }
+
     private static AuthChallenge emailChallenge(UUID id, Instant consumedAt, UUID accountId) {
         return new AuthChallenge(id, accountId, "email_verification", TOKEN_DIGEST,
                 "identity-v1", EMAIL_DIGEST,
