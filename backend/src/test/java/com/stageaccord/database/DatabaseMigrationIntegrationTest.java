@@ -242,6 +242,48 @@ class DatabaseMigrationIntegrationTest {
         assertThat(broken.asJson()).doesNotContain(url, username, password);
     }
 
+    @Test
+    void tenantConstraintVerifierRejectsMissingWorkspaceKeys() throws Exception {
+        String url = System.getenv("STAGE_ACCORD_TEST_DB_URL");
+        requireDedicatedDummyDatabase(url);
+        String username = System.getenv("STAGE_ACCORD_TEST_DB_USERNAME");
+        String password = System.getenv("STAGE_ACCORD_TEST_DB_PASSWORD");
+        migrateFresh(url, username, password);
+
+        try (var connection = DriverManager.getConnection(url, username, password)) {
+            execute(connection, """
+                    create table workspace.tenant_parent_fixture (
+                        workspace_id uuid not null,
+                        id uuid not null,
+                        constraint pk_tenant_parent_fixture primary key (workspace_id, id),
+                        constraint uq_tenant_parent_fixture__id unique (id)
+                    )
+                    """);
+            execute(connection, """
+                    create table workspace.tenant_child_fixture (
+                        workspace_id uuid not null,
+                        id uuid not null,
+                        parent_id uuid not null,
+                        constraint pk_tenant_child_fixture primary key (id),
+                        constraint fk_tenant_child_fixture__parent__unsafe foreign key (parent_id)
+                            references workspace.tenant_parent_fixture (id)
+                    )
+                    """);
+
+            try (var statement = connection.prepareStatement("""
+                    select violation from infra.verify_tenant_constraints()
+                    where table_name = 'tenant_child_fixture'
+                    """); var result = statement.executeQuery()) {
+                var violations = new java.util.HashSet<String>();
+                while (result.next()) violations.add(result.getString(1));
+                assertThat(violations).containsExactlyInAnyOrder(
+                        "PRIMARY_KEY_MISSING_WORKSPACE",
+                        "FOREIGN_KEY_MISSING_WORKSPACE",
+                        "TENANT_FOREIGN_KEY_NOT_COMPOSITE");
+            }
+        }
+    }
+
     private static byte[] hashByte(int value) {
         byte[] hash = new byte[32];
         java.util.Arrays.fill(hash, (byte) value);
@@ -277,7 +319,7 @@ class DatabaseMigrationIntegrationTest {
                 .locations("classpath:db/migration")
                 .load();
         flyway.clean();
-        assertThat(flyway.migrate().migrationsExecuted).isEqualTo(5);
+        assertThat(flyway.migrate().migrationsExecuted).isEqualTo(6);
         return flyway;
     }
 
