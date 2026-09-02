@@ -12,17 +12,19 @@ import org.springframework.boot.EnvironmentPostProcessor;
 import org.springframework.boot.SpringApplication;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 
-final class ProductionConfigurationGuard implements EnvironmentPostProcessor {
+final class RuntimeConfigurationGuard implements EnvironmentPostProcessor {
 
     private static final Set<String> LOOPBACK_HOSTS = Set.of("localhost", "127.0.0.1", "::1", "0.0.0.0");
-    private static final List<String> APPLICATION_FILES = List.of(
+    private static final List<String> SHARED_FILES = List.of(
             "stage-accord.secrets.db-username-file", "stage-accord.secrets.db-password-file",
             "stage-accord.secrets.valkey-username-file", "stage-accord.secrets.valkey-password-file",
+            "stage-accord.secrets.field-encryption-key-file");
+    private static final List<String> APPLICATION_FILES = List.of(
             "stage-accord.secrets.s3-access-key-id-file", "stage-accord.secrets.s3-secret-access-key-file",
             "stage-accord.secrets.stripe-api-key-file", "stage-accord.secrets.stripe-webhook-secret-file",
-            "stage-accord.secrets.session-hmac-key-file", "stage-accord.secrets.csrf-hmac-key-file",
-            "stage-accord.secrets.field-encryption-key-file");
+            "stage-accord.secrets.session-hmac-key-file", "stage-accord.secrets.csrf-hmac-key-file");
     private static final List<String> WORKER_FILES = List.of(
             "stage-accord.secrets.s3-worker-access-key-id-file",
             "stage-accord.secrets.s3-worker-secret-access-key-file",
@@ -34,13 +36,37 @@ final class ProductionConfigurationGuard implements EnvironmentPostProcessor {
     }
 
     void validate(Environment environment) {
-        requireExact(environment, "stage-accord.environment", "production");
+        boolean local = environment.acceptsProfiles(Profiles.of("local"));
+        boolean production = environment.acceptsProfiles(Profiles.of("production"));
+        boolean application = environment.acceptsProfiles(Profiles.of("app"));
+        boolean worker = environment.acceptsProfiles(Profiles.of("worker"));
+        if (local == production) throw invalid("active environment profile");
+        if (application == worker) throw invalid("active runtime role");
+
+        requireExact(environment, "stage-accord.environment", production ? "production" : "local");
+        if (!production) return;
+
+        validateDatabaseAndValkey(environment);
         validateAmazonS3(environment);
         validateScanMode(environment);
         validateWebAuthn(environment);
-        validateSecretFiles(environment);
-        if (environment.matchesProfiles("app")) {
-            validateStripeMode(environment);
+        validateSecretFiles(environment, application, worker);
+        if (application) validateStripeMode(environment);
+    }
+
+    private void validateDatabaseAndValkey(Environment environment) {
+        URI database = URI.create(require(environment, "stage-accord.database.source-url").replaceFirst("^jdbc:", ""));
+        String databaseQuery = database.getQuery() == null ? "" : database.getQuery();
+        if (!"postgresql".equalsIgnoreCase(database.getScheme()) || database.getHost() == null
+                || LOOPBACK_HOSTS.contains(database.getHost().toLowerCase(Locale.ROOT))
+                || database.getUserInfo() != null || !databaseQuery.contains("sslmode=verify-full")) {
+            throw invalid("stage-accord.database.source-url");
+        }
+        URI valkey = URI.create(require(environment, "stage-accord.valkey.url"));
+        if (!"rediss".equalsIgnoreCase(valkey.getScheme()) || valkey.getHost() == null
+                || LOOPBACK_HOSTS.contains(valkey.getHost().toLowerCase(Locale.ROOT))
+                || valkey.getUserInfo() != null) {
+            throw invalid("stage-accord.valkey.url");
         }
     }
 
@@ -81,10 +107,10 @@ final class ProductionConfigurationGuard implements EnvironmentPostProcessor {
         }
     }
 
-    private void validateSecretFiles(Environment environment) {
-        List<String> required = new ArrayList<>();
-        if (environment.matchesProfiles("app")) required.addAll(APPLICATION_FILES);
-        if (environment.matchesProfiles("worker")) required.addAll(WORKER_FILES);
+    private void validateSecretFiles(Environment environment, boolean application, boolean worker) {
+        List<String> required = new ArrayList<>(SHARED_FILES);
+        if (application) required.addAll(APPLICATION_FILES);
+        if (worker) required.addAll(WORKER_FILES);
         for (String property : required) {
             Path path = Path.of(require(environment, property));
             if (!path.isAbsolute() || !Files.isRegularFile(path) || !Files.isReadable(path)) {
@@ -115,6 +141,6 @@ final class ProductionConfigurationGuard implements EnvironmentPostProcessor {
     }
 
     private IllegalStateException invalid(String property) {
-        return new IllegalStateException("本番構成が未設定または不正です: " + property);
+        return new IllegalStateException("実行構成が未設定または不正です: " + property);
     }
 }

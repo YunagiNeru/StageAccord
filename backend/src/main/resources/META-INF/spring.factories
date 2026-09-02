@@ -1,2 +1,2 @@
 org.springframework.boot.EnvironmentPostProcessor=\
-com.stageaccord.bootstrap.ProductionConfigurationGuard
+com.stageaccord.bootstrap.RuntimeConfigurationGuard
