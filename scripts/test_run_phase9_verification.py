@@ -4,7 +4,7 @@ import json
 import unittest
 from pathlib import Path
 
-from scripts.run_phase9_verification import PHASE_10_ONLY, SUITES, build_results
+from scripts.run_phase9_verification import PHASE_10_ONLY, SUITES, build_results, resolve_command
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -33,6 +33,12 @@ class Phase9VerificationTest(unittest.TestCase):
 
         self.assertEqual("failed", next(item["status"] for item in results if item["requirementId"] == "NFR-ACC-001"))
         self.assertEqual("deferred_to_phase_10", next(item["status"] for item in results if item["requirementId"] == "NFR-PERF-001"))
+
+    def test_platform_executable_is_resolved_from_path(self) -> None:
+        command = resolve_command(["python", "--version"])
+
+        self.assertTrue(Path(command[0]).is_file())
+        self.assertEqual("--version", command[1])
 
 
 if __name__ == "__main__":

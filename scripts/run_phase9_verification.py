@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -62,13 +63,20 @@ def build_results(manifest: dict[str, object], outcomes: dict[str, bool]) -> lis
     return results
 
 
+def resolve_command(command: list[str]) -> list[str]:
+    executable = shutil.which(command[0])
+    if executable is None:
+        raise FileNotFoundError(f"実行ファイルがPATH上にありません: {command[0]}")
+    return [executable, *command[1:]]
+
+
 def main() -> int:
     manifest = json.loads((ROOT / "contracts" / "test-manifest.json").read_text(encoding="utf-8"))
     outcomes: dict[str, bool] = {}
     executions: list[dict[str, object]] = []
     for name, command in SUITES.items():
         print(f"PHASE 9 SUITE: {name}", flush=True)
-        completed = subprocess.run(command, cwd=ROOT, check=False)
+        completed = subprocess.run(resolve_command(command), cwd=ROOT, check=False)
         outcomes[name] = completed.returncode == 0
         executions.append({"suite": name, "command": command, "exitCode": completed.returncode})
 
