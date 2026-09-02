@@ -19,6 +19,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 import com.stageaccord.sharedkernel.infrastructure.outbox.JdbcOutboxStore;
+import com.stageaccord.sharedkernel.application.CommandRejectedException;
+import com.stageaccord.sharedkernel.application.RejectionCode;
+import com.stageaccord.sharedkernel.idempotency.IdempotencyFingerprint;
+import com.stageaccord.sharedkernel.idempotency.IdempotencyReservation;
+import com.stageaccord.sharedkernel.infrastructure.idempotency.JdbcIdempotencyStore;
 
 @EnabledIfEnvironmentVariable(named = "STAGE_ACCORD_TEST_DB_URL", matches = ".+")
 class DatabaseMigrationIntegrationTest {
@@ -173,6 +178,43 @@ class DatabaseMigrationIntegrationTest {
                 .isEqualTo("delivery failed");
     }
 
+    @Test
+    void idempotencyReservationRejectsChangedRequestsAndReplaysOnlyCompletedCiphertext() {
+        String url = System.getenv("STAGE_ACCORD_TEST_DB_URL");
+        requireDedicatedDummyDatabase(url);
+        String username = System.getenv("STAGE_ACCORD_TEST_DB_USERNAME");
+        String password = System.getenv("STAGE_ACCORD_TEST_DB_PASSWORD");
+        migrateFresh(url, username, password);
+
+        var dataSource = new DriverManagerDataSource(url, username, password);
+        var store = new JdbcIdempotencyStore(new JdbcTemplate(dataSource));
+        Instant now = Instant.parse("2026-09-02T08:00:00Z");
+        var fingerprint = new IdempotencyFingerprint(hashByte(1), hashByte(2), hashByte(3));
+        var changedRequest = new IdempotencyFingerprint(hashByte(1), hashByte(2), hashByte(4));
+
+        assertThat(store.reserve(fingerprint, now, now.plus(Duration.ofHours(24))))
+                .isInstanceOf(IdempotencyReservation.Reserved.class);
+        assertThat(store.reserve(fingerprint, now.plusSeconds(1), now.plus(Duration.ofHours(25))))
+                .isInstanceOf(IdempotencyReservation.InProgress.class);
+        assertThatThrownBy(() -> store.reserve(
+                changedRequest, now.plusSeconds(1), now.plus(Duration.ofHours(25))))
+                .isInstanceOfSatisfying(CommandRejectedException.class,
+                        error -> assertThat(error.code()).isEqualTo(RejectionCode.IDEMPOTENCY_KEY_REUSED));
+
+        byte[] ciphertext = new byte[] {9, 8, 7};
+        store.complete(fingerprint, 201, ciphertext);
+        var replayed = (IdempotencyReservation.Replayed) store.reserve(
+                fingerprint, now.plusSeconds(2), now.plus(Duration.ofHours(25)));
+        assertThat(replayed.statusCode()).isEqualTo(201);
+        assertThat(replayed.responseCiphertext()).isEqualTo(ciphertext);
+    }
+
+    private static byte[] hashByte(int value) {
+        byte[] hash = new byte[32];
+        java.util.Arrays.fill(hash, (byte) value);
+        return hash;
+    }
+
     private static void insertOutbox(JdbcTemplate jdbc, UUID eventId, UUID workspaceId,
             UUID aggregateId, UUID correlationId, long sequence, Instant occurredAt) {
         jdbc.update("""
@@ -202,7 +244,7 @@ class DatabaseMigrationIntegrationTest {
                 .locations("classpath:db/migration")
                 .load();
         flyway.clean();
-        assertThat(flyway.migrate().migrationsExecuted).isEqualTo(3);
+        assertThat(flyway.migrate().migrationsExecuted).isEqualTo(4);
         return flyway;
     }
 

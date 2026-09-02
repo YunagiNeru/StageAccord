@@ -2,6 +2,8 @@ package com.stageaccord.sharedkernel.application;
 
 public enum RejectionCode {
     IDEMPOTENCY_KEY_REQUIRED,
+    IDEMPOTENCY_KEY_REUSED,
+    IDEMPOTENCY_IN_PROGRESS,
     VERSION_CONFLICT,
     DATABASE_UNAVAILABLE,
     SESSION_VALIDATION_UNAVAILABLE,
