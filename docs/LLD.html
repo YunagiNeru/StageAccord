@@ -236,7 +236,7 @@
         <p class="lede">概要設計の境界を、実装者がクラス、API、データ、状態、権限、ワーカー、運用ゲートへ一貫して落とし込める契約として定義する。</p>
         <dl class="document-contract">
           <div><dt>状態</dt><dd>承認済み・実装開始可・本番投入未承認</dd></div>
-          <div><dt>版</dt><dd>1.5.0</dd></div>
+          <div><dt>版</dt><dd>1.6.0</dd></div>
           <div><dt>対象</dt><dd>Production V1のWeb、API、ワーカー、データ、物理・運用境界</dd></div>
           <div><dt>対象外</dt><dd>画面ピクセル仕様、機器の製造番号、Runbookの実コマンド列、法的助言</dd></div>
           <div><dt>基準文書</dt><dd><a href="HLD.html">HLD.html 1.6.0</a>／<a href="REQUIREMENTS.html">REQUIREMENTS.html 1.6.0</a></dd></div>
@@ -386,7 +386,7 @@
         <header class="section__header">
           <p class="section__label">02 / Structure</p>
           <h2>実装構造と依存規則</h2>
-          <p class="section__lede">単一コードベース、applicationとworkerの二つの実行プロファイル、12の業務モジュールを同じ依存規則で構成する。</p>
+          <p class="section__lede">単一コードベースを、localとproductionの環境プロファイル、applicationとworkerの実行ロール、12の業務モジュールへ分け、同じ依存規則で構成する。</p>
         </header>
         <figure class="diagram">
           <svg viewBox="0 0 920 300" role="img" aria-labelledby="architecture-title architecture-description">
@@ -1328,7 +1328,7 @@
               <tr><th scope="row">download gateway</th><td>利用者へAWS credentialや永続署名URLを返さず、grant tokenを検証してgateway自身がAmazon S3からrange streamする。file version、project relation、auth generation、statusを要求ごとに再認可</td><td>失効後の再利用、別range、別file、別origin、期限超過を拒否。access logはgrant ID digestまで</td></tr>
               <tr><th scope="row">Object Lock</th><td>利用者file、preview、納品成果物には固定WORM retentionを設定せず、承認済み法的保持だけを個別適用する。Object Lockは業務本文を含まない監査固定点、削除台帳固定点、通常backupだけに用途別期限で適用する</td><td>承認済みhold IDが無い利用者objectは削除期限を止めない。残存object version、hold ID、解除予定を独立台帳へ限定記録</td></tr>
               <tr><th scope="row">削除完了</th><td>quarantine、clean、preview、delivery、multipart、cache、index、通常backup expiryを列挙し、各receiptのhashを独立deletion ledgerへ追記</td><td>cache／search 24時間、live DB／Amazon S3 object 30日、通常backup 35日以内。対象外を保持延長しない</td></tr>
-              <tr><th scope="row">構成guard</th><td>起動時にGit管理外の設定ファイルを読取り、必須キー、権限、ファイル所有者、Amazon S3接続、DB／Valkey接続、<code>MALWARE_SCAN_MODE</code>を検証する。値欠落・未知mode・過剰権限ならserviceを起動しない</td><td><code>required</code>ではClamAV接続・定義・EICARを検証し、<code>bypass</code>ではClamAVへ一切接続せず警告metricと監査eventを必須にする</td></tr>
+              <tr><th scope="row">構成guard</th><td>起動時に単一の<code>application.properties</code>から環境別区画を解決し、秘密はGit管理外の用途別ファイルから読む。環境または実行ロールの未指定・二重指定、必須キー欠落、Amazon S3、DB／Valkey、<code>stage-accord.malware-scan.mode</code>の不正を起動前に拒否する</td><td><code>production</code>では本番制約をすべて検査する。<code>required</code>ではClamAV接続・定義・EICARを検証し、<code>bypass</code>ではClamAVへ一切接続せず警告metricと監査eventを必須にする</td></tr>
             </tbody>
           </table>
         </div>
@@ -1481,13 +1481,13 @@
             <caption>applicationとworkerの必須設定</caption>
             <thead><tr><th scope="col">key群</th><th scope="col">内容</th><th scope="col">供給元</th><th scope="col">起動前検査</th></tr></thead>
             <tbody>
-              <tr><th scope="row"><code>APP_ENVIRONMENT</code></th><td>実行環境。productionだけを本番hostで許可</td><td>Git管理外の平文設定ファイル</td><td>値が<code>production</code>、所有者root、mode 0640、想定外キーなし</td></tr>
-              <tr><th scope="row"><code>DB_URL</code>、<code>DB_USERNAME_FILE</code>、<code>DB_PASSWORD_FILE</code></th><td>既存オンプレPostgreSQLへの専用接続</td><td>Git管理外の平文設定・秘密ファイル</td><td>TLS、専用role、schema version、N/N-1互換、DDL権限なし</td></tr>
-              <tr><th scope="row"><code>VALKEY_URL</code>、<code>VALKEY_SECRET_FILE</code></th><td>既存オンプレValkeyのsession、rate、cache</td><td>Git管理外の平文設定・秘密ファイル</td><td>TLS、認証、専用namespace、write/read。失敗時はauth入口を開かない</td></tr>
-              <tr><th scope="row"><code>S3_REGION</code>、<code>S3_ENDPOINT</code>、<code>S3_QUARANTINE_BUCKET</code>、<code>S3_CLEAN_BUCKET</code>、<code>S3_PREVIEW_BUCKET</code>、<code>S3_DELIVERY_BUCKET</code>、<code>S3_ACCESS_KEY_ID_FILE</code>、<code>S3_SECRET_ACCESS_KEY_FILE</code></th><td>Amazon S3。用途別bucketと最小権限credentialを分離</td><td>Git管理外の平文設定・秘密ファイル</td><td>公式endpoint、bucket policy、versioning、公開block、暗号化、用途外操作拒否</td></tr>
-              <tr><th scope="row"><code>MALWARE_SCAN_MODE</code>、<code>CLAMAV_HOST</code>、<code>CLAMAV_PORT</code>、<code>CLAMAV_CONNECT_TIMEOUT</code>、<code>CLAMAV_READ_TIMEOUT</code></th><td><code>required</code>または<code>bypass</code>。ClamAV接続値はrequired時だけ使用</td><td>Git管理外の平文設定ファイル</td><td>未知値・欠落は起動拒否。requiredは接続・定義・EICAR、bypassはsocket接続0と監査eventを確認</td></tr>
-              <tr><th scope="row"><code>WEBAUTHN_RP_ID</code>、<code>WEBAUTHN_ALLOWED_ORIGINS</code></th><td>Passkey境界</td><td>Git管理外の平文設定ファイル</td><td>公開hostと完全一致、http・wildcard・local origin拒否</td></tr>
-              <tr><th scope="row"><code>STRIPE_WEBHOOK_SECRET_FILE</code>、<code>STRIPE_API_KEY_FILE</code></th><td>本サービス請求だけ</td><td>Git管理外の用途別平文秘密ファイル</td><td>test/live mode一致、別用途共有なし、rotation状態</td></tr>
+              <tr><th scope="row"><code>stage-accord.environment</code></th><td><code>local</code>または<code>production</code>。実行ロールの<code>app</code>または<code>worker</code>と組み合わせる</td><td><code>application.properties</code>の環境別区画</td><td>環境とロールを各一つだけ許可し、値とactive profileの不一致を拒否</td></tr>
+              <tr><th scope="row"><code>stage-accord.database.*</code></th><td>PostgreSQLへの専用接続</td><td><code>application.properties</code>とGit管理外の秘密ファイル</td><td>資格情報をURLとpropertiesへ埋め込まず、TLS、専用role、schema version、N/N-1互換、DDL権限なし</td></tr>
+              <tr><th scope="row"><code>stage-accord.valkey.*</code></th><td>Valkeyのsession、rate、cache</td><td><code>application.properties</code>とGit管理外の秘密ファイル</td><td>TLS、認証、専用namespace、write/read。失敗時はauth入口を開かない</td></tr>
+              <tr><th scope="row"><code>stage-accord.object-storage.*</code></th><td>Amazon S3。quarantine、clean、preview、deliveryと用途別credentialを分離</td><td><code>application.properties</code>とGit管理外の秘密ファイル</td><td>productionでは公式endpoint、bucket policy、versioning、公開block、暗号化、用途外操作拒否</td></tr>
+              <tr><th scope="row"><code>stage-accord.malware-scan.*</code></th><td><code>required</code>または<code>bypass</code>。ClamAV接続値はrequired時だけ使用</td><td><code>application.properties</code></td><td>未知値・欠落は起動拒否。requiredは接続・定義・EICAR、bypassはsocket接続0と監査eventを確認</td></tr>
+              <tr><th scope="row"><code>stage-accord.webauthn.*</code></th><td>Passkey境界</td><td><code>application.properties</code></td><td>productionでは公開hostと完全一致、http・wildcard・local origin拒否</td></tr>
+              <tr><th scope="row"><code>stage-accord.billing.stripe.*</code></th><td>本サービス請求だけ</td><td><code>application.properties</code>とGit管理外の用途別秘密ファイル</td><td>test/live mode一致、別用途共有なし、rotation状態</td></tr>
               <tr><th scope="row"><code>AUDIT_SIGNING_KEY_REF</code>、<code>DELETION_LEDGER_ENDPOINT</code></th><td>監査固定点、DB障害時spool署名、独立台帳</td><td>監査専用のGit管理外平文秘密ファイルと管理network</td><td>秘密ファイルの所有者・mode・読取り専用mount、key ID、公開鍵履歴、90日以内の更新期限、terminal hash、spool容量</td></tr>
               <tr><th scope="row"><code>FEATURE_KILL_SWITCH_SOURCE</code></th><td>認証、intake、upload、重要書込みの停止状態</td><td>監査schema＋署名済みruntime cache</td><td>取得不能は対象feature停止</td></tr>
             </tbody>
@@ -1877,7 +1877,7 @@
         </dl>
         <h3>実装開始後の必須行動</h3>
         <ol class="steps">
-          <li><div><h4>設定と接続点の確定</h4><p>本番設定ファイルへ取得済みの値を直接記載し、所有者・mode・必須key・依存接続・秘密値非出力を起動前検査する。</p></div></li>
+          <li><div><h4>設定と接続点の確定</h4><p>Spring設定を単一の<code>application.properties</code>へ統合し、localとproduction、appとworkerを独立したprofileとして解決する。秘密は用途別ファイルだけへ置き、必須key・依存接続・秘密値非出力を起動前検査する。</p></div></li>
           <li><div><h4>OpenAPIとtest manifest</h4><p><a href="HLD.html#OPN-104">OPN-104</a>の閉鎖状態を維持し、Phase 1の公開API実装前にendpoint台帳をOpenAPIへ写し、106要求の親test IDを機械可読manifestへ登録する。本文との重複正本を作らず、生成物として扱う。</p></div></li>
           <li><div><h4>実装単位へ分解</h4><p>観測点 → 入力・境界 → 最小core logic → error処理 → testの順で、一つの説明可能な概念を一commitにする。</p></div></li>
           <li><div><h4>release evidenceを蓄積</h4><p>patch／digest、SBOM、署名、UI screenshot、性能、復元、切替、法務、運用訓練の証拠をrelease recordへ結び付ける。</p></div></li>
@@ -1891,7 +1891,7 @@
         </dl>
       </section>
     </main>
-    <footer class="foot"><p>承認済み・実装開始可・本番投入未承認 · 版 1.5.0 · 承認日 2026-09-02 · 情報基準日 2026-08-11 · 正本 docs/LLD.html</p></footer>
+    <footer class="foot"><p>承認済み・実装開始可・本番投入未承認 · 版 1.6.0 · 承認日 2026-09-02 · 情報基準日 2026-08-11 · 正本 docs/LLD.html</p></footer>
   </div>
 </body>
 </html>

@@ -238,9 +238,9 @@
           <div><dt>現行判定</dt><dd>製品実装開始可、本番投入不可</dd></div>
           <div><dt>対象</dt><dd>Production V1の製品実装、基盤、検証、公開判定</dd></div>
           <div><dt>対象外</dt><dd>要件と設計の変更、未計測値の確定、法的助言</dd></div>
-          <div><dt>基準文書</dt><dd><a href="REQUIREMENTS.html">REQUIREMENTS 1.6.0</a>、<a href="HLD.html">HLD 1.6.0</a>、<a href="LLD.html">LLD 1.5.0</a></dd></div>
+          <div><dt>基準文書</dt><dd><a href="REQUIREMENTS.html">REQUIREMENTS 1.6.0</a>、<a href="HLD.html">HLD 1.6.0</a>、<a href="LLD.html">LLD 1.6.0</a></dd></div>
           <div><dt>現行実装</dt><dd>起動骨格、本番構成ガード、単一ホスト配備の一部、文書追跡CI</dd></div>
-          <div><dt>計画版</dt><dd>0.3.0</dd></div>
+          <div><dt>計画版</dt><dd>0.4.0</dd></div>
           <div><dt>最終確認</dt><dd>2026-09-02</dd></div>
         </dl>
       </header>
@@ -343,7 +343,7 @@
             <caption>現行成果と未実装範囲</caption>
             <thead><tr><th scope="col">領域</th><th scope="col">確認した成果</th><th scope="col">状態</th><th scope="col">次の残差</th></tr></thead>
             <tbody>
-              <tr><th scope="row">文書</th><td>REQUIREMENTS 1.6.0、HLD 1.6.0、LLD 1.5.0</td><td>承認済み、実装開始可</td><td>Phase 1でOpenAPIと試験台帳を実装</td></tr>
+              <tr><th scope="row">文書</th><td>REQUIREMENTS 1.6.0、HLD 1.6.0、LLD 1.6.0</td><td>承認済み、実装開始可</td><td>Phase 1で単一Spring設定、OpenAPI、試験台帳を実装</td></tr>
               <tr><th scope="row">バックエンド</th><td>Spring Boot 4.1、JDK 25、applicationとworkerの起動クラス</td><td>起動骨格あり</td><td>業務モジュール、API、DB migration、認可、監査、Outbox</td></tr>
               <tr><th scope="row">構成安全性</th><td>本番構成ガード、秘密ファイル検査、S3と検査モードの検証</td><td>一部実装済み</td><td>実接続、時刻、容量、複製、証明書、復元証拠との統合</td></tr>
               <tr><th scope="row">配備</th><td>Docker Compose、Nginx、Ansible骨格、構成マニフェスト、事前検査</td><td>一部実装済み</td><td>実イメージ、ネットワーク実証、監視、署名、NとN-1の切替</td></tr>
@@ -478,9 +478,9 @@
           <header class="phase__header"><span class="phase__id">PHASE 1 / EXECUTABLE SKELETON</span><h3>実行骨格と開発品質</h3><p>既存の起動骨格へ、モジュール境界、Web、契約生成、観測の入口を追加する。</p></header>
           <div class="phase__grid">
             <div><h4>入力</h4><p>Phase 0の承認済み契約と現行のbackend、deploy。</p></div>
-            <div><h4>作業</h4><p>機械可読試験台帳、OpenAPI、パッケージ境界、アーキテクチャ試験、Flyway骨格、ReactとTypeScript、単一テーマ、OpenAPI生成クライアント、相関ID、health、metrics、traceを実装する。</p></div>
+            <div><h4>作業</h4><p>Spring設定を一つの<code>application.properties</code>へ統合し、local／productionとapp／workerのprofileを排他的に検証する。その後、機械可読試験台帳、OpenAPI、パッケージ境界、アーキテクチャ試験、Flyway骨格、ReactとTypeScript、単一テーマ、OpenAPI生成クライアント、相関ID、health、metrics、traceを実装する。</p></div>
             <div><h4>成果物</h4><p>起動可能なapplication、worker、web、空の業務モジュール、CI品質コマンド。</p></div>
-            <div><h4>完了条件</h4><p>全プロセスが秘密値を出力せず起動し、禁止依存をアーキテクチャ試験が拒否し、OpenAPI差分が0になる。</p></div>
+            <div><h4>完了条件</h4><p>環境と実行ロールの未指定・二重指定・不一致を起動前に拒否し、localの取得済み設定を本アプリ用keyで解決できる。全プロセスが秘密値を出力せず起動し、禁止依存をアーキテクチャ試験が拒否し、OpenAPI差分が0になる。</p></div>
           </div>
         </article>
 
@@ -837,7 +837,7 @@
     </main>
 
     <footer class="foot">
-      <p>承認済み、実装開始可、本番投入不可 · 計画版 0.3.0 · 最終確認 2026-09-02 · 正本 docs/IMPLEMENTATION-PLAN.html</p>
+      <p>承認済み、実装開始可、本番投入不可 · 計画版 0.4.0 · 最終確認 2026-09-02 · 正本 docs/IMPLEMENTATION-PLAN.html</p>
     </footer>
   </div>
 </body>
