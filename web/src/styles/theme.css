@@ -1,0 +1,60 @@
+:root {
+  color-scheme: light;
+  --color-paper: oklch(98.5% 0.004 250);
+  --color-paper-raised: oklch(100% 0.003 250);
+  --color-paper-muted: oklch(95.5% 0.008 250);
+  --color-rule: oklch(87% 0.012 252);
+  --color-rule-strong: oklch(65% 0.022 254);
+  --color-ink: oklch(24% 0.02 258);
+  --color-ink-soft: oklch(36% 0.018 257);
+  --color-muted: oklch(46% 0.018 255);
+  --color-accent: oklch(48% 0.2 256);
+  --color-accent-soft: oklch(93% 0.035 256);
+  --color-accent-ink: oklch(98.5% 0.004 250);
+  --color-focus: oklch(39% 0.18 256);
+  --color-danger: oklch(48% 0.18 27);
+  --color-warning: oklch(51% 0.11 74);
+  --color-success: oklch(43% 0.12 155);
+  --color-overlay: oklch(18% 0.02 258 / 0.44);
+
+  --font-display: "Space Grotesk", "IBM Plex Sans", sans-serif;
+  --font-body: "IBM Plex Sans", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-md: 1.25rem;
+  --text-lg: 1.5625rem;
+  --text-xl: 1.953rem;
+  --text-2xl: clamp(2.125rem, 4vw, 3.052rem);
+
+  --space-3xs: 0.125rem;
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+  --space-3xl: 6rem;
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-round: 50%;
+  --control-height: 2.75rem;
+  --rail-width: 15rem;
+  --content-max: 78rem;
+  --copy-measure: 65ch;
+  --border-width: 0.0625rem;
+  --focus-width: 0.125rem;
+  --shadow-whisper: 0 0.0625rem 0.125rem oklch(24% 0.02 258 / 0.05);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --duration-micro: 120ms;
+  --duration-short: 220ms;
+  --duration-long: 420ms;
+  --z-base: 1;
+  --z-sticky: 200;
+  --z-modal: 400;
+}

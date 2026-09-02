@@ -7,6 +7,12 @@
     "pnpm": ">=10.29.1 <11"
   },
   "scripts": {
+    "dev:web": "pnpm --dir web dev",
+    "build:web": "pnpm --dir web build",
+    "typecheck:web": "pnpm --dir web typecheck",
+    "test:web": "pnpm --dir web test",
+    "test:web-e2e": "pnpm --dir web test:e2e",
+    "generate:web-api": "pnpm --dir web generate:api",
     "verify:traceability": "python scripts/verify_traceability.py",
     "test:traceability": "python -m unittest scripts/test_verify_traceability.py",
     "generate:test-manifest": "python scripts/generate_test_manifest.py",
@@ -17,6 +23,7 @@
     "test:openapi": "python -m unittest scripts/test_generate_openapi.py",
     "verify:production-config": "python deploy/scripts/preflight_production.py --schema-only",
     "test:production-config": "python -m unittest deploy/scripts/test_preflight_production.py",
-    "verify:release-artifacts": "python deploy/scripts/verify_release_artifacts.py"
+    "verify:release-artifacts": "python deploy/scripts/verify_release_artifacts.py",
+    "verify": "pnpm verify:traceability && pnpm verify:test-manifest && pnpm verify:openapi && pnpm typecheck:web && pnpm test:web && pnpm build:web && pnpm test:web-e2e"
   }
 }
