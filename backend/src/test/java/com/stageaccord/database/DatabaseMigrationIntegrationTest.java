@@ -362,6 +362,109 @@ class DatabaseMigrationIntegrationTest {
         }
     }
 
+    @Test
+    void fileVersionBecomesReadyOnlyWithCompleteScanAndPromotionEvidence() throws Exception {
+        String url = System.getenv("STAGE_ACCORD_TEST_DB_URL");
+        requireDedicatedDummyDatabase(url);
+        String username = System.getenv("STAGE_ACCORD_TEST_DB_USERNAME");
+        String password = System.getenv("STAGE_ACCORD_TEST_DB_PASSWORD");
+        migrateFresh(url, username, password);
+
+        try (var connection = DriverManager.getConnection(url, username, password)) {
+            connection.setAutoCommit(false);
+            ProjectSeed seed = seedProject(connection, "31");
+            connection.commit();
+
+            UUID rejectedFileId = UUID.randomUUID();
+            UUID rejectedVersionId = UUID.randomUUID();
+            insertFileRecord(connection, seed, rejectedFileId);
+            execute(connection, fileVersionSql(seed.workspaceId(), rejectedFileId, rejectedVersionId,
+                    "ready", "required", "clean", "destination-a"));
+            assertThatThrownBy(connection::commit)
+                    .isInstanceOf(SQLException.class)
+                    .hasMessageContaining("lacks verified readiness evidence");
+            connection.rollback();
+
+            UUID readyFileId = UUID.randomUUID();
+            UUID readyVersionId = UUID.randomUUID();
+            insertFileRecord(connection, seed, readyFileId);
+            execute(connection, fileVersionSql(seed.workspaceId(), readyFileId, readyVersionId,
+                    "scan_pending", "required", "pending", "destination-b"));
+            execute(connection, "insert into file_store.scan_result "
+                    + "(workspace_id,file_version_id,mode,engine,definition_version,config_hash,bytes_read,bytes_scanned,result,completed_at) values ('"
+                    + seed.workspaceId() + "','" + readyVersionId
+                    + "','required','dummy-scanner','dummy-def',decode(repeat('42',32),'hex'),128,128,'NEGATIVE',now())");
+            execute(connection, "insert into file_store.s3_promotion_receipt "
+                    + "(workspace_id,file_version_id,source_bucket,source_version_id,destination_bucket,destination_version_id,size_bytes,sha256,verified_at) values ('"
+                    + seed.workspaceId() + "','" + readyVersionId
+                    + "','quarantine','source-version','ready','destination-b',128,decode(repeat('41',32),'hex'),now())");
+            execute(connection, "update file_store.file_version set status='ready',scan_status='clean' where workspace_id='"
+                    + seed.workspaceId() + "' and id='" + readyVersionId + "'");
+            connection.commit();
+
+            try (var statement = connection.prepareStatement(
+                    "select status from file_store.file_version where workspace_id=? and id=?")) {
+                statement.setObject(1, seed.workspaceId());
+                statement.setObject(2, readyVersionId);
+                try (var result = statement.executeQuery()) {
+                    assertThat(result.next()).isTrue();
+                    assertThat(result.getString(1)).isEqualTo("ready");
+                }
+            }
+        }
+    }
+
+    private static ProjectSeed seedProject(java.sql.Connection connection, String digestByte) throws SQLException {
+        UUID workspaceId = seedWorkspace(connection, digestByte);
+        UUID profileId = UUID.randomUUID();
+        UUID workflowId = UUID.randomUUID();
+        UUID serviceId = UUID.randomUUID();
+        UUID serviceVersionId = UUID.randomUUID();
+        UUID formVersionId = UUID.randomUUID();
+        UUID requestId = UUID.randomUUID();
+        UUID offerId = UUID.randomUUID();
+        UUID agreementVersionId = UUID.randomUUID();
+        UUID projectId = UUID.randomUUID();
+        execute(connection, "insert into catalog.creator_profile (workspace_id,id,slug,draft_json,intake_status) values ('"
+                + workspaceId + "','" + profileId + "','file-test-" + profileId + "','{}','open')");
+        execute(connection, "insert into catalog.workflow_template_version (workspace_id,id,template_id,version_no,name,status,published_at) values ('"
+                + workspaceId + "','" + workflowId + "','" + UUID.randomUUID() + "',1,'Dummy','published',now())");
+        execute(connection, "insert into catalog.service (workspace_id,id,profile_id,slug,status) values ('"
+                + workspaceId + "','" + serviceId + "','" + profileId + "','file-service','published')");
+        execute(connection, "insert into catalog.service_version (workspace_id,id,service_id,version_no,content_json,workflow_version_id,status,published_at) values ('"
+                + workspaceId + "','" + serviceVersionId + "','" + serviceId + "',1,'{}','" + workflowId + "','published',now())");
+        execute(connection, "insert into catalog.intake_form_version (workspace_id,id,service_version_id,version_no,schema_json,privacy_text_version,status,published_at) values ('"
+                + workspaceId + "','" + formVersionId + "','" + serviceVersionId + "',1,'{}','dummy-v1','published',now())");
+        execute(connection, "insert into intake.request (workspace_id,id,service_version_id,form_version_id,requester_email_digest_v2,privacy_text_version,status,submitted_at) values ('"
+                + workspaceId + "','" + requestId + "','" + serviceVersionId + "','" + formVersionId
+                + "',decode(repeat('51',32),'hex'),'dummy-v1','accepted',now())");
+        execute(connection, "insert into agreement.offer (workspace_id,id,request_id,service_version_id,status,expires_at) values ('"
+                + workspaceId + "','" + offerId + "','" + requestId + "','" + serviceVersionId + "','accepted',now()+interval '1 day')");
+        execute(connection, "insert into agreement.agreement_version (workspace_id,id,offer_id,version_no,canonical_json,canonical_sha256,renderer_version,locale,time_zone,status) values ('"
+                + workspaceId + "','" + agreementVersionId + "','" + offerId
+                + "',1,'{}',decode(repeat('61',32),'hex'),'dummy-v1','ja-JP','Asia/Tokyo','accepted')");
+        execute(connection, "insert into project.project (workspace_id,id,agreement_version_id,status,waiting_on) values ('"
+                + workspaceId + "','" + projectId + "','" + agreementVersionId + "','active','NONE')");
+        return new ProjectSeed(workspaceId, projectId);
+    }
+
+    private static void insertFileRecord(java.sql.Connection connection, ProjectSeed seed, UUID fileId)
+            throws SQLException {
+        execute(connection, "insert into file_store.file_record "
+                + "(workspace_id,project_id,id,logical_name_ciphertext,owner_id,deletion_status) values ('"
+                + seed.workspaceId() + "','" + seed.projectId() + "','" + fileId + "','{}','"
+                + UUID.randomUUID() + "','active')");
+    }
+
+    private static String fileVersionSql(UUID workspaceId, UUID fileId, UUID versionId,
+            String status, String scanMode, String scanStatus, String objectVersion) {
+        return "insert into file_store.file_version "
+                + "(workspace_id,file_id,id,version_no,bucket,object_key,object_version_id,size_bytes,sha256,status,scan_mode,scan_status,media_type) values ('"
+                + workspaceId + "','" + fileId + "','" + versionId + "',1,'ready','dummy-key','"
+                + objectVersion + "',128,decode(repeat('41',32),'hex'),'" + status + "','" + scanMode + "','"
+                + scanStatus + "','application/octet-stream')";
+    }
+
     private static UUID seedWorkspace(java.sql.Connection connection, String digestByte) throws SQLException {
         UUID accountId = UUID.randomUUID();
         UUID workspaceId = UUID.randomUUID();
@@ -409,7 +512,7 @@ class DatabaseMigrationIntegrationTest {
                 .locations("classpath:db/migration")
                 .load();
         flyway.clean();
-        assertThat(flyway.migrate().migrationsExecuted).isEqualTo(9);
+        assertThat(flyway.migrate().migrationsExecuted).isEqualTo(10);
         return flyway;
     }
 
@@ -420,6 +523,8 @@ class DatabaseMigrationIntegrationTest {
         private final java.util.UUID aggregate = java.util.UUID.randomUUID();
         private java.util.UUID auditEvent;
     }
+
+    private record ProjectSeed(UUID workspaceId, UUID projectId) {}
 
     private static void requireDedicatedDummyDatabase(String jdbcUrl) {
         URI uri = URI.create(jdbcUrl.replaceFirst("^jdbc:", ""));
