@@ -7,6 +7,8 @@
     "pnpm": ">=10.29.1 <11"
   },
   "scripts": {
+    "verify:traceability": "python scripts/verify_traceability.py",
+    "test:traceability": "python -m unittest scripts/test_verify_traceability.py",
     "verify:production-config": "python deploy/scripts/preflight_production.py --schema-only",
     "test:production-config": "python -m unittest deploy/scripts/test_preflight_production.py",
     "verify:release-artifacts": "python deploy/scripts/verify_release_artifacts.py"
