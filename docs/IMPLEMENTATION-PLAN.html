@@ -234,14 +234,14 @@
         <h1>Stage Accord 実装計画書</h1>
         <p class="lede">概要設計を、実装開始ゲート、依存順の作業単位、検証証拠、本番判定へ変換する。</p>
         <dl class="document-contract">
-          <div><dt>状態</dt><dd>提案済み、承認待ち</dd></div>
-          <div><dt>現行判定</dt><dd>実装開始不可、本番投入不可</dd></div>
+          <div><dt>状態</dt><dd>承認済み、実装開始可</dd></div>
+          <div><dt>現行判定</dt><dd>製品実装開始可、本番投入不可</dd></div>
           <div><dt>対象</dt><dd>Production V1の製品実装、基盤、検証、公開判定</dd></div>
           <div><dt>対象外</dt><dd>要件と設計の変更、未計測値の確定、法的助言</dd></div>
-          <div><dt>基準文書</dt><dd><a href="REQUIREMENTS.html">REQUIREMENTS 1.5.0</a>、<a href="HLD.html">HLD 1.5.0</a>、<a href="LLD.html">LLD 1.4.0</a></dd></div>
-          <div><dt>現行実装</dt><dd>起動骨格、本番構成ガード、単一ホスト配備の一部</dd></div>
-          <div><dt>計画版</dt><dd>0.2.0</dd></div>
-          <div><dt>最終確認</dt><dd>2026-09-01</dd></div>
+          <div><dt>基準文書</dt><dd><a href="REQUIREMENTS.html">REQUIREMENTS 1.6.0</a>、<a href="HLD.html">HLD 1.6.0</a>、<a href="LLD.html">LLD 1.5.0</a></dd></div>
+          <div><dt>現行実装</dt><dd>起動骨格、本番構成ガード、単一ホスト配備の一部、文書追跡CI</dd></div>
+          <div><dt>計画版</dt><dd>0.3.0</dd></div>
+          <div><dt>最終確認</dt><dd>2026-09-02</dd></div>
         </dl>
       </header>
 
@@ -249,29 +249,30 @@
         <header class="section__header">
           <p class="section__label">01 / Verdict</p>
           <h2>現時点の判定</h2>
-          <p class="section__lede">製品機能の実装と本番公開は、異なるゲートで停止している。</p>
+          <p class="section__lede">製品機能の実装開始ゲートは閉鎖済みであり、本番公開ゲートは未充足である。</p>
         </header>
         <div class="callout callout--danger">
-          <p><strong>結論：</strong>製品機能の実装開始不可、本番投入不可。</p>
-          <p>REQUIREMENTS、HLD、LLDが再承認待ちであり、実装開始前の必須条件である<a href="HLD.html#OPN-104">HLD OPN-104</a>も未閉鎖である。</p>
+          <p><strong>結論：</strong>製品機能の実装開始可、本番投入不可。</p>
+          <p>REQUIREMENTS、HLD、LLDは承認済みであり、実装開始前の必須条件である<a href="HLD.html#OPN-104">HLD OPN-104</a>は追跡CIとmain必須checkの実証により閉鎖した。</p>
         </div>
         <dl class="document-contract">
-          <div><dt>証拠レベル</dt><dd>実ファイル確認済み、ローカル自動試験実行済み</dd></div>
+          <div><dt>証拠レベル</dt><dd>実ファイル、ローカル自動試験、GitHub Actions成功、main保護設定を確認済み</dd></div>
           <div><dt>未確認</dt><dd>実UI、実機、本番ホスト、実ログ、外部サービス疎通</dd></div>
-          <div><dt>開始可能な作業</dt><dd>再承認、OPN-104、OpenAPIと試験台帳、検証基盤の整備</dd></div>
-          <div><dt>開始できない作業</dt><dd>Production V1の業務機能実装</dd></div>
+          <div><dt>開始可能な作業</dt><dd>Phase 1以降の製品実装、OpenAPI、試験台帳、検証基盤の整備</dd></div>
+          <div><dt>開始できない作業</dt><dd>Production V1の本番公開</dd></div>
         </dl>
         <article class="record" id="CON-301">
           <header class="record__header">
             <span class="record__id">CON-301</span>
             <h3 class="record__title">製品機能の実装開始ゲート</h3>
-            <span class="status status--prohibited">提案中／未充足</span>
+            <span class="status status--approved">承認済み／充足済み</span>
           </header>
           <dl class="record__meta">
             <div><dt>種別</dt><dd>制約</dd></div>
             <div><dt>規範強度</dt><dd>必須</dd></div>
-            <div><dt>決定状態</dt><dd>提案中</dd></div>
-            <div><dt>充足状態</dt><dd>未充足</dd></div>
+            <div><dt>決定状態</dt><dd>承認済み</dd></div>
+            <div><dt>充足状態</dt><dd>2026-09-02充足</dd></div>
+            <div><dt>閉鎖証拠</dt><dd>三文書の承認、HLD OPN-104閉鎖、GitHub Actions成功、main必須check設定</dd></div>
             <div><dt>適用範囲</dt><dd>Phase 1以降の製品コード</dd></div>
           </dl>
           <p class="record__statement">REQUIREMENTS、HLD、LLDの再承認とHLD OPN-104の閉鎖が証拠化されるまで、製品機能の実装を開始しない。</p>
@@ -280,12 +281,12 @@
           <header class="record__header">
             <span class="record__id">CON-302</span>
             <h3 class="record__title">本番公開ゲート</h3>
-            <span class="status status--prohibited">提案中／未充足</span>
+            <span class="status status--prohibited">承認済み／未充足</span>
           </header>
           <dl class="record__meta">
             <div><dt>種別</dt><dd>制約</dd></div>
             <div><dt>規範強度</dt><dd>必須</dd></div>
-            <div><dt>決定状態</dt><dd>提案中</dd></div>
+            <div><dt>決定状態</dt><dd>承認済み</dd></div>
             <div><dt>充足状態</dt><dd>未充足</dd></div>
             <div><dt>適用範囲</dt><dd>Production V1の本番公開</dd></div>
           </dl>
@@ -319,12 +320,12 @@
         </aside>
         <div class="record-strip">
           <article class="record" id="CON-303">
-            <header class="record__header"><span class="record__id">CON-303</span><h3 class="record__title">変更単位</h3><span class="status status--open">提案</span></header>
+            <header class="record__header"><span class="record__id">CON-303</span><h3 class="record__title">変更単位</h3><span class="status status--approved">承認済み</span></header>
             <dl class="record__meta"><div><dt>種別</dt><dd>制約</dd></div><div><dt>規範強度</dt><dd>必須</dd></div><div><dt>適用範囲</dt><dd>全実装コミット</dd></div></dl>
             <p class="record__statement">一つのコミットには、レビュワーが五分で説明できる一つの責務だけを含める。</p>
           </article>
           <article class="record" id="CON-304">
-            <header class="record__header"><span class="record__id">CON-304</span><h3 class="record__title">計画変更</h3><span class="status status--open">提案</span></header>
+            <header class="record__header"><span class="record__id">CON-304</span><h3 class="record__title">計画変更</h3><span class="status status--approved">承認済み</span></header>
             <dl class="record__meta"><div><dt>種別</dt><dd>制約</dd></div><div><dt>規範強度</dt><dd>必須</dd></div><div><dt>適用範囲</dt><dd>要求、HLD、LLD、工程の変更</dd></div></dl>
             <p class="record__statement">上位文書へ影響する変更は上位文書を先に改訂して再承認し、追跡検査が合格してから本書と実装を更新する。</p>
           </article>
@@ -335,20 +336,20 @@
         <header class="section__header">
           <p class="section__label">03 / Baseline</p>
           <h2>現行実装と残差</h2>
-          <p class="section__lede">2026-09-01時点のワークスペースを実ファイルとローカル試験で確認した。実装基準はコミット <code>20bfcf2162cc69df8b8735500e2ced00e4484a9e</code> であり、本計画の文書改訂は実装基準を変更しない。</p>
+          <p class="section__lede">2026-09-02時点のワークスペースを実ファイル、ローカル試験、GitHub Actions、main保護設定で確認した。実装開始ゲートの基準コミットは <code>e9f800bee2cb162dec0c76953ab45979b6c9ed16</code> である。</p>
         </header>
         <div class="table-wrap">
           <table>
             <caption>現行成果と未実装範囲</caption>
             <thead><tr><th scope="col">領域</th><th scope="col">確認した成果</th><th scope="col">状態</th><th scope="col">次の残差</th></tr></thead>
             <tbody>
-              <tr><th scope="row">文書</th><td>REQUIREMENTS 1.5.0、HLD 1.5.0、LLD 1.4.0</td><td>改訂済み、再承認待ち</td><td>承認記録、OPN-104、OpenAPI、試験台帳</td></tr>
+              <tr><th scope="row">文書</th><td>REQUIREMENTS 1.6.0、HLD 1.6.0、LLD 1.5.0</td><td>承認済み、実装開始可</td><td>Phase 1でOpenAPIと試験台帳を実装</td></tr>
               <tr><th scope="row">バックエンド</th><td>Spring Boot 4.1、JDK 25、applicationとworkerの起動クラス</td><td>起動骨格あり</td><td>業務モジュール、API、DB migration、認可、監査、Outbox</td></tr>
               <tr><th scope="row">構成安全性</th><td>本番構成ガード、秘密ファイル検査、S3と検査モードの検証</td><td>一部実装済み</td><td>実接続、時刻、容量、複製、証明書、復元証拠との統合</td></tr>
               <tr><th scope="row">配備</th><td>Docker Compose、Nginx、Ansible骨格、構成マニフェスト、事前検査</td><td>一部実装済み</td><td>実イメージ、ネットワーク実証、監視、署名、NとN-1の切替</td></tr>
               <tr><th scope="row">フロントエンド</th><td>該当ディレクトリなし</td><td>未実装</td><td>React、TypeScript、Vite、共通テーマ、画面、状態、E2E</td></tr>
               <tr><th scope="row">公開契約</th><td>LLD内のAPI操作台帳</td><td>文書内のみ</td><td><code>openapi/stage-accord-v1.yaml</code>と生成クライアント</td></tr>
-              <tr><th scope="row">要件追跡</th><td>REQUIREMENTSの一意な要件IDは106件、LLDの直接追跡IDも106件。HLDとLLDの説明文は107件と記載</td><td>正本間の件数表現が不一致、機械検査なし</td><td>固定件数ではなく要件ID集合の一致、重複、リンク、必須欄を検査し、不一致を拒否するCI</td></tr>
+              <tr><th scope="row">要件追跡</th><td>REQUIREMENTS、HLD、LLDの106要件が一致。欠落、未知、重複、リンク、必須欄を検査</td><td>CI実装済み、main必須check</td><td>Phase 1以降も差分を継続拒否</td></tr>
               <tr><th scope="row">リリース証拠</th><td>構成契約の検査スクリプト</td><td>実値未設定</td><td>実機、実ログ、実UI、復元、性能、法務、運用訓練</td></tr>
             </tbody>
           </table>
@@ -362,6 +363,8 @@
               <tr><th scope="row">Maven試験</th><td>6件成功、失敗0</td><td>現行の起動骨格と構成検査は成功した。</td></tr>
               <tr><th scope="row">本番事前検査の単体試験</th><td>5件成功、失敗0</td><td>現行の構成スキーマ検査は成功した。</td></tr>
               <tr><th scope="row">構成スキーマ検査</th><td>成功</td><td>例示設定とマニフェストのキー集合は一致した。</td></tr>
+              <tr><th scope="row">文書追跡fixture</th><td>2件成功、失敗0</td><td>欠落、未知、重複、リンク切れ、必須欄空白を拒否した。</td></tr>
+              <tr><th scope="row">文書追跡CI</th><td>106件、差分0、GitHub Actions成功</td><td>mainのstrict必須checkとして管理者にも適用した。</td></tr>
               <tr><th scope="row">リリース成果物検査</th><td><code>APP_PUBLIC_HOST</code>未確定で失敗</td><td>実本番値がない現状では期待される拒否であり、本番準備完了を示さない。</td></tr>
             </tbody>
           </table>
@@ -378,7 +381,7 @@
           <header class="record__header">
             <span class="record__id">DEC-301</span>
             <h3 class="record__title">安全基盤と縦断実装の組合せ</h3>
-            <span class="status status--open">提案</span>
+            <span class="status status--approved">承認済み</span>
           </header>
           <dl class="record__meta">
             <div><dt>種別</dt><dd>決定</dd></div>
@@ -463,19 +466,19 @@
         <article class="phase" id="phase-00">
           <header class="phase__header"><span class="phase__id">PHASE 0 / START GATE</span><h3>再承認と追跡基盤</h3><p>製品コードへ入る前に、正本と機械検査を固定する。</p></header>
           <div class="phase__grid">
-            <div><h4>入力</h4><p>REQUIREMENTS 1.5.0、HLD 1.5.0、LLD 1.4.0、現行リポジトリ。</p></div>
-            <div><h4>作業</h4><p>三文書の再承認、要件件数表現の不一致解消、OPN-104の追跡CI、OpenAPI、REQUIREMENTSに存在する全要件IDの試験台帳、保護ブランチ必須チェックを整備する。</p></div>
-            <div><h4>成果物</h4><p>承認記録、<code>openapi/stage-accord-v1.yaml</code>、機械可読試験台帳、成功と失敗のCI証拠。</p></div>
-            <div><h4>完了条件</h4><p>REQUIREMENTS、HLD、LLDで要件ID集合と件数表現が一致し、欠落、未知ID、重複、リンク切れ、必須欄空白の各失敗fixtureが統合を拒否し、承認者が開始を許可する。</p></div>
+            <div><h4>入力</h4><p>REQUIREMENTS 1.6.0、HLD 1.6.0、LLD 1.5.0、現行リポジトリ。</p></div>
+            <div><h4>完了内容</h4><p>三文書の承認、要件件数表現の一致、OPN-104の追跡CI、失敗fixture、保護ブランチ必須checkを整備した。</p></div>
+            <div><h4>成果物</h4><p>承認記録、追跡検査、失敗fixture、GitHub Actions成功、main保護設定。</p></div>
+            <div><h4>完了条件</h4><p>REQUIREMENTS、HLD、LLDの106要件が一致し、各失敗fixtureが統合を拒否し、実装開始が承認された。</p></div>
           </div>
-          <aside class="callout callout--danger"><p>Phase 0が不合格なら、Phase 1以降を開始しない。</p></aside>
+          <aside class="callout"><p>Phase 0は2026-09-02に合格した。追跡必須checkが失敗した場合は、以後も変更を統合しない。</p></aside>
         </article>
 
         <article class="phase" id="phase-01">
           <header class="phase__header"><span class="phase__id">PHASE 1 / EXECUTABLE SKELETON</span><h3>実行骨格と開発品質</h3><p>既存の起動骨格へ、モジュール境界、Web、契約生成、観測の入口を追加する。</p></header>
           <div class="phase__grid">
             <div><h4>入力</h4><p>Phase 0の承認済み契約と現行のbackend、deploy。</p></div>
-            <div><h4>作業</h4><p>パッケージ境界、アーキテクチャ試験、Flyway骨格、ReactとTypeScript、単一テーマ、OpenAPI生成クライアント、相関ID、health、metrics、traceを実装する。</p></div>
+            <div><h4>作業</h4><p>機械可読試験台帳、OpenAPI、パッケージ境界、アーキテクチャ試験、Flyway骨格、ReactとTypeScript、単一テーマ、OpenAPI生成クライアント、相関ID、health、metrics、traceを実装する。</p></div>
             <div><h4>成果物</h4><p>起動可能なapplication、worker、web、空の業務モジュール、CI品質コマンド。</p></div>
             <div><h4>完了条件</h4><p>全プロセスが秘密値を出力せず起動し、禁止依存をアーキテクチャ試験が拒否し、OpenAPI差分が0になる。</p></div>
           </div>
@@ -725,7 +728,7 @@
               <tr><th scope="row">現行</th><td><code>C:\work\StageAccord</code></td><td>本番事前検査</td><td><code>python -m unittest deploy/scripts/test_preflight_production.py</code></td><td>全試験成功。</td></tr>
               <tr><th scope="row">現行</th><td><code>C:\work\StageAccord</code></td><td>構成キー契約</td><td><code>python deploy/scripts/preflight_production.py --schema-only</code></td><td><code>PREFLIGHT PASSED</code>。</td></tr>
               <tr><th scope="row">現行</th><td><code>C:\work\StageAccord</code></td><td>実本番設定とdigest</td><td><code>python deploy/scripts/verify_release_artifacts.py</code></td><td>本番値がすべて確定した環境だけで成功し、プレースホルダーは失敗。</td></tr>
-              <tr><th scope="row">予定</th><td><code>C:\work\StageAccord</code></td><td>REQUIREMENTSの全要件IDと文書追跡</td><td><code>pnpm verify:traceability</code></td><td>固定件数へ依存せず、REQUIREMENTS、HLD、LLD、試験台帳のID集合差分、未知、重複、リンク切れ、空欄が0。</td></tr>
+              <tr><th scope="row">現行</th><td><code>C:\work\StageAccord</code></td><td>REQUIREMENTSの全要件IDと文書追跡</td><td><code>pnpm verify:traceability</code></td><td>固定件数へ依存せず、REQUIREMENTS、HLD、LLDのID集合差分、未知、重複、リンク切れ、空欄が0。</td></tr>
               <tr><th scope="row">予定</th><td><code>C:\work\StageAccord</code></td><td>OpenAPIと生成物</td><td><code>pnpm verify:openapi</code></td><td>LLD操作台帳との差分0、破壊的変更0。</td></tr>
               <tr><th scope="row">予定</th><td><code>C:\work\StageAccord</code></td><td>全静的品質</td><td><code>pnpm lint &amp;&amp; pnpm typecheck</code></td><td>警告を許可リスト化し、未承認警告0。</td></tr>
               <tr><th scope="row">予定</th><td><code>C:\work\StageAccord</code></td><td>Web単体と統合</td><td><code>pnpm --filter stage-accord-web test</code></td><td>失敗0。</td></tr>
@@ -792,49 +795,49 @@
       <section class="section" id="open-items">
         <header class="section__header">
           <p class="section__label">11 / Open</p>
-          <h2>未確定事項と承認時の質問</h2>
-          <p class="section__lede">値を推測せず、工程の開始条件または見積条件として残す。</p>
+          <h2>未確定事項と承認済み前提</h2>
+          <p class="section__lede">実装開始ゲートの閉鎖結果と、値を推測せず後続判断まで残す事項を分ける。</p>
         </header>
         <article class="record" id="OPN-301">
           <header class="record__header"><span class="record__id">OPN-301</span><h3 class="record__title">体制とカレンダー見積</h3><span class="status status--open">未確定</span></header>
-          <dl class="record__meta"><div><dt>種別</dt><dd>未確定事項</dd></div><div><dt>規範強度</dt><dd>計画確定前に必須</dd></div><div><dt>解消条件</dt><dd>担当人数、役割、稼働率、承認者、外部環境の利用可能日を確定する。</dd></div></dl>
+          <dl class="record__meta"><div><dt>種別</dt><dd>未確定事項</dd></div><div><dt>規範強度</dt><dd>カレンダー見積の確定前に必須</dd></div><div><dt>解消条件</dt><dd>担当人数、役割、稼働率、承認者、外部環境の利用可能日を確定する。</dd></div></dl>
           <p class="record__statement">工数と日付は、体制、並列可能数、外部基盤、レビュー所要時間が未確定のため約束値を置かない。</p>
         </article>
         <article class="record" id="OPN-302">
-          <header class="record__header"><span class="record__id">OPN-302</span><h3 class="record__title">破壊禁止事項とロールバック前提</h3><span class="status status--open">未確定</span></header>
-          <dl class="record__meta"><div><dt>種別</dt><dd>未確定事項</dd></div><div><dt>規範強度</dt><dd>Phase 0承認前に必須</dd></div><div><dt>解消条件</dt><dd>既存基盤、データ、設定、公開URL、外部契約の変更禁止範囲を承認記録へ固定する。</dd></div></dl>
-          <p class="record__statement">既存オンプレ基盤と外部サービスに対して、変更可能な範囲と復旧責任者を明示する。</p>
+          <header class="record__header"><span class="record__id">OPN-302</span><h3 class="record__title">破壊禁止事項とロールバック前提</h3><span class="status status--approved">閉鎖済み</span></header>
+          <dl class="record__meta"><div><dt>種別</dt><dd>承認済み前提</dd></div><div><dt>状態</dt><dd>閉鎖済み</dd></div><div><dt>規範強度</dt><dd>必須</dd></div><div><dt>閉鎖日</dt><dd>2026-09-02</dd></div></dl>
+          <p class="record__statement">明示承認のない既存基盤、データ、設定、公開URL、外部契約の変更を禁止する。変更は一責務コミットとし、履歴を書き換えずgit revertで戻す。DB contractと不可逆な外部変更は個別承認まで実行しない。</p>
         </article>
         <article class="record" id="OPN-303">
-          <header class="record__header"><span class="record__id">OPN-303</span><h3 class="record__title">要件ID総数の不一致</h3><span class="status status--open">未確定</span></header>
-          <dl class="record__meta"><div><dt>種別</dt><dd>未確定事項</dd></div><div><dt>規範強度</dt><dd>Phase 0完了前に必須</dd></div><div><dt>解消条件</dt><dd>REQUIREMENTSの要件ID集合と、HLD、LLDの件数表現および追跡集合を上位文書の再承認で一致させる。</dd></div></dl>
-          <p class="record__statement">現行REQUIREMENTSとLLDの直接追跡には一意な要件IDが106件存在する一方、HLDとLLDの説明文は107件としている。本計画はどちらかを推測で正本化せず、集合一致が証拠化されるまでPhase 0を完了しない。</p>
+          <header class="record__header"><span class="record__id">OPN-303</span><h3 class="record__title">要件ID総数の不一致</h3><span class="status status--approved">検証済み、閉鎖済み</span></header>
+          <dl class="record__meta"><div><dt>種別</dt><dd>解消済み事項</dd></div><div><dt>状態</dt><dd>検証済み、閉鎖済み</dd></div><div><dt>規範強度</dt><dd>Phase 0完了前に必須</dd></div><div><dt>閉鎖日</dt><dd>2026-09-02</dd></div></dl>
+          <p class="record__statement">REQUIREMENTSのFR 83件、NFR 23件、合計106件と、HLD、LLDの追跡集合および件数表現を一致させ、追跡検査で集合差分0を確認した。</p>
         </article>
         <div class="table-wrap">
           <table>
-            <caption>Phase 0の承認で回答する事項</caption>
-            <thead><tr><th scope="col">分類</th><th scope="col">確認事項</th><th scope="col">未回答時</th></tr></thead>
+            <caption>Phase 0で承認した実装制約</caption>
+            <thead><tr><th scope="col">分類</th><th scope="col">承認済み規則</th><th scope="col">不成立時</th></tr></thead>
             <tbody>
-              <tr><th scope="row">前提条件</th><td>利用できるPostgreSQL、Valkey、ClamAV、S3、Stripe、SMTP、監視、検証環境は何か。</td><td>外部接続を伴う作業へ進まない。</td></tr>
-              <tr><th scope="row">破壊禁止</th><td>既存データ、共有基盤、公開URL、外部契約、設定のうち変更禁止の対象は何か。</td><td>変更を行わない。</td></tr>
-              <tr><th scope="row">優先制約</th><td>安全性、互換性、可読性、納期、費用の競合時に、HLDの優先順位をそのまま適用するか。</td><td>HLDの優先順位を維持し、競合を承認へ戻す。</td></tr>
-              <tr><th scope="row">実装粒度</th><td>一つのPRまたはコミットで許容する要求数、レビュー時間、並列作業数はどこまでか。</td><td>CON-303の一責務単位を上限にする。</td></tr>
-              <tr><th scope="row">ロールバック</th><td>N-1保持期間、DB contractの承認者、停止時間、前進修復責任者は誰か。</td><td>破壊的変更とcontractを実行しない。</td></tr>
+              <tr><th scope="row">前提条件</th><td>外部基盤の実値と利用可否は取得済みの範囲だけを使用する。</td><td>外部接続を伴う作業へ進まない。</td></tr>
+              <tr><th scope="row">破壊禁止</th><td>明示承認のない既存データ、共有基盤、公開URL、外部契約、設定を変更しない。</td><td>変更を行わない。</td></tr>
+              <tr><th scope="row">優先制約</th><td>安全性、互換性、可読性、納期、費用の競合時はHLDの優先順位を適用する。</td><td>競合を承認へ戻す。</td></tr>
+              <tr><th scope="row">実装粒度</th><td>CON-303の一責務単位を一コミットの上限にする。</td><td>変更を分割する。</td></tr>
+              <tr><th scope="row">ロールバック</th><td>履歴を書き換えずgit revertを使い、DB contractは個別承認まで実行しない。</td><td>公開を閉じたまま前進修復する。</td></tr>
             </tbody>
           </table>
         </div>
-        <h3>承認後の次の行動</h3>
+        <h3>現在の次の行動</h3>
         <ol>
-          <li>本計画、REQUIREMENTS、HLD、LLDの承認状態を更新する。</li>
-          <li>Phase 0を、一つの説明可能な責務ごとのコミットへ分解する。</li>
-          <li>OPN-303を上位文書の再承認で解消し、OPN-104、OpenAPI、試験台帳、保護ブランチの順に実装して証拠を保存する。</li>
-          <li>Phase 0の完了判定後に限り、Phase 1の製品コード実装方針を提示して承認を得る。</li>
+          <li>Phase 1を、一つの説明可能な責務ごとのコミットへ分解する。</li>
+          <li>公開API実装前にOpenAPIと機械可読試験台帳を作成し、追跡必須checkへ統合する。</li>
+          <li>観測点、入力検証、最小コア、エラー処理、試験の順でPhase 1を実装する。</li>
+          <li>本番投入はCON-302を維持し、Phase 10の証拠が揃うまで許可しない。</li>
         </ol>
       </section>
     </main>
 
     <footer class="foot">
-      <p>提案済み、承認待ち、実装開始不可、本番投入不可 · 計画版 0.2.0 · 最終確認 2026-09-01 · 正本 docs/IMPLEMENTATION-PLAN.html</p>
+      <p>承認済み、実装開始可、本番投入不可 · 計画版 0.3.0 · 最終確認 2026-09-02 · 正本 docs/IMPLEMENTATION-PLAN.html</p>
     </footer>
   </div>
 </body>

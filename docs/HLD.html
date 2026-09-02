@@ -484,12 +484,12 @@
   <main class="page" id="main">
     <header class="hero" id="top">
       <div class="section__head">
-        <div class="hero__meta"><span>HLD</span><span>Version 1.5.0</span><span>整理日 2026-09-01</span><span>情報基準日 2026-08-11</span><span>改訂済み・再承認待ち</span></div>
+        <div class="hero__meta"><span>HLD</span><span>Version 1.6.0</span><span>承認日 2026-09-02</span><span>情報基準日 2026-08-11</span><span>承認済み・実装開始可</span></div>
         <h1>Stage Accord 概要設計書</h1>
         <p class="hero__lede">制作依頼の受付、合意、進行、修正、承認、納品を一つの証跡へつなぐ。アプリケーションは単一オンプレミスホスト、オブジェクトはAmazon S3で運用し、危険な状態では処理を止める。</p>
       </div>
       <dl class="hero__facts">
-        <div><dt>概要設計</dt><dd>改訂済み・再承認待ち・実装開始不可</dd></div>
+        <div><dt>概要設計</dt><dd>承認済み・実装開始可</dd></div>
         <div><dt>本番投入</dt><dd>未承認・リリース証拠の充足後に判定</dd></div>
         <div><dt>設計基準</dt><dd><a href="REQUIREMENTS.html">REQUIREMENTS.html</a></dd></div>
         <div><dt>配置形態</dt><dd>オンプレ・主系／待機系</dd></div>
@@ -509,7 +509,7 @@
         <div><dt>本書が決めること</dt><dd>実行時境界、依存方向、主要データ所有者、認証・認可境界、ファイル処理、非同期処理、単一ホスト配置、Amazon S3、監視、自動停止、復旧。</dd></div>
         <div><dt>本書が決めないこと</dt><dd>画面ごとのピクセル仕様、全RESTスキーマ、全DDL、フレームワーク内部クラス、運用手順のコマンド列、法的助言の最終判断。</dd></div>
         <div><dt>正本の責務</dt><dd>本書は「どう実現するか」の正本である。「何を満たすか」、優先度、状態、受入条件、事業・法務方針は<a href="REQUIREMENTS.html">要件定義書</a>を正とする。</dd></div>
-        <div><dt>確定性</dt><dd>Production V1の設計判断は確定している。数値、実機構成、既存基盤の実バージョン、文書追跡CIの未閉鎖事項は<a href="#open-values">OPN-101〜104</a>で管理し、所定の証拠なしに閉鎖しない。</dd></div>
+        <div><dt>確定性</dt><dd>Production V1の設計判断と実装開始は承認済みである。数値、実機構成、既存基盤の実バージョンに関する未閉鎖事項は<a href="#open-values">OPN-101〜103</a>で管理し、所定の証拠なしに閉鎖しない。</dd></div>
         <div><dt>優先順位</dt><dd>安全性 → 追跡可能性 → 可読性 → 移植性 → 採算性 → 実装速度。同順位なら、障害時に読み取り専用へ縮退できる案を採る。</dd></div>
         <div><dt>単一の正本</dt><dd>業務状態と証跡はPostgreSQLを正本とする。オブジェクト本体はAmazon S3、短命セッションと短期キャッシュはValkeyに置く。削除・失効台帳と監査チェックポイントは主バックアップから独立して保全する。</dd></div>
         <div><dt>変更規則</dt><dd>要件変更は要件書を先に改訂し、設計・実装・テストを追随させる。合意・承認・監査の履歴は上書き訂正せず、追加イベントで修正する。</dd></div>
@@ -1075,7 +1075,7 @@
       </aside>
       <aside class="callout" aria-label="追跡の機械検証">
         <strong>追跡の機械検証</strong>
-        <p>OPN-104で実装するCIは、要件定義書と本書から要件IDを抽出し、集合差分が空であること、一要件につき追跡行が一つであることを確認する。欠落、未知ID、重複ID、リンク切れ、空欄が一件でもあればドキュメント検証を失敗させる。</p>
+        <p>OPN-104で実装したCIは、要件定義書、HLD、LLDから要件IDを抽出し、集合差分が空であること、一要件につき追跡行が一つであることを確認する。欠落、未知ID、重複ID、リンク切れ、空欄が一件でもあればドキュメント検証を失敗させる。</p>
       </aside>
     </section>
 
@@ -1093,7 +1093,7 @@
             <tr id="OPN-101"><th scope="row"><a href="#OPN-101">OPN-101</a></th><td>SLO／復旧目標</td><td>計測待ち</td><td>本番投入前に必須</td><td>RPO、RTO、月次可用性の目標値を確定する。</td><td>本番相当の完全復元試験、SLI計測条件、測定結果、責任者承認をリリースレコードへ固定する。</td></tr>
             <tr id="OPN-102"><th scope="row"><a href="#OPN-102">OPN-102</a></th><td>容量</td><td>負荷試験待ち</td><td>本番投入前に必須</td><td>本番アプリケーションホストのCPU、メモリ、保存領域と安全閾値を確定する。</td><td>想定ピークの2倍負荷と4GB転送を含む容量試験、資源使用量、劣化開始点、停止閾値を記録する。</td></tr>
             <tr id="OPN-103"><th scope="row"><a href="#OPN-103">OPN-103</a></th><td>既存基盤</td><td>構成取得・互換試験待ち</td><td>本番投入前に必須</td><td>既存PostgreSQL、Valkey、ClamAVの実バージョンとパッチ水準を固定する。</td><td>実構成の取得記録、互換試験、設定差分、承認済みパッチとロールバック可否をリリースレコードへ固定する。</td></tr>
-            <tr id="OPN-104"><th scope="row"><a href="#OPN-104">OPN-104</a></th><td>文書追跡CI</td><td>未実装</td><td>実装開始前に必須</td><td>106要件とHLD追跡行の欠落、未知ID、重複、リンク切れ、必須欄空白を機械検査し、失敗時は変更を統合しない。</td><td>CI定義、失敗例を含む自動試験結果、保護ブランチの必須チェック設定を記録する。</td></tr>
+            <tr id="OPN-104"><th scope="row"><a href="#OPN-104">OPN-104</a></th><td>文書追跡CI</td><td>閉鎖済み（2026-09-02）</td><td>実装開始条件を充足</td><td>106要件とHLD・LLD追跡行の欠落、未知ID、重複、リンク切れ、必須欄空白を機械検査し、失敗時は変更を統合しない。</td><td><code>scripts/verify_traceability.py</code>、失敗fixture、GitHub Actions <code>traceability</code>成功、mainのstrict必須check・管理者適用・force push禁止を確認済み。</td></tr>
           </tbody>
         </table>
       </div>
@@ -1153,7 +1153,7 @@
   </main>
 
   <footer class="page footer">
-    <span>概要設計書 1.5.0</span><span class="footer__brand">Stage Accord</span><a href="REQUIREMENTS.html">要件定義書</a><a href="#top">先頭へ戻る</a><span>整理日 2026-09-01</span><span>情報基準日 2026-08-11</span>
+    <span>概要設計書 1.6.0</span><span class="footer__brand">Stage Accord</span><a href="REQUIREMENTS.html">要件定義書</a><a href="#top">先頭へ戻る</a><span>承認日 2026-09-02</span><span>情報基準日 2026-08-11</span>
   </footer>
 </body>
 </html>
