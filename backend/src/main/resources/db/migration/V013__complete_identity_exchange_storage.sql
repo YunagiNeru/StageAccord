@@ -31,6 +31,12 @@ CREATE INDEX ix_auth_challenge__expiry_reaper ON iam.auth_challenge (expires_at)
 WHERE consumed_at IS NULL;
 COMMENT ON INDEX iam.ix_auth_challenge__expiry_reaper IS 'expiry_reaper';
 
+CREATE UNIQUE INDEX uq_credential__single_password
+ON iam.credential (account_id) WHERE type = 'password' AND status <> 'revoked';
+
+CREATE UNIQUE INDEX uq_credential__single_totp
+ON iam.credential (account_id) WHERE type = 'totp' AND status <> 'revoked';
+
 CREATE TABLE iam.client_access_grant (
     workspace_id uuid NOT NULL,
     id uuid NOT NULL,
