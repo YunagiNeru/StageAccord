@@ -29,6 +29,7 @@ import com.stageaccord.workspacemembership.application.WorkspaceApplicationExcep
 import com.stageaccord.workspacemembership.application.WorkspaceStore;
 import com.stageaccord.workspacemembership.domain.MembershipPolicy;
 import com.stageaccord.workspacemembership.domain.WorkspaceRole;
+import com.stageaccord.sharedkernel.application.AuditRecorder;
 
 class WorkspaceMembershipServiceTest {
     private static final Instant NOW = Instant.parse("2026-09-02T10:00:00Z");
@@ -38,6 +39,7 @@ class WorkspaceMembershipServiceTest {
     private final WorkspaceStore store = mock(WorkspaceStore.class);
     private final IdentityAccessGateway identities = mock(IdentityAccessGateway.class);
     private final InvitationMessageSender messages = mock(InvitationMessageSender.class);
+    private final AuditRecorder audit = mock(AuditRecorder.class);
     private WorkspaceMembershipService service;
     private UUID accountId;
 
@@ -51,7 +53,7 @@ class WorkspaceMembershipServiceTest {
         when(identities.emailDigest(any())).thenReturn(EMAIL_DIGEST);
         when(identities.tokenDigest("invitation-token")).thenReturn(TOKEN_DIGEST);
         service = new WorkspaceMembershipService(store, identities, messages,
-                new MembershipPolicy(), Clock.fixed(NOW, ZoneOffset.UTC));
+                new MembershipPolicy(), audit, Clock.fixed(NOW, ZoneOffset.UTC));
     }
 
     @Test

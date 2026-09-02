@@ -10,10 +10,13 @@ import java.util.UUID;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.stageaccord.identityaccess.application.IdentityApplicationException.Code;
 import com.stageaccord.identityaccess.domain.AuthStrength;
 import com.stageaccord.identityaccess.domain.SessionState;
+import com.stageaccord.sharedkernel.application.AuditRecorder;
 
 @Service
 public class IdentityAccessService {
@@ -29,24 +32,27 @@ public class IdentityAccessService {
     private final IdentitySecretStore secrets;
     private final TotpAuthenticator totp;
     private final VerificationMessageSender messages;
+    private final AuditRecorder audit;
     private final Clock clock;
     private final String dummyPasswordHash;
 
     public IdentityAccessService(IdentityStore store, IdentitySecretStore secrets,
-            TotpAuthenticator totp, VerificationMessageSender messages) {
-        this(store, secrets, totp, messages, Clock.systemUTC());
+            TotpAuthenticator totp, VerificationMessageSender messages, AuditRecorder audit) {
+        this(store, secrets, totp, messages, audit, Clock.systemUTC());
     }
 
     IdentityAccessService(IdentityStore store, IdentitySecretStore secrets,
-            TotpAuthenticator totp, VerificationMessageSender messages, Clock clock) {
+            TotpAuthenticator totp, VerificationMessageSender messages, AuditRecorder audit, Clock clock) {
         this.store = store;
         this.secrets = secrets;
         this.totp = totp;
         this.messages = messages;
+        this.audit = audit;
         this.clock = clock;
         this.dummyPasswordHash = secrets.hashPassword("invalid authentication placeholder");
     }
 
+    @Transactional
     public void startEmailVerification(String email) {
         Instant now = clock.instant();
         IssuedToken token = secrets.issueToken();
@@ -54,13 +60,15 @@ public class IdentityAccessService {
         store.createChallenge(new AuthChallenge(challengeId, null, EMAIL_PURPOSE,
                 token.digest(), token.digestKeyId(), secrets.emailDigest(email), secrets.protect(email),
                 now.plus(EMAIL_CHALLENGE_LIFETIME), null));
-        messages.sendEmailVerification(email, challengeId, token.plaintext());
+        audit.recordAllowed("StartEmailVerification", null, null);
+        afterCommit(() -> messages.sendEmailVerification(email, challengeId, token.plaintext()));
     }
 
     @Transactional
     public void completeEmailVerification(UUID challengeId, String token) {
         AuthChallenge challenge = requireChallenge(challengeId, token, EMAIL_PURPOSE, false);
         store.consumeChallenge(challenge.id(), clock.instant());
+        audit.recordAllowed("CompleteEmailVerification", null, null);
     }
 
     @Transactional
@@ -75,6 +83,7 @@ public class IdentityAccessService {
             store.createAccount(accountId, challenge.subjectDigest(), challenge.protectedSubject(),
                     secrets.hashPassword(password), clock.instant());
             store.attachChallengeToAccount(challenge.id(), accountId);
+            audit.recordAllowed("RegisterCreator", accountId, null);
             return accountId;
         } catch (DataIntegrityViolationException duplicate) {
             throw IdentityApplicationException.of(Code.CREDENTIAL_ALREADY_REGISTERED);
@@ -96,6 +105,7 @@ public class IdentityAccessService {
         store.createChallenge(new AuthChallenge(enrollmentId, accountId, TOTP_PURPOSE,
                 enrollmentToken.digest(), enrollmentToken.digestKeyId(), null,
                 secrets.protect(credentialId.toString()), expiresAt, null));
+        audit.recordAllowed("StartTotpEnrollment", accountId, null);
         return new TotpEnrollment(enrollmentId, enrollmentToken.plaintext(), secret, expiresAt);
     }
 
@@ -112,9 +122,11 @@ public class IdentityAccessService {
         store.activateTotpAndAccount(challenge.accountId(), credentialId);
         List<String> recoveryCodes = issueRecoveryCodes(challenge.accountId(), 0);
         IssuedSession session = issueSession(challenge.accountId(), 0, AuthStrength.PASSWORD_TOTP);
+        audit.recordAllowed("ConfirmTotpEnrollment", challenge.accountId(), null);
         return new EnrollmentCompletion(recoveryCodes, session);
     }
 
+    @Transactional
     public IssuedSession authenticate(String email, String password, String code) {
         AccountAuthentication account = store.findAuthentication(secrets.emailDigest(email)).orElse(null);
         String encodedPassword = account == null || account.encodedPassword() == null
@@ -125,9 +137,12 @@ public class IdentityAccessService {
         if (account == null || !"active".equals(account.status()) || !passwordValid || !totpValid) {
             throw IdentityApplicationException.of(Code.AUTHENTICATION_REQUIRED);
         }
-        return issueSession(account.accountId(), account.authGeneration(), AuthStrength.PASSWORD_TOTP);
+        IssuedSession session = issueSession(account.accountId(), account.authGeneration(), AuthStrength.PASSWORD_TOTP);
+        audit.recordAllowed("Authenticate", account.accountId(), null);
+        return session;
     }
 
+    @Transactional
     public SessionDescriptor resolveSession(String token) {
         SessionDescriptor session = store.findSession(secrets.tokenDigest(token), DIGEST_KEY_ID)
                 .orElseThrow(() -> IdentityApplicationException.of(Code.AUTHENTICATION_REQUIRED));
@@ -145,18 +160,23 @@ public class IdentityAccessService {
         return session;
     }
 
+    @Transactional
     public List<SessionDescriptor> listSessions(String token) {
         return store.listSessions(resolveFreshSession(token).accountId());
     }
 
+    @Transactional
     public void revokeSession(String token, UUID sessionId) {
         SessionDescriptor current = resolveFreshSession(token);
         store.revokeSession(current.accountId(), sessionId, clock.instant());
+        audit.recordAllowed("RevokeSession", current.accountId(), null);
     }
 
+    @Transactional
     public void logout(String token) {
         SessionDescriptor current = resolveSession(token);
         store.revokeSession(current.accountId(), current.id(), clock.instant());
+        audit.recordAllowed("Logout", current.accountId(), null);
     }
 
     private SessionDescriptor resolveFreshSession(String token) {
@@ -217,6 +237,16 @@ public class IdentityAccessService {
         if (password == null || password.length() < 12 || password.length() > 128) {
             throw IdentityApplicationException.of(Code.BUSINESS_RULE_VIOLATION);
         }
+    }
+
+    private static void afterCommit(Runnable action) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            action.run();
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override public void afterCommit() { action.run(); }
+        });
     }
 
     public record TotpEnrollment(UUID enrollmentId, String token, String secret, Instant expiresAt) {}

@@ -18,6 +18,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import com.stageaccord.sharedkernel.application.AuditRecorder;
 
 import com.stageaccord.identityaccess.application.IdentityApplicationException.Code;
 
@@ -30,6 +31,7 @@ class IdentityAccessServiceTest {
     private final IdentitySecretStore secrets = mock(IdentitySecretStore.class);
     private final TotpAuthenticator totp = mock(TotpAuthenticator.class);
     private final VerificationMessageSender messages = mock(VerificationMessageSender.class);
+    private final AuditRecorder audit = mock(AuditRecorder.class);
     private IdentityAccessService service;
 
     @BeforeEach
@@ -42,7 +44,7 @@ class IdentityAccessServiceTest {
                 new ProtectedValue("field-v1", "AES-256-GCM", "nonce", invocation.getArgument(0)));
         when(secrets.reveal(any())).thenAnswer(invocation ->
                 ((ProtectedValue) invocation.getArgument(0)).ciphertext());
-        service = new IdentityAccessService(store, secrets, totp, messages,
+        service = new IdentityAccessService(store, secrets, totp, messages, audit,
                 Clock.fixed(NOW, ZoneOffset.UTC));
     }
 

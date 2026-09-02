@@ -9,6 +9,8 @@ import java.util.UUID;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.stageaccord.identityaccess.api.AuthenticatedPrincipal;
 import com.stageaccord.identityaccess.api.IdentityAccessGateway;
@@ -21,6 +23,7 @@ import com.stageaccord.workspacemembership.application.WorkspaceStore;
 import com.stageaccord.workspacemembership.domain.MembershipPolicy;
 import com.stageaccord.workspacemembership.domain.MembershipRuleViolation;
 import com.stageaccord.workspacemembership.domain.WorkspaceRole;
+import com.stageaccord.sharedkernel.application.AuditRecorder;
 
 @Service
 public class WorkspaceMembershipService {
@@ -31,19 +34,21 @@ public class WorkspaceMembershipService {
     private final IdentityAccessGateway identities;
     private final InvitationMessageSender messages;
     private final MembershipPolicy policy;
+    private final AuditRecorder audit;
     private final Clock clock;
 
     public WorkspaceMembershipService(WorkspaceStore store, IdentityAccessGateway identities,
-            InvitationMessageSender messages) {
-        this(store, identities, messages, new MembershipPolicy(), Clock.systemUTC());
+            InvitationMessageSender messages, AuditRecorder audit) {
+        this(store, identities, messages, new MembershipPolicy(), audit, Clock.systemUTC());
     }
 
-    public WorkspaceMembershipService(WorkspaceStore store, IdentityAccessGateway identities,
-            InvitationMessageSender messages, MembershipPolicy policy, Clock clock) {
+    WorkspaceMembershipService(WorkspaceStore store, IdentityAccessGateway identities,
+            InvitationMessageSender messages, MembershipPolicy policy, AuditRecorder audit, Clock clock) {
         this.store = store;
         this.identities = identities;
         this.messages = messages;
         this.policy = policy;
+        this.audit = audit;
         this.clock = clock;
     }
 
@@ -54,12 +59,14 @@ public class WorkspaceMembershipService {
         UUID membershipId = UUID.randomUUID();
         try {
             store.createWorkspace(workspaceId, principal.accountId(), membershipId, name.strip(), clock.instant());
+            audit.recordAllowed("CreateWorkspace", principal.accountId(), workspaceId);
         } catch (DataIntegrityViolationException duplicate) {
             throw WorkspaceApplicationException.of(WorkspaceApplicationException.Code.WORKSPACE_ALREADY_EXISTS);
         }
         return new WorkspaceCreated(workspaceId, membershipId);
     }
 
+    @Transactional
     public void inviteMember(String sessionToken, UUID workspaceId, String email, WorkspaceRole role) {
         AuthenticatedPrincipal principal = identities.resolve(sessionToken);
         MembershipSnapshot actor = findActiveByAccount(workspaceId, principal.accountId());
@@ -73,7 +80,8 @@ public class WorkspaceMembershipService {
         } catch (DataIntegrityViolationException duplicate) {
             throw WorkspaceApplicationException.of(WorkspaceApplicationException.Code.SECRET_ALREADY_ISSUED);
         }
-        messages.sendInvitation(email, workspaceId, invitationId, token.plaintext());
+        audit.recordAllowed("InviteMember", principal.accountId(), workspaceId);
+        afterCommit(() -> messages.sendInvitation(email, workspaceId, invitationId, token.plaintext()));
     }
 
     @Transactional
@@ -90,7 +98,9 @@ public class WorkspaceMembershipService {
                 || !MessageDigest.isEqual(invitation.emailDigest(), principal.emailDigest())) {
             throw WorkspaceApplicationException.of(WorkspaceApplicationException.Code.INVALID_CHALLENGE);
         }
-        return store.acceptInvitation(invitation, principal.accountId(), clock.instant());
+        UUID membershipId = store.acceptInvitation(invitation, principal.accountId(), clock.instant());
+        audit.recordAllowed("AcceptInvitation", principal.accountId(), workspaceId);
+        return membershipId;
     }
 
     @Transactional
@@ -104,6 +114,7 @@ public class WorkspaceMembershipService {
             throw map(failure);
         }
         store.changeRole(workspaceId, membershipId, role);
+        audit.recordAllowed("ChangeRole", principal.accountId(), workspaceId);
     }
 
     @Transactional
@@ -119,13 +130,16 @@ public class WorkspaceMembershipService {
             throw map(failure);
         }
         store.revokeMembership(workspaceId, membershipId, clock.instant());
+        audit.recordAllowed("RevokeMembership", principal.accountId(), workspaceId);
     }
 
+    @Transactional
     public void revokeInvitation(String sessionToken, UUID workspaceId, UUID invitationId) {
         AuthenticatedPrincipal principal = identities.resolve(sessionToken);
         MembershipSnapshot actor = findActiveByAccount(workspaceId, principal.accountId());
         if (actor.role() != WorkspaceRole.OWNER && actor.role() != WorkspaceRole.ADMIN) deny();
         store.revokeInvitation(workspaceId, invitationId, clock.instant());
+        audit.recordAllowed("RevokeInvitation", principal.accountId(), workspaceId);
     }
 
     @Transactional
@@ -136,8 +150,10 @@ public class WorkspaceMembershipService {
         if (actor.role() != WorkspaceRole.OWNER || actor.membershipId().equals(target.membershipId())) deny();
         requireFresh(principal);
         try {
-            return store.startOwnershipTransfer(workspaceId, actor.membershipId(), target.membershipId(),
+            UUID transferId = store.startOwnershipTransfer(workspaceId, actor.membershipId(), target.membershipId(),
                     clock.instant().plus(OWNERSHIP_TRANSFER_LIFETIME));
+            audit.recordAllowed("StartOwnershipTransfer", principal.accountId(), workspaceId);
+            return transferId;
         } catch (DataIntegrityViolationException duplicate) {
             throw WorkspaceApplicationException.of(WorkspaceApplicationException.Code.SECRET_ALREADY_ISSUED);
         }
@@ -156,6 +172,7 @@ public class WorkspaceMembershipService {
         if (!actor.membershipId().equals(transfer.toMembershipId())) deny();
         requireFresh(principal);
         store.acceptOwnershipTransfer(transfer, clock.instant());
+        audit.recordAllowed("AcceptOwnershipTransfer", principal.accountId(), workspaceId);
     }
 
     private MembershipSnapshot findActiveByAccount(UUID workspaceId, UUID accountId) {
@@ -198,6 +215,16 @@ public class WorkspaceMembershipService {
         if (!principal.isFresh(clock.instant())) {
             throw WorkspaceApplicationException.of(WorkspaceApplicationException.Code.AUTH_FRESHNESS_REQUIRED);
         }
+    }
+
+    private static void afterCommit(Runnable action) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            action.run();
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override public void afterCommit() { action.run(); }
+        });
     }
 
     public record WorkspaceCreated(UUID workspaceId, UUID ownerMembershipId) {}
