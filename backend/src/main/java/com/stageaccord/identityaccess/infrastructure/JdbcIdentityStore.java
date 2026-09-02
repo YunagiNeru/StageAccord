@@ -370,6 +370,16 @@ public class JdbcIdentityStore implements IdentityStore {
                 Timestamp.from(lastSeenAt), workspaceId, sessionId));
     }
 
+    @Override
+    public void createClientAccessGrant(ClientAccessGrant grant, byte[] tokenDigest, String digestKeyId) {
+        requireSingle(jdbc.update("""
+                INSERT INTO iam.client_access_grant(workspace_id,id,token_digest,digest_key_id,project_id,
+                    email_digest_v2,client_role,auth_generation,expires_at)
+                VALUES (?,?,?,?,?,?,?,?,?)
+                """, grant.workspaceId(), grant.id(), tokenDigest, digestKeyId, grant.projectId(),
+                grant.emailDigest(), grant.role(), grant.authGeneration(), Timestamp.from(grant.expiresAt())));
+    }
+
     private AuthChallenge mapChallenge(ResultSet result, int row) throws SQLException {
         return new AuthChallenge(result.getObject("id", UUID.class), result.getObject("account_id", UUID.class),
                 result.getString("purpose"), result.getBytes("challenge_digest"),

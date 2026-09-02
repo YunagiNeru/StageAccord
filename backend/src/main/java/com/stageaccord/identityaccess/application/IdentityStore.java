@@ -79,4 +79,6 @@ public interface IdentityStore {
     Optional<ClientSessionDescriptor> findClientSession(byte[] tokenDigest, String digestKeyId);
 
     void touchClientSession(UUID workspaceId, UUID sessionId, Instant lastSeenAt);
+
+    void createClientAccessGrant(ClientAccessGrant grant, byte[] tokenDigest, String digestKeyId);
 }

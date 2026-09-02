@@ -339,10 +339,11 @@ public class CatalogIntakeService {
         UUID requestId = UUID.randomUUID();
         requireOne(jdbc.update("""
                 INSERT INTO intake.request(workspace_id,id,service_version_id,form_version_id,
-                    requester_email_digest_v2,privacy_text_version,status,submitted_at)
-                VALUES (?,?,?,?,?,?,'submitted',?)
+                    requester_email_digest_v2,requester_email_ciphertext,privacy_text_version,status,submitted_at)
+                VALUES (?,?,?,?,?,?::jsonb,?,'submitted',?)
                 """, published.workspaceId(), requestId, published.serviceVersionId(), published.formVersionId(),
-                emailDigest, privacyVersion, clock.instant()));
+                emailDigest, write(json.valueToTree(identities.protectContact(email))),
+                privacyVersion, clock.instant()));
         UUID accessId = UUID.randomUUID();
         requireOne(jdbc.update("INSERT INTO intake.request_access(workspace_id,id,request_id,expires_at) "
                 + "VALUES (?,?,?,?)", published.workspaceId(), accessId, requestId,

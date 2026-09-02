@@ -6,6 +6,7 @@ import com.stageaccord.identityaccess.api.AuthenticatedPrincipal;
 import com.stageaccord.identityaccess.api.AuthenticatedClient;
 import com.stageaccord.identityaccess.api.IdentityAccessGateway;
 import com.stageaccord.identityaccess.api.IssuedOpaqueToken;
+import com.stageaccord.identityaccess.api.ProtectedContact;
 import com.stageaccord.identityaccess.application.IdentityAccessService;
 import com.stageaccord.identityaccess.application.IdentitySecretStore;
 import com.stageaccord.identityaccess.application.IdentityStore;
@@ -54,4 +55,17 @@ public final class DefaultIdentityAccessGateway implements IdentityAccessGateway
 
     @Override public byte[] emailDigest(String email) { return secrets.emailDigest(email); }
     @Override public byte[] tokenDigest(String token) { return secrets.tokenDigest(token); }
+    @Override public ProtectedContact protectContact(String value) {
+        var protectedValue = secrets.protect(value);
+        return new ProtectedContact(protectedValue.keyId(), protectedValue.algorithm(),
+                protectedValue.nonce(), protectedValue.ciphertext());
+    }
+    @Override public String revealContact(ProtectedContact value) {
+        return secrets.reveal(new com.stageaccord.identityaccess.application.ProtectedValue(
+                value.keyId(), value.algorithm(), value.nonce(), value.ciphertext()));
+    }
+    @Override public void issueClientLink(java.util.UUID workspaceId, java.util.UUID projectId,
+            String email, String role) {
+        service.issueClientLink(workspaceId, projectId, email, role);
+    }
 }

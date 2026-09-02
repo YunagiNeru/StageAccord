@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -33,21 +34,36 @@ public class IdentityAccessService {
     private final IdentitySecretStore secrets;
     private final TotpAuthenticator totp;
     private final VerificationMessageSender messages;
+    private final ClientLinkMessageSender clientLinks;
     private final AuditRecorder audit;
     private final Clock clock;
     private final String dummyPasswordHash;
 
     public IdentityAccessService(IdentityStore store, IdentitySecretStore secrets,
             TotpAuthenticator totp, VerificationMessageSender messages, AuditRecorder audit) {
-        this(store, secrets, totp, messages, audit, Clock.systemUTC());
+        this(store, secrets, totp, messages, (email, token) -> {}, audit, Clock.systemUTC());
+    }
+
+    @Autowired
+    public IdentityAccessService(IdentityStore store, IdentitySecretStore secrets,
+            TotpAuthenticator totp, VerificationMessageSender messages,
+            ClientLinkMessageSender clientLinks, AuditRecorder audit) {
+        this(store, secrets, totp, messages, clientLinks, audit, Clock.systemUTC());
     }
 
     IdentityAccessService(IdentityStore store, IdentitySecretStore secrets,
             TotpAuthenticator totp, VerificationMessageSender messages, AuditRecorder audit, Clock clock) {
+        this(store, secrets, totp, messages, (email, token) -> {}, audit, clock);
+    }
+
+    IdentityAccessService(IdentityStore store, IdentitySecretStore secrets,
+            TotpAuthenticator totp, VerificationMessageSender messages, ClientLinkMessageSender clientLinks,
+            AuditRecorder audit, Clock clock) {
         this.store = store;
         this.secrets = secrets;
         this.totp = totp;
         this.messages = messages;
+        this.clientLinks = clientLinks;
         this.audit = audit;
         this.clock = clock;
         this.dummyPasswordHash = secrets.hashPassword("invalid authentication placeholder");
@@ -290,6 +306,19 @@ public class IdentityAccessService {
         store.createClientSession(grant, descriptor);
         audit.recordAllowed("RedeemClientLink", null, grant.workspaceId());
         return new ClientSessionIssue(issued.plaintext(), descriptor.id(), grant.projectId(), descriptor.absoluteExpiresAt());
+    }
+
+    @Transactional
+    public void issueClientLink(UUID workspaceId, UUID projectId, String email, String role) {
+        if (!List.of("requester", "approver", "viewer").contains(role)) {
+            throw IdentityApplicationException.of(Code.BUSINESS_RULE_VIOLATION);
+        }
+        IssuedToken token = secrets.issueToken();
+        ClientAccessGrant grant = new ClientAccessGrant(workspaceId, UUID.randomUUID(), projectId,
+                secrets.emailDigest(email), role, 0, clock.instant().plus(Duration.ofHours(24)), null, null);
+        store.createClientAccessGrant(grant, token.digest(), token.digestKeyId());
+        audit.recordAllowed("IssueClientLink", null, workspaceId);
+        afterCommit(() -> clientLinks.sendClientLink(email, token.plaintext()));
     }
 
     @Transactional
