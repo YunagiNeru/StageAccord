@@ -495,7 +495,7 @@
         <div><dt>配置形態</dt><dd>オンプレ・主系／待機系</dd></div>
         <div><dt>アプリ構成</dt><dd>モジュラーモノリス</dd></div>
         <div><dt>復旧目標</dt><dd>実測後にRPO／RTO／可用性を確定</dd></div>
-        <div><dt>要件追跡</dt><dd>FR 83件／NFR 24件／計107件</dd></div>
+        <div><dt>要件追跡</dt><dd>FR 83件／NFR 23件／計106件</dd></div>
       </dl>
     </header>
 
@@ -952,11 +952,11 @@
 <section class="section" id="traceability">
       <div class="section__head">
         <h2>要件追跡</h2>
-        <p>要件定義書のFR 83件、NFR 24件、合計107件を一要件一行で追跡する。要件本文と受入条件は要件定義書を正とし、本表は主たる設計制御、実装境界、状態・監査、固有試験IDを示す。</p>
+        <p>要件定義書のFR 83件、NFR 23件、合計106件を一要件一行で追跡する。要件本文と受入条件は要件定義書を正とし、本表は主たる設計制御、実装境界、状態・監査、固有試験IDを示す。</p>
       </div>
       <div class="table-wrap" id="HLD-TRC-001">
         <table>
-          <caption>Production V1 要件—設計—試験 追跡正本（107件）</caption>
+          <caption>Production V1 要件—設計—試験 追跡正本（106件）</caption>
           <thead><tr><th scope="col">要件</th><th scope="col">主制御</th><th scope="col">主モジュール</th><th scope="col">集約・データ</th><th scope="col">入口・API</th><th scope="col">認可</th><th scope="col">状態・監査</th><th scope="col">試験ID</th><th scope="col">判断／未確定</th></tr></thead>
           <tbody>
             <tr><th scope="row"><a href="REQUIREMENTS.html#FR-ACC-001"><code>FR-ACC-001</code></a><br>クリエイター登録</th><td><a href="#HLD-AUT-001"><code>HLD-AUT-001</code></a></td><td><code>identity-access / workspace-membership</code></td><td>credential・session・access grant・membership</td><td>認証・復旧・メンバーREST</td><td>主体・要素・freshness・workspace role</td><td>認証／権限状態と全操作監査</td><td><code>T-FR-ACC-001</code></td><td><a href="#DEC-110"><code>DEC-110</code></a>／なし</td></tr>
@@ -1071,7 +1071,7 @@
       </div>
       <aside class="callout" aria-label="追跡の読み方">
         <strong>追跡の読み方</strong>
-        <p>各行の主制御は実装の入口であり、要件をその制御だけへ閉じ込める意味ではない。試験IDはリリース証拠の必須識別子であり、試験実施済みを表すものではない。要求判断は全107件で追跡し、数値・実機・基盤・検証基盤の未閉鎖事項はOPN IDで参照する。</p>
+        <p>各行の主制御は実装の入口であり、要件をその制御だけへ閉じ込める意味ではない。試験IDはリリース証拠の必須識別子であり、試験実施済みを表すものではない。要求判断は全106件で追跡し、数値・実機・基盤・検証基盤の未閉鎖事項はOPN IDで参照する。</p>
       </aside>
       <aside class="callout" aria-label="追跡の機械検証">
         <strong>追跡の機械検証</strong>
@@ -1093,7 +1093,7 @@
             <tr id="OPN-101"><th scope="row"><a href="#OPN-101">OPN-101</a></th><td>SLO／復旧目標</td><td>計測待ち</td><td>本番投入前に必須</td><td>RPO、RTO、月次可用性の目標値を確定する。</td><td>本番相当の完全復元試験、SLI計測条件、測定結果、責任者承認をリリースレコードへ固定する。</td></tr>
             <tr id="OPN-102"><th scope="row"><a href="#OPN-102">OPN-102</a></th><td>容量</td><td>負荷試験待ち</td><td>本番投入前に必須</td><td>本番アプリケーションホストのCPU、メモリ、保存領域と安全閾値を確定する。</td><td>想定ピークの2倍負荷と4GB転送を含む容量試験、資源使用量、劣化開始点、停止閾値を記録する。</td></tr>
             <tr id="OPN-103"><th scope="row"><a href="#OPN-103">OPN-103</a></th><td>既存基盤</td><td>構成取得・互換試験待ち</td><td>本番投入前に必須</td><td>既存PostgreSQL、Valkey、ClamAVの実バージョンとパッチ水準を固定する。</td><td>実構成の取得記録、互換試験、設定差分、承認済みパッチとロールバック可否をリリースレコードへ固定する。</td></tr>
-            <tr id="OPN-104"><th scope="row"><a href="#OPN-104">OPN-104</a></th><td>文書追跡CI</td><td>未実装</td><td>実装開始前に必須</td><td>107要件とHLD追跡行の欠落、未知ID、重複、リンク切れ、必須欄空白を機械検査し、失敗時は変更を統合しない。</td><td>CI定義、失敗例を含む自動試験結果、保護ブランチの必須チェック設定を記録する。</td></tr>
+            <tr id="OPN-104"><th scope="row"><a href="#OPN-104">OPN-104</a></th><td>文書追跡CI</td><td>未実装</td><td>実装開始前に必須</td><td>106要件とHLD追跡行の欠落、未知ID、重複、リンク切れ、必須欄空白を機械検査し、失敗時は変更を統合しない。</td><td>CI定義、失敗例を含む自動試験結果、保護ブランチの必須チェック設定を記録する。</td></tr>
           </tbody>
         </table>
       </div>

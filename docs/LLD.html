@@ -1727,12 +1727,12 @@
               <tr><th scope="row"><a href="HLD.html#HLD-BIL-001"><code>HLD-BIL-001</code></a></th><td>webhook、逆順、日次照合、grace、entitlement fail close</td><td>重複、古いevent、API停止、不一致、7日経過</td></tr>
               <tr><th scope="row"><a href="HLD.html#HLD-MIG-001"><code>HLD-MIG-001</code></a></th><td>schema別Flyway、status CHECK拡張、N/N-1、前進修復</td><td>expand／backfill再開／read切替／contract gate</td></tr>
               <tr><th scope="row"><a href="HLD.html#HLD-REL-001"><code>HLD-REL-001</code></a></th><td>release recordのpatch、digest、SBOM、署名、例外期限</td><td>未署名、可変tag、EOL、脆弱性例外期限切れ</td></tr>
-              <tr><th scope="row"><a href="HLD.html#HLD-TRC-001"><code>HLD-TRC-001</code></a></th><td>親test ID規則とCI集合検査</td><td>107要求の欠落、未知、重複、空欄、link切れ</td></tr>
+              <tr><th scope="row"><a href="HLD.html#HLD-TRC-001"><code>HLD-TRC-001</code></a></th><td>親test ID規則とCI集合検査</td><td>106要求の欠落、未知、重複、空欄、link切れ</td></tr>
             </tbody>
           </table>
         </div>
 
-        <h3>要求107件の直接追跡</h3>
+        <h3>要求106件の直接追跡</h3>
         <div class="table-wrap">
           <table>
             <caption>REQ-TRACE — REQUIREMENTS → HLD → LLD → 親test</caption>
@@ -1851,7 +1851,7 @@
 
         <h3>CI・deployment gate</h3>
         <ol class="steps">
-          <li><div><h4>文書と契約</h4><p>REQUIREMENTSの107 ID、HLD trace行、OpenAPI operation ID、test manifestの集合差分と重複を検査する。</p></div></li>
+          <li><div><h4>文書と契約</h4><p>REQUIREMENTSの106 ID、HLD trace行、OpenAPI operation ID、test manifestの集合差分と重複を検査する。</p></div></li>
           <li><div><h4>静的品質</h4><p>format、compile、type check、lint、ArchUnit、SAST、secret scan、dependency／license、SBOM、container scanを実行する。</p></div></li>
           <li><div><h4>実行品質</h4><p>unit、module integration、API contract、認可、E2E、async fault、file securityを実行する。</p></div></li>
           <li><div><h4>release安全性</h4><p>backup age、隔離restore、migration N/N-1、rollback image、TLS、ClamAV、runtime guard、署名を検査する。</p></div></li>
@@ -1878,7 +1878,7 @@
         <h3>再承認・実装開始判定前の必須行動</h3>
         <ol class="steps">
           <li><div><h4>設定と接続点の確定</h4><p>本番設定ファイルへ取得済みの値を直接記載し、所有者・mode・必須key・依存接続・秘密値非出力を起動前検査する。</p></div></li>
-          <li><div><h4>文書追跡CI、OpenAPI、test manifest</h4><p><a href="HLD.html#OPN-104">OPN-104</a>を閉鎖し、endpoint台帳をOpenAPIへ写し、107要求の親test IDを機械可読manifestへ登録する。本文との重複正本を作らず、生成物として扱う。</p></div></li>
+          <li><div><h4>文書追跡CI、OpenAPI、test manifest</h4><p><a href="HLD.html#OPN-104">OPN-104</a>を閉鎖し、endpoint台帳をOpenAPIへ写し、106要求の親test IDを機械可読manifestへ登録する。本文との重複正本を作らず、生成物として扱う。</p></div></li>
           <li><div><h4>実装単位へ分解</h4><p>観測点 → 入力・境界 → 最小core logic → error処理 → testの順で、一つの説明可能な概念を一commitにする。</p></div></li>
           <li><div><h4>release evidenceを蓄積</h4><p>patch／digest、SBOM、署名、UI screenshot、性能、復元、切替、法務、運用訓練の証拠をrelease recordへ結び付ける。</p></div></li>
         </ol>
