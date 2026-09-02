@@ -131,6 +131,14 @@ class IdentityAccessServiceTest {
         verify(store).createSession(issued.descriptor());
     }
 
+    @Test
+    void missingSessionCookieIsAlwaysAuthenticationRequired() {
+        assertThatThrownBy(() -> service.resolveSession(null))
+                .isInstanceOfSatisfying(IdentityApplicationException.class,
+                        failure -> assertThat(failure.code()).isEqualTo(Code.AUTHENTICATION_REQUIRED));
+        verify(store, never()).findSession(any(), any());
+    }
+
     private static AuthChallenge emailChallenge(UUID id, Instant consumedAt, UUID accountId) {
         return new AuthChallenge(id, accountId, "email_verification", TOKEN_DIGEST,
                 "identity-v1", EMAIL_DIGEST,

@@ -90,24 +90,27 @@ public final class IdentityController {
     }
 
     @GetMapping("/session")
-    public CurrentSessionResponse getCurrentSession(@CookieValue(SESSION_COOKIE) String token) {
+    public CurrentSessionResponse getCurrentSession(@CookieValue(value = SESSION_COOKIE, required = false) String token) {
         return current(identities.resolveSession(token));
     }
 
     @GetMapping("/sessions")
-    public List<CurrentSessionResponse> listSessions(@CookieValue(SESSION_COOKIE) String token) {
+    public List<CurrentSessionResponse> listSessions(
+            @CookieValue(value = SESSION_COOKIE, required = false) String token) {
         return identities.listSessions(token).stream().map(IdentityController::current).toList();
     }
 
     @DeleteMapping("/sessions/{sessionId}")
-    public ResponseEntity<Void> revokeSession(@CookieValue(SESSION_COOKIE) String token,
+    public ResponseEntity<Void> revokeSession(
+            @CookieValue(value = SESSION_COOKIE, required = false) String token,
             @PathVariable UUID sessionId) {
         identities.revokeSession(token, sessionId);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/sessions/current")
-    public ResponseEntity<Void> logout(@CookieValue(SESSION_COOKIE) String token) {
+    public ResponseEntity<Void> logout(
+            @CookieValue(value = SESSION_COOKIE, required = false) String token) {
         identities.logout(token);
         return ResponseEntity.noContent()
                 .header(HttpHeaders.SET_COOKIE, expiredSessionCookie().toString())

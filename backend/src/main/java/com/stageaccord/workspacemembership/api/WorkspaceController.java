@@ -38,7 +38,8 @@ public final class WorkspaceController {
     }
 
     @PostMapping
-    public ResponseEntity<WorkspaceResponse> createWorkspace(@CookieValue(SESSION_COOKIE) String session,
+    public ResponseEntity<WorkspaceResponse> createWorkspace(
+            @CookieValue(value = SESSION_COOKIE, required = false) String session,
             @Valid @RequestBody CreateWorkspaceRequest request) {
         var created = workspaces.createWorkspace(session, request.name());
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -46,14 +47,16 @@ public final class WorkspaceController {
     }
 
     @PostMapping("/{workspaceId}/invitations")
-    public ResponseEntity<Void> inviteMember(@CookieValue(SESSION_COOKIE) String session,
+    public ResponseEntity<Void> inviteMember(
+            @CookieValue(value = SESSION_COOKIE, required = false) String session,
             @PathVariable UUID workspaceId, @Valid @RequestBody InviteMemberRequest request) {
         workspaces.inviteMember(session, workspaceId, request.email(), role(request.role()));
         return ResponseEntity.accepted().build();
     }
 
     @PostMapping("/{workspaceId}/invitations/{invitationId}/acceptances")
-    public ResponseEntity<MembershipResponse> acceptInvitation(@CookieValue(SESSION_COOKIE) String session,
+    public ResponseEntity<MembershipResponse> acceptInvitation(
+            @CookieValue(value = SESSION_COOKIE, required = false) String session,
             @PathVariable UUID workspaceId, @PathVariable UUID invitationId,
             @Valid @RequestBody TokenRequest request) {
         UUID membershipId = workspaces.acceptInvitation(session, workspaceId, invitationId, request.token());
@@ -61,14 +64,16 @@ public final class WorkspaceController {
     }
 
     @DeleteMapping("/{workspaceId}/invitations/{invitationId}")
-    public ResponseEntity<Void> revokeInvitation(@CookieValue(SESSION_COOKIE) String session,
+    public ResponseEntity<Void> revokeInvitation(
+            @CookieValue(value = SESSION_COOKIE, required = false) String session,
             @PathVariable UUID workspaceId, @PathVariable UUID invitationId) {
         workspaces.revokeInvitation(session, workspaceId, invitationId);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{workspaceId}/members/{memberId}")
-    public MembershipRoleResponse changeRole(@CookieValue(SESSION_COOKIE) String session,
+    public MembershipRoleResponse changeRole(
+            @CookieValue(value = SESSION_COOKIE, required = false) String session,
             @PathVariable UUID workspaceId, @PathVariable UUID memberId,
             @Valid @RequestBody ChangeRoleRequest request) {
         WorkspaceRole role = role(request.role());
@@ -77,7 +82,8 @@ public final class WorkspaceController {
     }
 
     @DeleteMapping("/{workspaceId}/members/{memberId}")
-    public ResponseEntity<Void> revokeMembership(@CookieValue(SESSION_COOKIE) String session,
+    public ResponseEntity<Void> revokeMembership(
+            @CookieValue(value = SESSION_COOKIE, required = false) String session,
             @PathVariable UUID workspaceId, @PathVariable UUID memberId) {
         workspaces.revokeMembership(session, workspaceId, memberId);
         return ResponseEntity.noContent().build();
@@ -85,14 +91,16 @@ public final class WorkspaceController {
 
     @PostMapping("/{workspaceId}/ownership-transfers")
     public ResponseEntity<OwnershipTransferResponse> startOwnershipTransfer(
-            @CookieValue(SESSION_COOKIE) String session, @PathVariable UUID workspaceId,
+            @CookieValue(value = SESSION_COOKIE, required = false) String session,
+            @PathVariable UUID workspaceId,
             @Valid @RequestBody OwnershipTransferRequest request) {
         UUID id = workspaces.startOwnershipTransfer(session, workspaceId, request.targetMembershipId());
         return ResponseEntity.status(HttpStatus.CREATED).body(new OwnershipTransferResponse(id));
     }
 
     @PostMapping("/{workspaceId}/ownership-transfers/{id}/acceptances")
-    public OwnershipTransferResponse acceptOwnershipTransfer(@CookieValue(SESSION_COOKIE) String session,
+    public OwnershipTransferResponse acceptOwnershipTransfer(
+            @CookieValue(value = SESSION_COOKIE, required = false) String session,
             @PathVariable UUID workspaceId, @PathVariable UUID id) {
         workspaces.acceptOwnershipTransfer(session, workspaceId, id);
         return new OwnershipTransferResponse(id);

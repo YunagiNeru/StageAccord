@@ -144,6 +144,9 @@ public class IdentityAccessService {
 
     @Transactional
     public SessionDescriptor resolveSession(String token) {
+        if (token == null || token.isBlank()) {
+            throw IdentityApplicationException.of(Code.AUTHENTICATION_REQUIRED);
+        }
         SessionDescriptor session = store.findSession(secrets.tokenDigest(token), DIGEST_KEY_ID)
                 .orElseThrow(() -> IdentityApplicationException.of(Code.AUTHENTICATION_REQUIRED));
         SessionState state = new SessionState(session.authGeneration(), session.strength(),
