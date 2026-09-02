@@ -5,12 +5,10 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.stageaccord.identityaccess.api.AuthenticatedPrincipal;
-import com.stageaccord.workspacemembership.domain.WorkspaceRole;
-
 public interface WorkspaceAccessGateway {
-    AuthenticatedPrincipal requireMember(String sessionToken, UUID workspaceId, Set<WorkspaceRole> roles);
+    AuthenticatedPrincipal requireMember(String sessionToken, UUID workspaceId, Set<WorkspaceAccess> roles);
 
     default AuthenticatedPrincipal requireMember(String sessionToken, UUID workspaceId) {
-        return requireMember(sessionToken, workspaceId, EnumSet.allOf(WorkspaceRole.class));
+        return requireMember(sessionToken, workspaceId, EnumSet.allOf(WorkspaceAccess.class));
     }
 }

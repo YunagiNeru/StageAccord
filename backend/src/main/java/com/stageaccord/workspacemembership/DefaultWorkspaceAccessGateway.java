@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import com.stageaccord.identityaccess.api.AuthenticatedPrincipal;
 import com.stageaccord.identityaccess.api.IdentityAccessGateway;
 import com.stageaccord.workspacemembership.api.WorkspaceAccessGateway;
+import com.stageaccord.workspacemembership.api.WorkspaceAccess;
 import com.stageaccord.workspacemembership.application.WorkspaceApplicationException;
 import com.stageaccord.workspacemembership.application.WorkspaceStore;
 import com.stageaccord.workspacemembership.domain.WorkspaceRole;
@@ -23,11 +24,11 @@ final class DefaultWorkspaceAccessGateway implements WorkspaceAccessGateway {
     }
 
     @Override
-    public AuthenticatedPrincipal requireMember(String sessionToken, UUID workspaceId, Set<WorkspaceRole> roles) {
+    public AuthenticatedPrincipal requireMember(String sessionToken, UUID workspaceId, Set<WorkspaceAccess> roles) {
         AuthenticatedPrincipal principal = identities.resolve(sessionToken);
         var membership = workspaces.findMembership(workspaceId, principal.accountId())
                 .filter(item -> "active".equals(item.status()))
-                .filter(item -> roles.contains(item.role()))
+                .filter(item -> roles.contains(WorkspaceAccess.valueOf(item.role().name())))
                 .orElseThrow(() -> WorkspaceApplicationException.of(
                         WorkspaceApplicationException.Code.AUTHORIZATION_DENIED));
         return principal;

@@ -32,7 +32,7 @@ public class SecurityConfiguration {
                         .csrfTokenRepository(csrf)
                         .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
                 .authorizeHttpRequests(requests -> requests
-                        .requestMatchers("/api/v1/auth/**", "/api/v1/workspaces/**", "/actuator/health/**").permitAll()
+                        .requestMatchers("/api/v1/**", "/actuator/health/**").permitAll()
                         .anyRequest().denyAll())
                 .addFilterAfter(new CsrfCookieMaterializer(), AnonymousAuthenticationFilter.class)
                 .httpBasic(basic -> basic.disable())

@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import com.stageaccord.identityaccess.api.AuthenticatedPrincipal;
 import com.stageaccord.identityaccess.api.IdentityAccessGateway;
 import com.stageaccord.workspacemembership.application.MembershipSnapshot;
+import com.stageaccord.workspacemembership.api.WorkspaceAccess;
 import com.stageaccord.workspacemembership.application.WorkspaceApplicationException;
 import com.stageaccord.workspacemembership.application.WorkspaceStore;
 import com.stageaccord.workspacemembership.domain.WorkspaceRole;
@@ -33,9 +34,9 @@ class DefaultWorkspaceAccessGatewayTest {
                         WorkspaceRole.MEMBER, "active")));
         var gateway = new DefaultWorkspaceAccessGateway(identities, workspaces);
 
-        assertThat(gateway.requireMember("session", workspaceId, Set.of(WorkspaceRole.MEMBER)))
+        assertThat(gateway.requireMember("session", workspaceId, Set.of(WorkspaceAccess.MEMBER)))
                 .isEqualTo(principal);
-        assertThatThrownBy(() -> gateway.requireMember("session", workspaceId, Set.of(WorkspaceRole.OWNER)))
+        assertThatThrownBy(() -> gateway.requireMember("session", workspaceId, Set.of(WorkspaceAccess.OWNER)))
                 .isInstanceOf(WorkspaceApplicationException.class);
     }
 }

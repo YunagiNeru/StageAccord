@@ -6,6 +6,7 @@ import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.validation.BindException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -38,6 +39,11 @@ public final class ApiExceptionHandler {
     @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class, ConstraintViolationException.class})
     ProblemDetail handleInvalidInput(Exception ignored) {
         return problem(HttpStatus.BAD_REQUEST, "INVALID_INPUT");
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    ProblemDetail handleConstraintConflict(DataIntegrityViolationException ignored) {
+        return problem(HttpStatus.CONFLICT, "CONSTRAINT_CONFLICT");
     }
 
     @ExceptionHandler(Exception.class)
