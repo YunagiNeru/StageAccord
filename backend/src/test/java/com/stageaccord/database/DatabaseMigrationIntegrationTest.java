@@ -6,12 +6,19 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.net.URI;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Set;
+import java.util.UUID;
 
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+
+import com.stageaccord.sharedkernel.infrastructure.outbox.JdbcOutboxStore;
 
 @EnabledIfEnvironmentVariable(named = "STAGE_ACCORD_TEST_DB_URL", matches = ".+")
 class DatabaseMigrationIntegrationTest {
@@ -121,6 +128,63 @@ class DatabaseMigrationIntegrationTest {
         }
     }
 
+    @Test
+    void outboxLeasePreservesAggregateOrderAndRecoversAfterWorkerLoss() {
+        String url = System.getenv("STAGE_ACCORD_TEST_DB_URL");
+        requireDedicatedDummyDatabase(url);
+        String username = System.getenv("STAGE_ACCORD_TEST_DB_USERNAME");
+        String password = System.getenv("STAGE_ACCORD_TEST_DB_PASSWORD");
+        migrateFresh(url, username, password);
+
+        var dataSource = new DriverManagerDataSource(url, username, password);
+        var jdbc = new JdbcTemplate(dataSource);
+        var store = new JdbcOutboxStore(jdbc);
+        Instant now = Instant.parse("2026-09-02T08:00:00Z");
+        UUID workspaceId = UUID.randomUUID();
+        UUID aggregateId = UUID.randomUUID();
+        UUID correlationId = UUID.randomUUID();
+        UUID firstEventId = UUID.randomUUID();
+        UUID secondEventId = UUID.randomUUID();
+
+        insertOutbox(jdbc, firstEventId, workspaceId, aggregateId, correlationId, 1, now.minusSeconds(2));
+        insertOutbox(jdbc, secondEventId, workspaceId, aggregateId, correlationId, 2, now.minusSeconds(1));
+
+        var firstLease = store.claimNext("worker-a", now, Duration.ofSeconds(60)).orElseThrow();
+        assertThat(firstLease.eventId()).isEqualTo(firstEventId);
+        assertThat(firstLease.attemptCount()).isEqualTo(1);
+        assertThat(store.claimNext("worker-b", now.plusSeconds(30), Duration.ofSeconds(60))).isEmpty();
+
+        var recoveredLease = store.claimNext("worker-b", now.plusSeconds(61), Duration.ofSeconds(60)).orElseThrow();
+        assertThat(recoveredLease.eventId()).isEqualTo(firstEventId);
+        assertThat(recoveredLease.attemptCount()).isEqualTo(2);
+        assertThat(recoveredLease.firstAttemptedAt()).isEqualTo(now);
+        store.markDelivered(firstEventId);
+
+        var secondLease = store.claimNext("worker-b", now.plusSeconds(61), Duration.ofSeconds(60)).orElseThrow();
+        assertThat(secondLease.eventId()).isEqualTo(secondEventId);
+        store.isolate(secondLease, now.plusSeconds(62), "PermanentDeliveryFailure");
+
+        assertThat(jdbc.queryForObject(
+                "select status from infra.outbox_event where event_id = ?", String.class, secondEventId))
+                .isEqualTo("dead_letter");
+        assertThat(jdbc.queryForObject(
+                "select redacted_message from infra.outbox_dead_letter where event_id = ?",
+                String.class, secondEventId))
+                .isEqualTo("delivery failed");
+    }
+
+    private static void insertOutbox(JdbcTemplate jdbc, UUID eventId, UUID workspaceId,
+            UUID aggregateId, UUID correlationId, long sequence, Instant occurredAt) {
+        jdbc.update("""
+                INSERT INTO infra.outbox_event (
+                    event_id, workspace_id, producer, aggregate_type, aggregate_id, aggregate_sequence,
+                    event_type, payload, correlation_id, actor, occurred_at, available_at
+                ) VALUES (?, ?, 'test', 'Aggregate', ?, ?, 'test.created.v1', '{}'::jsonb,
+                          ?, '{}'::jsonb, ?, ?)
+                """, eventId, workspaceId, aggregateId, sequence, correlationId,
+                java.sql.Timestamp.from(occurredAt), java.sql.Timestamp.from(occurredAt));
+    }
+
     private static void execute(java.sql.Connection connection, String sql) throws SQLException {
         try (var statement = connection.createStatement()) {
             statement.execute(sql);
@@ -138,7 +202,7 @@ class DatabaseMigrationIntegrationTest {
                 .locations("classpath:db/migration")
                 .load();
         flyway.clean();
-        assertThat(flyway.migrate().migrationsExecuted).isEqualTo(2);
+        assertThat(flyway.migrate().migrationsExecuted).isEqualTo(3);
         return flyway;
     }
 
