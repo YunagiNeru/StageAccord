@@ -318,6 +318,62 @@ class DatabaseMigrationIntegrationTest {
         }
     }
 
+    @Test
+    void catalogRejectsCrossWorkspaceReferencesAndPublishedSnapshotMutation() throws Exception {
+        String url = System.getenv("STAGE_ACCORD_TEST_DB_URL");
+        requireDedicatedDummyDatabase(url);
+        String username = System.getenv("STAGE_ACCORD_TEST_DB_USERNAME");
+        String password = System.getenv("STAGE_ACCORD_TEST_DB_PASSWORD");
+        migrateFresh(url, username, password);
+
+        try (var connection = DriverManager.getConnection(url, username, password)) {
+            connection.setAutoCommit(false);
+            UUID firstWorkspace = seedWorkspace(connection, "21");
+            UUID secondWorkspace = seedWorkspace(connection, "22");
+            UUID crossProfileId = UUID.randomUUID();
+            execute(connection, "insert into catalog.creator_profile (workspace_id,id,slug,draft_json,intake_status) values ('"
+                    + firstWorkspace + "','" + crossProfileId + "','dummy-profile','{}','open')");
+            assertThatThrownBy(() -> execute(connection,
+                    "insert into catalog.service (workspace_id,id,profile_id,slug,status) values ('"
+                    + secondWorkspace + "','" + UUID.randomUUID() + "','" + crossProfileId + "','cross-tenant','draft')"))
+                    .isInstanceOf(SQLException.class)
+                    .hasMessageContaining("fk_service__profile__owner");
+            connection.rollback();
+
+            connection.setAutoCommit(false);
+            firstWorkspace = seedWorkspace(connection, "23");
+            UUID immutableProfileId = UUID.randomUUID();
+            UUID workflowId = UUID.randomUUID();
+            UUID serviceId = UUID.randomUUID();
+            UUID serviceVersionId = UUID.randomUUID();
+            execute(connection, "insert into catalog.creator_profile (workspace_id,id,slug,draft_json,intake_status) values ('"
+                    + firstWorkspace + "','" + immutableProfileId + "','immutable-profile','{}','open')");
+            execute(connection, "insert into catalog.workflow_template_version (workspace_id,id,template_id,version_no,name,status,published_at) values ('"
+                    + firstWorkspace + "','" + workflowId + "','" + UUID.randomUUID() + "',1,'Dummy','published',now())");
+            execute(connection, "insert into catalog.service (workspace_id,id,profile_id,slug,status) values ('"
+                    + firstWorkspace + "','" + serviceId + "','" + immutableProfileId + "','immutable-service','published')");
+            execute(connection, "insert into catalog.service_version (workspace_id,id,service_id,version_no,content_json,workflow_version_id,status,published_at) values ('"
+                    + firstWorkspace + "','" + serviceVersionId + "','" + serviceId + "',1,'{}','" + workflowId + "','published',now())");
+            connection.commit();
+            assertThatThrownBy(() -> execute(connection, "update catalog.service_version set content_json='{\"changed\":true}' where id='"
+                    + serviceVersionId + "'"))
+                    .isInstanceOf(SQLException.class)
+                    .hasMessageContaining("immutable");
+        }
+    }
+
+    private static UUID seedWorkspace(java.sql.Connection connection, String digestByte) throws SQLException {
+        UUID accountId = UUID.randomUUID();
+        UUID workspaceId = UUID.randomUUID();
+        execute(connection, "insert into iam.account (id,email_digest_v2,email_ciphertext,status,auth_generation) values ('"
+                + accountId + "',decode(repeat('" + digestByte + "',32),'hex'),'{}','active',0)");
+        execute(connection, "insert into workspace.workspace (id,owner_account_id,name,status,billing_mode) values ('"
+                + workspaceId + "','" + accountId + "','Dummy','active','trial')");
+        execute(connection, "insert into workspace.membership (workspace_id,id,account_id,role,status,joined_at) values ('"
+                + workspaceId + "','" + UUID.randomUUID() + "','" + accountId + "','owner','active',now())");
+        return workspaceId;
+    }
+
     private static byte[] hashByte(int value) {
         byte[] hash = new byte[32];
         java.util.Arrays.fill(hash, (byte) value);
@@ -353,7 +409,7 @@ class DatabaseMigrationIntegrationTest {
                 .locations("classpath:db/migration")
                 .load();
         flyway.clean();
-        assertThat(flyway.migrate().migrationsExecuted).isEqualTo(7);
+        assertThat(flyway.migrate().migrationsExecuted).isEqualTo(8);
         return flyway;
     }
 
