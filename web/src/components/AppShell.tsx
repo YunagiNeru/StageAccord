@@ -14,7 +14,9 @@ const navigation = [
 export function AppShell({ session }: { readonly session: SessionSnapshot }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
+  const paletteRef = useRef<HTMLDialogElement>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,7 +31,10 @@ export function AppShell({ session }: { readonly session: SessionSnapshot }) {
   }, []);
 
   useEffect(() => {
-    if (paletteOpen) searchRef.current?.focus();
+    if (paletteOpen) {
+      paletteRef.current?.showModal();
+      searchRef.current?.focus();
+    } else if (paletteRef.current?.open) paletteRef.current.close();
   }, [paletteOpen]);
 
   const openRoute = (path: string) => {
@@ -59,18 +64,17 @@ export function AppShell({ session }: { readonly session: SessionSnapshot }) {
         <header className="topbar">
           <button className="icon-button mobile-only" aria-label="メニューを開く" onClick={() => setMenuOpen(true)}><Menu /></button>
           <button className="command-trigger" onClick={() => setPaletteOpen(true)}><Command size={16} /><span>移動・検索</span><kbd>⌘ K</kbd></button>
-          <button className="icon-button" aria-label="通知"><Bell /></button>
+          <button className="icon-button" aria-label="通知" aria-expanded={notificationsOpen} onClick={() => setNotificationsOpen((open) => !open)}><Bell /></button>
+          {notificationsOpen && <aside className="notification-popover" aria-label="通知一覧"><header><strong>通知</strong><button className="icon-button" aria-label="通知を閉じる" onClick={() => setNotificationsOpen(false)}><X /></button></header><ol><li><span className="activity-dot activity-dot--waiting" /><div><strong>確認期限が近づいています</strong><small>ブランドサイト制作 · 9月5日</small></div></li><li><span className="activity-dot activity-dot--new" /><div><strong>新しい依頼が届きました</strong><small>今日 09:18</small></div></li></ol></aside>}
         </header>
         <main className="main-content"><Outlet /></main>
       </div>
-      {paletteOpen && (
-        <div className="dialog-layer" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setPaletteOpen(false)}>
-          <section className="command-palette" role="dialog" aria-modal="true" aria-label="移動・検索">
+      <dialog ref={paletteRef} className="command-dialog" aria-label="移動・検索" onClose={() => setPaletteOpen(false)} onClick={(event) => event.target === paletteRef.current && setPaletteOpen(false)}>
+          <section className="command-palette">
             <div className="command-search"><Command aria-hidden="true" /><input ref={searchRef} aria-label="移動先を検索" placeholder="画面名を入力" onKeyDown={(event) => event.key === "Escape" && setPaletteOpen(false)} /><button className="icon-button" aria-label="閉じる" onClick={() => setPaletteOpen(false)}><X /></button></div>
             <div className="command-list">{navigation.map(({ to, label, icon: Icon }) => <button key={to} onClick={() => openRoute(to)}><Icon size={17} /><span>{label}</span></button>)}</div>
           </section>
-        </div>
-      )}
+      </dialog>
     </div>
   );
 }

@@ -13,8 +13,11 @@
   --color-accent-ink: oklch(98.5% 0.004 250);
   --color-focus: oklch(39% 0.18 256);
   --color-danger: oklch(48% 0.18 27);
+  --color-danger-soft: oklch(95% 0.025 27);
   --color-warning: oklch(51% 0.11 74);
+  --color-warning-soft: oklch(95% 0.03 74);
   --color-success: oklch(43% 0.12 155);
+  --color-success-soft: oklch(94% 0.03 155);
   --color-overlay: oklch(18% 0.02 258 / 0.44);
 
   --font-display: "Space Grotesk", "IBM Plex Sans", sans-serif;
@@ -51,6 +54,7 @@
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --duration-micro: 120ms;
   --duration-short: 220ms;
   --duration-long: 420ms;

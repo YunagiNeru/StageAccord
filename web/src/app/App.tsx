@@ -5,9 +5,14 @@ import { SessionService } from "../domain/session";
 import { DemoSessionRepository } from "../infrastructure/DemoSessionRepository";
 import { AppShell } from "../components/AppShell";
 import { DashboardPage } from "../pages/DashboardPage";
+import { RequestsPage } from "../pages/RequestsPage";
+import { ServicesPage, WorkflowsPage } from "../pages/CatalogPages";
+import { ProjectPage } from "../pages/ProjectPage";
+import { SettingsPage } from "../pages/SettingsPage";
+import { AdminPage } from "../pages/AdminPage";
+import { ClientPortalPage, CreatorProfilePage, ServiceDetailPage } from "../pages/PublicPages";
 import { RequestFormPage } from "../pages/RequestFormPage";
 import { SignInPage } from "../pages/SignInPage";
-import { SurfacePage } from "../pages/SurfacePage";
 import { StatusView } from "../components/StatusView";
 
 const initialSession: SessionSnapshot = { status: "initializing" };
@@ -34,18 +39,18 @@ export function App() {
       <Route path="/register" element={<SignInPage mode="register" />} />
       <Route path="/recover" element={<SignInPage mode="recover" />} />
       <Route path="/auth/link" element={<StatusView state="link" />} />
-      <Route path="/creators/:slug" element={<SurfacePage title="公開プロフィール" />} />
-      <Route path="/services/:slug" element={<SurfacePage title="サービス詳細" />} />
+      <Route path="/creators/:slug" element={<CreatorProfilePage />} />
+      <Route path="/services/:slug" element={<ServiceDetailPage />} />
       <Route path="/services/:slug/request" element={<RequestFormPage />} />
-      <Route path="/portal/projects/:projectAccessId" element={<SurfacePage title="プロジェクトポータル" />} />
+      <Route path="/portal/projects/:projectAccessId" element={<ClientPortalPage />} />
       <Route element={<AppShell session={session} />}>
         <Route path="/app" element={<DashboardPage />} />
-        <Route path="/app/requests" element={<SurfacePage title="受付" />} />
-        <Route path="/app/services" element={<SurfacePage title="サービス" />} />
-        <Route path="/app/workflows" element={<SurfacePage title="ワークフロー" />} />
-        <Route path="/app/projects/:projectId" element={<SurfacePage title="プロジェクト" />} />
-        <Route path="/app/settings/:section" element={<SurfacePage title="設定" />} />
-        <Route path="/admin/:section" element={<SurfacePage title="運用管理" />} />
+        <Route path="/app/requests" element={<RequestsPage />} />
+        <Route path="/app/services" element={<ServicesPage />} />
+        <Route path="/app/workflows" element={<WorkflowsPage />} />
+        <Route path="/app/projects/:projectId" element={<ProjectPage />} />
+        <Route path="/app/settings/:section" element={<SettingsPage />} />
+        <Route path="/admin/:section" element={<AdminPage />} />
       </Route>
       <Route path="*" element={<StatusView state="not-found" />} />
     </Routes>
