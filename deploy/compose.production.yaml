@@ -51,8 +51,7 @@ services:
       SPRING_PROFILES_ACTIVE: production,app
     expose: ["8080"]
     volumes:
-      - ${SECRETS_ROOT:?}/application:/run/secrets/application:ro
-      - ${SECRETS_ROOT:?}/worker:/run/secrets/worker:ro
+      - ../backend/src/main/resources/application.properties:/opt/stageaccord/config/application.properties:ro
       - ${RELEASE_EVIDENCE_ROOT:?}:/opt/stageaccord/release-evidence:ro
     tmpfs:
       - /tmp:rw,noexec,nosuid,nodev,size=512m,uid=10201,gid=10201
@@ -77,8 +76,7 @@ services:
       RUNTIME_ROLE: worker
       SPRING_PROFILES_ACTIVE: production,worker
     volumes:
-      - ${SECRETS_ROOT:?}/application:/run/secrets/application:ro
-      - ${SECRETS_ROOT:?}/worker:/run/secrets/worker:ro
+      - ../backend/src/main/resources/application.properties:/opt/stageaccord/config/application.properties:ro
       - ${RELEASE_EVIDENCE_ROOT:?}:/opt/stageaccord/release-evidence:ro
     tmpfs:
       - /tmp:rw,noexec,nosuid,nodev,size=12g,uid=10202,gid=10202

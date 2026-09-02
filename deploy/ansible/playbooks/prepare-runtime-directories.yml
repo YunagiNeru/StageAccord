@@ -21,7 +21,5 @@
         - {path: "{{ stageaccord_runtime_root }}", mode: "0750"}
         - {path: "{{ stageaccord_configuration_root }}", mode: "0750"}
         - {path: "{{ stageaccord_secrets_root }}", mode: "0750"}
-        - {path: "{{ stageaccord_secrets_root }}/application", mode: "0750"}
-        - {path: "{{ stageaccord_secrets_root }}/worker", mode: "0750"}
         - {path: "{{ stageaccord_secrets_root }}/edge", mode: "0750"}
         - {path: "{{ stageaccord_release_evidence_root }}", mode: "0750"}

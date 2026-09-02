@@ -114,6 +114,17 @@ class RuntimeConfigurationGuardTest {
         values.put("stage-accord.malware-scan.mode", "bypass");
         values.put("stage-accord.webauthn.rp-id", "app.example.com");
         values.put("stage-accord.webauthn.allowed-origins", "https://app.example.com");
+        values.put("stage-accord.database.username", "production_user");
+        values.put("stage-accord.database.password", "production-db-password-0001");
+        values.put("stage-accord.valkey.username", "production_user");
+        values.put("stage-accord.valkey.password", "production-valkey-password-0001");
+        values.put("stage-accord.object-storage.application.access-key-id", "PRODUCTIONAPP0001");
+        values.put("stage-accord.object-storage.application.secret-access-key", "production-application-secret-key-0001");
+        values.put("stage-accord.billing.stripe.api-key", "sk_live_production_schema_only_0001");
+        values.put("stage-accord.billing.stripe.webhook-secret", "production-stripe-webhook-secret-0001");
+        values.put("stage-accord.security.session-hmac-key", "production-session-hmac-key-00000001");
+        values.put("stage-accord.security.csrf-hmac-key", "production-csrf-hmac-key-0000000001");
+        values.put("stage-accord.security.field-encryption-key", "production-field-encryption-key-0001");
 
         MockEnvironment environment = new MockEnvironment();
         environment.setActiveProfiles("production", "app");

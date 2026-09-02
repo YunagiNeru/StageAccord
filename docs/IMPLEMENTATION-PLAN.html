@@ -345,7 +345,7 @@
             <tbody>
               <tr><th scope="row">文書</th><td>REQUIREMENTS 1.6.0、HLD 1.7.0、LLD 1.6.0</td><td>承認済み、実装開始可</td><td>Phase 1で単一Spring設定、OpenAPI、試験台帳を実装</td></tr>
               <tr><th scope="row">バックエンド</th><td>Spring Boot 4.1、JDK 25、applicationとworkerの起動クラス</td><td>起動骨格あり</td><td>業務モジュール、API、DB migration、認可、監査、Outbox</td></tr>
-              <tr><th scope="row">構成安全性</th><td>本番構成ガード、秘密ファイル検査、S3と検査モードの検証</td><td>一部実装済み</td><td>実接続、時刻、容量、複製、証明書、復元証拠との統合</td></tr>
+              <tr><th scope="row">構成安全性</th><td>単一<code>application.properties</code>の本番構成ガード、秘密値欠落検査、S3と検査モードの検証</td><td>一部実装済み</td><td>実接続、時刻、容量、複製、証明書、復元証拠との統合</td></tr>
               <tr><th scope="row">配備</th><td>Docker Compose、Nginx、Ansible骨格、構成マニフェスト、事前検査</td><td>一部実装済み</td><td>実イメージ、ネットワーク実証、監視、署名、NとN-1の切替</td></tr>
               <tr><th scope="row">フロントエンド</th><td>該当ディレクトリなし</td><td>未実装</td><td>React、TypeScript、Vite、共通テーマ、画面、状態、E2E</td></tr>
               <tr><th scope="row">公開契約</th><td>LLD内のAPI操作台帳</td><td>文書内のみ</td><td><code>openapi/stage-accord-v1.yaml</code>と生成クライアント</td></tr>
