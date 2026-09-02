@@ -116,7 +116,7 @@ class IdentityAccessServiceTest {
         UUID accountId = UUID.randomUUID();
         ProtectedValue protectedTotp = new ProtectedValue("field-v1", "AES-256-GCM", "nonce", "SECRET");
         when(store.findAuthentication(EMAIL_DIGEST)).thenReturn(Optional.of(
-                new AccountAuthentication(accountId, "active", 4, "encoded-password", protectedTotp)));
+                new AccountAuthentication(accountId, EMAIL_DIGEST, "active", 4, "encoded-password", protectedTotp)));
         when(secrets.passwordMatches("password", "encoded-password")).thenReturn(true);
         when(totp.verify("SECRET", "123456", NOW)).thenReturn(true);
 

@@ -139,7 +139,7 @@ public class JdbcIdentityStore implements IdentityStore {
 
     private Optional<AccountAuthentication> findAccount(String predicate, Object argument) {
         return jdbc.query("""
-                SELECT a.id, a.status, a.auth_generation,
+                SELECT a.id, a.email_digest_v2, a.status, a.auth_generation,
                        password.credential_material::text AS password_material,
                        totp.credential_material::text AS totp_material
                 FROM iam.account a
@@ -214,7 +214,8 @@ public class JdbcIdentityStore implements IdentityStore {
     private AccountAuthentication mapAuthentication(ResultSet result, int row) throws SQLException {
         String passwordJson = result.getString("password_material");
         String totpJson = result.getString("totp_material");
-        return new AccountAuthentication(result.getObject("id", UUID.class), result.getString("status"),
+        return new AccountAuthentication(result.getObject("id", UUID.class), result.getBytes("email_digest_v2"),
+                result.getString("status"),
                 result.getInt("auth_generation"),
                 passwordJson == null ? null : read(passwordJson, PasswordMaterial.class).encodedPassword(),
                 totpJson == null ? null : read(totpJson, ProtectedValue.class));
