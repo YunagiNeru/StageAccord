@@ -6,6 +6,7 @@ public final class IdentityApplicationException extends RuntimeException {
         CHALLENGE_CONSUMED,
         CREDENTIAL_ALREADY_REGISTERED,
         AUTHENTICATION_REQUIRED,
+        AUTH_FRESHNESS_REQUIRED,
         BUSINESS_RULE_VIOLATION,
         SESSION_VALIDATION_UNAVAILABLE
     }

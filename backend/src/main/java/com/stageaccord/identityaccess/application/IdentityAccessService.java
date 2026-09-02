@@ -146,17 +146,32 @@ public class IdentityAccessService {
     }
 
     public List<SessionDescriptor> listSessions(String token) {
-        return store.listSessions(resolveSession(token).accountId());
+        return store.listSessions(resolveFreshSession(token).accountId());
     }
 
     public void revokeSession(String token, UUID sessionId) {
-        SessionDescriptor current = resolveSession(token);
+        SessionDescriptor current = resolveFreshSession(token);
         store.revokeSession(current.accountId(), sessionId, clock.instant());
     }
 
     public void logout(String token) {
         SessionDescriptor current = resolveSession(token);
         store.revokeSession(current.accountId(), current.id(), clock.instant());
+    }
+
+    private SessionDescriptor resolveFreshSession(String token) {
+        SessionDescriptor session = resolveSession(token);
+        SessionState state = new SessionState(session.authGeneration(), session.strength(),
+                session.authenticatedAt(), session.lastSeenAt(), session.absoluteExpiresAt(),
+                session.revokedAt() != null);
+        AccountAuthentication account = store.findAuthenticationByAccountId(session.accountId())
+                .orElseThrow(() -> IdentityApplicationException.of(Code.AUTHENTICATION_REQUIRED));
+        try {
+            state.requireFresh(account.authGeneration(), clock.instant(), true);
+        } catch (com.stageaccord.identityaccess.domain.IdentityRuleViolation failure) {
+            throw IdentityApplicationException.of(Code.AUTH_FRESHNESS_REQUIRED);
+        }
+        return session;
     }
 
     private AuthChallenge requireChallenge(UUID challengeId, String token, String purpose,

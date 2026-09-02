@@ -19,6 +19,7 @@ public final class IdentityApiExceptionHandler {
             case INVALID_CHALLENGE -> HttpStatus.BAD_REQUEST;
             case CHALLENGE_CONSUMED, CREDENTIAL_ALREADY_REGISTERED -> HttpStatus.CONFLICT;
             case AUTHENTICATION_REQUIRED -> HttpStatus.UNAUTHORIZED;
+            case AUTH_FRESHNESS_REQUIRED -> HttpStatus.FORBIDDEN;
             case BUSINESS_RULE_VIOLATION -> HttpStatus.UNPROCESSABLE_ENTITY;
             case SESSION_VALIDATION_UNAVAILABLE -> HttpStatus.SERVICE_UNAVAILABLE;
         };
