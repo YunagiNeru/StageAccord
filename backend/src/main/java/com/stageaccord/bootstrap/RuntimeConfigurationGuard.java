@@ -31,11 +31,14 @@ final class RuntimeConfigurationGuard implements EnvironmentPostProcessor {
             Map.entry("stage-accord.mail.ses.secret-access-key", 16),
             Map.entry("stage-accord.security.session-hmac-key", 32),
             Map.entry("stage-accord.security.csrf-hmac-key", 32),
-            Map.entry("stage-accord.security.field-encryption-key", 32));
+            Map.entry("stage-accord.security.field-encryption-key", 32),
+            Map.entry("stage-accord.privacy.ledger.private-key", 48),
+            Map.entry("stage-accord.privacy.ledger.public-key", 40));
     private static final List<String> SHARED_SECRETS = List.of(
             "stage-accord.database.username", "stage-accord.database.password",
             "stage-accord.valkey.username", "stage-accord.valkey.password",
-            "stage-accord.security.field-encryption-key");
+            "stage-accord.security.field-encryption-key",
+            "stage-accord.privacy.ledger.private-key", "stage-accord.privacy.ledger.public-key");
     private static final List<String> APPLICATION_SECRETS = List.of(
             "stage-accord.object-storage.application.access-key-id",
             "stage-accord.object-storage.application.secret-access-key",

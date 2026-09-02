@@ -35,6 +35,8 @@ SECRET_MINIMUM_LENGTHS = {
     "stage-accord.security.session-hmac-key": 32,
     "stage-accord.security.csrf-hmac-key": 32,
     "stage-accord.security.field-encryption-key": 32,
+    "stage-accord.privacy.ledger.private-key": 48,
+    "stage-accord.privacy.ledger.public-key": 40,
 }
 
 
@@ -163,6 +165,9 @@ def validate_contract(common: dict[str, str], profiles: dict[str, dict[str, str]
         raise PreflightError("本番DBはsslmode=verify-fullが必要です。")
     if not schema_only:
         validate_url(require(production, "stage-accord.valkey.url"), {"rediss"}, "stage-accord.valkey.url")
+        if not Path(require(production, "stage-accord.privacy.ledger.path")).is_absolute():
+            raise PreflightError("本番削除台帳pathは絶対pathが必要です。")
+    require(production, "stage-accord.privacy.ledger.key-id")
 
     if not schema_only:
         for name in ("APP_IMAGE", "EDGE_IMAGE"):

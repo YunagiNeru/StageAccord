@@ -35,6 +35,7 @@ import com.stageaccord.identityaccess.api.IdentityAccessGateway;
 import com.stageaccord.identityaccess.api.IdentitySessionAuthenticationFilter;
 import com.stageaccord.identityaccess.api.PasskeyAuthenticationSuccessHandler;
 import com.stageaccord.identityaccess.application.IdentityAccessService;
+import com.stageaccord.auditadmin.api.KillSwitchFilter;
 
 @Configuration
 @Profile("app")
@@ -42,6 +43,7 @@ public class SecurityConfiguration {
     @Bean
     SecurityFilterChain apiSecurity(HttpSecurity http, IdentityAccessGateway identities,
             IdentityAccessService identityService,
+            KillSwitchFilter killSwitch,
             @Value("${stage-accord.webauthn.rp-id}") String rpId,
             @Value("${stage-accord.webauthn.allowed-origins}") String allowedOrigins) throws Exception {
         CookieCsrfTokenRepository csrf = CookieCsrfTokenRepository.withHttpOnlyFalse();
@@ -52,7 +54,8 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(configuration -> configuration
                         .csrfTokenRepository(csrf)
-                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
+                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+                        .ignoringRequestMatchers("/api/v1/webhooks/stripe"))
                 .webAuthn(configuration -> configuration.rpName("Stage Accord").rpId(rpId)
                         .allowedOrigins(origins)
                         .withObjectPostProcessor(new ObjectPostProcessor<WebAuthnAuthenticationFilter>() {
@@ -69,6 +72,7 @@ public class SecurityConfiguration {
                         .anyRequest().denyAll())
                 .addFilterBefore(new IdentitySessionAuthenticationFilter(identities),
                         AnonymousAuthenticationFilter.class)
+                .addFilterAfter(killSwitch, IdentitySessionAuthenticationFilter.class)
                 .addFilterAfter(new CsrfCookieMaterializer(), AnonymousAuthenticationFilter.class)
                 .httpBasic(basic -> basic.disable())
                 .formLogin(form -> form.disable())

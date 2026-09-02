@@ -22,6 +22,7 @@
     "verify:openapi": "python scripts/generate_openapi.py --check",
     "test:openapi": "python -m unittest scripts/test_generate_openapi.py",
     "report:http-implementation": "python scripts/verify_http_implementation.py",
+    "verify:http-implementation": "python scripts/verify_http_implementation.py --check",
     "test:http-implementation": "python -m unittest scripts/test_verify_http_implementation.py",
     "test:backend": "mvn -f backend/pom.xml test",
     "test:phase9-runner": "python -m unittest scripts/test_run_phase9_verification.py",
@@ -29,6 +30,6 @@
     "verify:production-config": "python deploy/scripts/preflight_production.py --schema-only",
     "test:production-config": "python -m unittest deploy/scripts/test_preflight_production.py",
     "verify:release-artifacts": "python deploy/scripts/verify_release_artifacts.py",
-    "verify": "pnpm verify:traceability && pnpm verify:test-manifest && pnpm verify:openapi && pnpm test:phase9-runner && pnpm test:backend && pnpm typecheck:web && pnpm test:web && pnpm build:web && pnpm test:web-e2e && pnpm test:production-config"
+    "verify": "pnpm verify:traceability && pnpm verify:test-manifest && pnpm verify:openapi && pnpm verify:http-implementation && pnpm test:phase9-runner && pnpm test:backend && pnpm typecheck:web && pnpm test:web && pnpm build:web && pnpm test:web-e2e && pnpm test:production-config"
   }
 }

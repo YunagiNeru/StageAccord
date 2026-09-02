@@ -24,6 +24,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <archunit.version>1.5.0</archunit.version>
     <aws.sdk.version>2.54.7</aws.sdk.version>
+    <stripe.version>31.4.0</stripe.version>
   </properties>
 
   <dependencies>
@@ -95,6 +96,11 @@
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>s3</artifactId>
       <version>${aws.sdk.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.stripe</groupId>
+      <artifactId>stripe-java</artifactId>
+      <version>${stripe.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
