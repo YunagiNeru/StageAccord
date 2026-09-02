@@ -74,7 +74,7 @@ public class IdentityAccessService {
 
     @Transactional
     public UUID registerCreator(UUID challengeId, String token, String email, String password) {
-        validatePassword(password);
+        if (password != null) validatePassword(password);
         AuthChallenge challenge = requireChallenge(challengeId, token, EMAIL_PURPOSE, true);
         if (!java.security.MessageDigest.isEqual(challenge.subjectDigest(), secrets.emailDigest(email))) {
             throw IdentityApplicationException.of(Code.INVALID_CHALLENGE);
@@ -82,7 +82,7 @@ public class IdentityAccessService {
         UUID accountId = UUID.randomUUID();
         try {
             store.createAccount(accountId, challenge.subjectDigest(), challenge.protectedSubject(),
-                    secrets.hashPassword(password), clock.instant());
+                    password == null ? null : secrets.hashPassword(password), clock.instant());
             store.attachChallengeToAccount(challenge.id(), accountId);
             audit.recordAllowed("RegisterCreator", accountId, null);
             return accountId;
@@ -290,6 +290,41 @@ public class IdentityAccessService {
         store.createClientSession(grant, descriptor);
         audit.recordAllowed("RedeemClientLink", null, grant.workspaceId());
         return new ClientSessionIssue(issued.plaintext(), descriptor.id(), grant.projectId(), descriptor.absoluteExpiresAt());
+    }
+
+    @Transactional
+    public IssuedSession issuePasskeySession(UUID accountId) {
+        AccountAuthentication account = store.findAuthenticationByAccountId(accountId)
+                .filter(item -> "active".equals(item.status()))
+                .orElseThrow(() -> IdentityApplicationException.of(Code.AUTHENTICATION_REQUIRED));
+        IssuedSession session = issueSession(accountId, account.authGeneration(), AuthStrength.PASSKEY);
+        audit.recordAllowed("Authenticate", accountId, null);
+        return session;
+    }
+
+    @Transactional(readOnly = true)
+    public UUID verifyEnrollmentAccount(UUID accountId, UUID emailChallengeId, String emailToken) {
+        if (accountId == null || emailChallengeId == null || emailToken == null) {
+            throw IdentityApplicationException.of(Code.INVALID_CHALLENGE);
+        }
+        AuthChallenge challenge = requireChallenge(emailChallengeId, emailToken, EMAIL_PURPOSE, true);
+        if (!accountId.equals(challenge.accountId())) {
+            throw IdentityApplicationException.of(Code.INVALID_CHALLENGE);
+        }
+        return accountId;
+    }
+
+    @Transactional
+    public EnrollmentCompletion completePasskeyEnrollment(UUID accountId) {
+        AccountAuthentication before = store.findAuthenticationByAccountId(accountId)
+                .orElseThrow(() -> IdentityApplicationException.of(Code.AUTHENTICATION_REQUIRED));
+        store.activateAccount(accountId);
+        AccountAuthentication account = store.findAuthenticationByAccountId(accountId)
+                .orElseThrow(() -> IdentityApplicationException.of(Code.AUTHENTICATION_REQUIRED));
+        List<String> recoveryCodes = "pending".equals(before.status())
+                ? issueRecoveryCodes(accountId, account.authGeneration()) : List.of();
+        IssuedSession session = issueSession(accountId, account.authGeneration(), AuthStrength.PASSKEY);
+        return new EnrollmentCompletion(recoveryCodes, session);
     }
 
     private SessionDescriptor resolveFreshSession(String token) {

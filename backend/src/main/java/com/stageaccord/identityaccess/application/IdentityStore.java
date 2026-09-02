@@ -69,4 +69,10 @@ public interface IdentityStore {
     void consumeClientAccessGrant(UUID workspaceId, UUID id, Instant consumedAt);
 
     void createClientSession(ClientAccessGrant grant, SessionDescriptor session);
+
+    void createPasskey(UUID accountId, UUID credentialId, String webAuthnCredentialId);
+
+    Optional<String> findPasskeyExternalId(UUID accountId, UUID credentialId);
+
+    void activateAccount(UUID accountId);
 }

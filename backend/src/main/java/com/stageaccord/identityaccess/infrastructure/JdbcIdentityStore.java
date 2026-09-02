@@ -78,11 +78,13 @@ public class JdbcIdentityStore implements IdentityStore {
                     id, email_digest_v2, email_ciphertext, status, auth_generation, created_at
                 ) VALUES (?, ?, ?::jsonb, 'pending', 0, ?)
                 """, accountId, emailDigest, write(protectedEmail), Timestamp.from(now)));
-        requireSingle(jdbc.update("""
-                INSERT INTO iam.credential (
-                    account_id, credential_id, type, credential_material, sign_count, status
-                ) VALUES (?, ?, 'password', ?::jsonb, 0, 'active')
-                """, accountId, UUID.randomUUID(), write(new PasswordMaterial(encodedPassword))));
+        if (encodedPassword != null) {
+            requireSingle(jdbc.update("""
+                    INSERT INTO iam.credential (
+                        account_id, credential_id, type, credential_material, sign_count, status
+                    ) VALUES (?, ?, 'password', ?::jsonb, 0, 'active')
+                    """, accountId, UUID.randomUUID(), write(new PasswordMaterial(encodedPassword))));
+        }
     }
 
     @Override
@@ -324,6 +326,29 @@ public class JdbcIdentityStore implements IdentityStore {
                 Timestamp.from(session.absoluteExpiresAt()), timestamp(session.revokedAt())));
     }
 
+    @Override
+    public void createPasskey(UUID accountId, UUID credentialId, String webAuthnCredentialId) {
+        requireSingle(jdbc.update("INSERT INTO iam.credential"
+                + "(account_id,credential_id,type,credential_material,sign_count,status) "
+                + "VALUES (?,?,'passkey',?::jsonb,0,'active')", accountId, credentialId,
+                write(new PasskeyMaterial(webAuthnCredentialId))));
+    }
+
+    @Override
+    public Optional<String> findPasskeyExternalId(UUID accountId, UUID credentialId) {
+        return jdbc.query("SELECT credential_material::text FROM iam.credential "
+                + "WHERE account_id=? AND credential_id=? AND type='passkey' AND status='active'",
+                (r, n) -> read(r.getString(1), PasskeyMaterial.class).webAuthnCredentialId(),
+                accountId, credentialId).stream().findFirst();
+    }
+
+    @Override
+    public void activateAccount(UUID accountId) {
+        int updated = jdbc.update("UPDATE iam.account SET status='active',version=version+1 "
+                + "WHERE id=? AND status='pending'", accountId);
+        if (updated > 1) throw new IllegalStateException("multiple accounts updated");
+    }
+
     private AuthChallenge mapChallenge(ResultSet result, int row) throws SQLException {
         return new AuthChallenge(result.getObject("id", UUID.class), result.getObject("account_id", UUID.class),
                 result.getString("purpose"), result.getBytes("challenge_digest"),
@@ -386,4 +411,5 @@ public class JdbcIdentityStore implements IdentityStore {
     }
 
     private record PasswordMaterial(String encodedPassword) {}
+    private record PasskeyMaterial(String webAuthnCredentialId) {}
 }

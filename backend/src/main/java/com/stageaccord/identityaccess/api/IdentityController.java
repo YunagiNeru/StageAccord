@@ -9,6 +9,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.web.webauthn.api.PublicKeyCredentialCreationOptions;
+import org.springframework.security.web.webauthn.management.RelyingPartyPublicKey;
 import org.springframework.context.annotation.Profile;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -22,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.stageaccord.identityaccess.application.IdentityAccessService;
+import com.stageaccord.identityaccess.PasskeyEnrollmentService;
 import com.stageaccord.identityaccess.application.SessionDescriptor;
 
 import jakarta.validation.Valid;
@@ -40,10 +44,15 @@ public final class IdentityController {
     private static final Duration SESSION_LIFETIME = Duration.ofDays(7);
 
     private final IdentityAccessService identities;
+    private final PasskeyEnrollmentService passkeys;
 
-    public IdentityController(IdentityAccessService identities) {
+    @Autowired
+    public IdentityController(IdentityAccessService identities, PasskeyEnrollmentService passkeys) {
         this.identities = identities;
+        this.passkeys = passkeys;
     }
+
+    IdentityController(IdentityAccessService identities) { this(identities, null); }
 
     @PostMapping("/email-verifications")
     public ResponseEntity<Void> startEmailVerification(@Valid @RequestBody EmailRequest request) {
@@ -139,6 +148,33 @@ public final class IdentityController {
                 .map(item -> new AuthFactorResponse(item.credentialId(), item.type(), item.status())).toList();
     }
 
+    @PostMapping("/passkey-enrollments")
+    public PasskeyEnrollmentResponse startPasskeyEnrollment(
+            @CookieValue(value = SESSION_COOKIE, required = false) String token,
+            @Valid @RequestBody(required = false) StartPasskeyRequest request) {
+        var started = passkeys.start(token, request == null ? null : request.accountId(),
+                request == null ? null : request.emailChallengeId(),
+                request == null ? null : request.emailChallengeToken());
+        return new PasskeyEnrollmentResponse(started.enrollmentId(), started.token(), started.options());
+    }
+
+    @PostMapping("/passkey-enrollments/{id}/confirmations")
+    public ResponseEntity<PasskeyResponse> confirmPasskeyEnrollment(
+            @PathVariable UUID id, @Valid @RequestBody ConfirmPasskeyRequest request) {
+        var result = passkeys.confirm(id, request.token(), request.publicKey());
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .header(HttpHeaders.SET_COOKIE, sessionCookie(result.completion().session().token()).toString())
+                .body(new PasskeyResponse(result.credentialId(), result.completion().recoveryCodes()));
+    }
+
+    @DeleteMapping("/passkeys/{credentialId}")
+    public ResponseEntity<Void> deletePasskey(
+            @CookieValue(value = SESSION_COOKIE, required = false) String session,
+            @PathVariable UUID credentialId) {
+        passkeys.delete(session, credentialId);
+        return ResponseEntity.noContent().build();
+    }
+
     @DeleteMapping("/totp")
     public ResponseEntity<Void> deleteTotp(
             @CookieValue(value = SESSION_COOKIE, required = false) String token) {
@@ -205,7 +241,7 @@ public final class IdentityController {
     public record RegistrationRequest(@NotNull UUID emailChallengeId,
             @NotBlank @Size(max = 256) String emailChallengeToken,
             @NotBlank @Email @Size(max = 320) String email,
-            @NotBlank @Size(min = 12, max = 128) String password) {}
+            @Size(min = 12, max = 128) String password) {}
     public record RegistrationResponse(UUID accountId, String status) {}
     public record StartTotpEnrollmentRequest(@NotNull UUID accountId, @NotNull UUID emailChallengeId,
             @NotBlank @Size(max = 256) String emailChallengeToken) {}
@@ -228,4 +264,11 @@ public final class IdentityController {
     public record AuthFactorResponse(UUID credentialId, String type, String status) {}
     public record ReplacePasswordRequest(@NotBlank @Size(max = 128) String currentPassword,
             @NotBlank @Size(min = 12, max = 128) String newPassword) {}
+    public record PasskeyEnrollmentResponse(UUID enrollmentId, String token,
+            PublicKeyCredentialCreationOptions options) {}
+    public record StartPasskeyRequest(UUID accountId, UUID emailChallengeId,
+            @Size(max = 256) String emailChallengeToken) {}
+    public record ConfirmPasskeyRequest(@NotBlank @Size(max = 256) String token,
+            @NotNull RelyingPartyPublicKey publicKey) {}
+    public record PasskeyResponse(UUID credentialId, List<String> recoveryCodes) {}
 }
