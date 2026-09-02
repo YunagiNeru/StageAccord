@@ -18,18 +18,18 @@ jobs:
       postgres:
         image: postgres:18.1
         env:
-          POSTGRES_DB: stageaccord_dummy_test
+          POSTGRES_DB: stage_accord_dummy
           POSTGRES_USER: stageaccord_test
           POSTGRES_PASSWORD: dummy_test_password
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U stageaccord_test -d stageaccord_dummy_test"
+          --health-cmd "pg_isready -U stageaccord_test -d stage_accord_dummy"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
     env:
-      STAGE_ACCORD_TEST_DB_URL: jdbc:postgresql://127.0.0.1:5432/stageaccord_dummy_test
+      STAGE_ACCORD_TEST_DB_URL: jdbc:postgresql://127.0.0.1:5432/stage_accord_dummy
       STAGE_ACCORD_TEST_DB_USERNAME: stageaccord_test
       STAGE_ACCORD_TEST_DB_PASSWORD: dummy_test_password
     steps:
