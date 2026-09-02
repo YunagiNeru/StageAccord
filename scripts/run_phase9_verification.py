@@ -14,6 +14,8 @@ OUTPUT = ROOT / ".verification" / "phase-9-system" / "requirement-results.json"
 
 SUITES = {
     "contract": ["pnpm", "verify:traceability"],
+    "test-manifest": ["pnpm", "verify:test-manifest"],
+    "openapi": ["pnpm", "verify:openapi"],
     "backend": ["mvn", "-f", "backend/pom.xml", "test"],
     "web": ["pnpm", "typecheck:web"],
     "web-unit": ["pnpm", "test:web"],
