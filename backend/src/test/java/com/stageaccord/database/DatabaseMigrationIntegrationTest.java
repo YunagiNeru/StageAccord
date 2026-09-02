@@ -24,6 +24,7 @@ import com.stageaccord.sharedkernel.application.RejectionCode;
 import com.stageaccord.sharedkernel.idempotency.IdempotencyFingerprint;
 import com.stageaccord.sharedkernel.idempotency.IdempotencyReservation;
 import com.stageaccord.sharedkernel.infrastructure.idempotency.JdbcIdempotencyStore;
+import com.stageaccord.auditadmin.infrastructure.AuditChainVerifier;
 
 @EnabledIfEnvironmentVariable(named = "STAGE_ACCORD_TEST_DB_URL", matches = ".+")
 class DatabaseMigrationIntegrationTest {
@@ -209,6 +210,38 @@ class DatabaseMigrationIntegrationTest {
         assertThat(replayed.responseCiphertext()).isEqualTo(ciphertext);
     }
 
+    @Test
+    void auditVerifierDetectsTheFirstBrokenHash() throws Exception {
+        String url = System.getenv("STAGE_ACCORD_TEST_DB_URL");
+        requireDedicatedDummyDatabase(url);
+        String username = System.getenv("STAGE_ACCORD_TEST_DB_USERNAME");
+        String password = System.getenv("STAGE_ACCORD_TEST_DB_PASSWORD");
+        migrateFresh(url, username, password);
+
+        try (var connection = DriverManager.getConnection(url, username, password)) {
+            for (int index = 0; index < 2; index++) {
+                try (var append = connection.prepareStatement(
+                        "select * from audit.append_event(?::jsonb, ?::jsonb, ?::uuid)")) {
+                    append.setString(1, "{\"action\":\"verify-" + index + "\"}");
+                    append.setString(2, "{\"principalId\":\"" + UUID.randomUUID() + "\"}");
+                    append.setString(3, UUID.randomUUID().toString());
+                    append.execute();
+                }
+            }
+            assertThat(AuditChainVerifier.verify(url, username, password).valid()).isTrue();
+
+            execute(connection, "alter table audit.audit_event disable trigger trg_audit_event_reject_mutation");
+            execute(connection, "update audit.audit_event set event_hash = decode(repeat('ff', 32), 'hex') where sequence = 2");
+            execute(connection, "alter table audit.audit_event enable trigger trg_audit_event_reject_mutation");
+        }
+
+        var broken = AuditChainVerifier.verify(url, username, password);
+        assertThat(broken.valid()).isFalse();
+        assertThat(broken.checkedEvents()).isEqualTo(1);
+        assertThat(broken.failedSequence()).isEqualTo(2);
+        assertThat(broken.asJson()).doesNotContain(url, username, password);
+    }
+
     private static byte[] hashByte(int value) {
         byte[] hash = new byte[32];
         java.util.Arrays.fill(hash, (byte) value);
@@ -244,7 +277,7 @@ class DatabaseMigrationIntegrationTest {
                 .locations("classpath:db/migration")
                 .load();
         flyway.clean();
-        assertThat(flyway.migrate().migrationsExecuted).isEqualTo(4);
+        assertThat(flyway.migrate().migrationsExecuted).isEqualTo(5);
         return flyway;
     }
 
