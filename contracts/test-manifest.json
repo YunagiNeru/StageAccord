@@ -1,0 +1,895 @@
+{
+  "schemaVersion": 1,
+  "sources": [
+    "docs/REQUIREMENTS.html",
+    "docs/HLD.html",
+    "docs/LLD.html",
+    "docs/IMPLEMENTATION-PLAN.html"
+  ],
+  "requirements": [
+    {
+      "requirementId": "FR-ACC-001",
+      "parentTestId": "T-FR-ACC-001",
+      "implementationPhases": [
+        3
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-ACC-002",
+      "parentTestId": "T-FR-ACC-002",
+      "implementationPhases": [
+        3
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-ACC-003",
+      "parentTestId": "T-FR-ACC-003",
+      "implementationPhases": [
+        3
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-ACC-004",
+      "parentTestId": "T-FR-ACC-004",
+      "implementationPhases": [
+        3
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-ACC-005",
+      "parentTestId": "T-FR-ACC-005",
+      "implementationPhases": [
+        3
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複・最後の要素"
+    },
+    {
+      "requirementId": "FR-ACC-006",
+      "parentTestId": "T-FR-ACC-006",
+      "implementationPhases": [
+        3
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-ACC-007",
+      "parentTestId": "T-FR-ACC-007",
+      "implementationPhases": [
+        3
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-PRO-001",
+      "parentTestId": "T-FR-PRO-001",
+      "implementationPhases": [
+        4
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-PRO-002",
+      "parentTestId": "T-FR-PRO-002",
+      "implementationPhases": [
+        4
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-PRO-003",
+      "parentTestId": "T-FR-PRO-003",
+      "implementationPhases": [
+        4
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-SVC-001",
+      "parentTestId": "T-FR-SVC-001",
+      "implementationPhases": [
+        4
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-SVC-002",
+      "parentTestId": "T-FR-SVC-002",
+      "implementationPhases": [
+        4
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-SVC-003",
+      "parentTestId": "T-FR-SVC-003",
+      "implementationPhases": [
+        4
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-SVC-004",
+      "parentTestId": "T-FR-SVC-004",
+      "implementationPhases": [
+        4
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-WF-001",
+      "parentTestId": "T-FR-WF-001",
+      "implementationPhases": [
+        4
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-WF-002",
+      "parentTestId": "T-FR-WF-002",
+      "implementationPhases": [
+        4
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-WF-003",
+      "parentTestId": "T-FR-WF-003",
+      "implementationPhases": [
+        4
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-WF-004",
+      "parentTestId": "T-FR-WF-004",
+      "implementationPhases": [
+        4
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-WF-005",
+      "parentTestId": "T-FR-WF-005",
+      "implementationPhases": [
+        4
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-WF-006",
+      "parentTestId": "T-FR-WF-006",
+      "implementationPhases": [
+        4
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-WF-007",
+      "parentTestId": "T-FR-WF-007",
+      "implementationPhases": [
+        4
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-REQ-001",
+      "parentTestId": "T-FR-REQ-001",
+      "implementationPhases": [
+        4
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-REQ-002",
+      "parentTestId": "T-FR-REQ-002",
+      "implementationPhases": [
+        4
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-REQ-003",
+      "parentTestId": "T-FR-REQ-003",
+      "implementationPhases": [
+        4
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-REQ-004",
+      "parentTestId": "T-FR-REQ-004",
+      "implementationPhases": [
+        4
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-AGR-001",
+      "parentTestId": "T-FR-AGR-001",
+      "implementationPhases": [
+        5
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-AGR-002",
+      "parentTestId": "T-FR-AGR-002",
+      "implementationPhases": [
+        5
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-AGR-003",
+      "parentTestId": "T-FR-AGR-003",
+      "implementationPhases": [
+        5
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-AGR-004",
+      "parentTestId": "T-FR-AGR-004",
+      "implementationPhases": [
+        5
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-AGR-005",
+      "parentTestId": "T-FR-AGR-005",
+      "implementationPhases": [
+        5
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-AGR-006",
+      "parentTestId": "T-FR-AGR-006",
+      "implementationPhases": [
+        5
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-PRJ-001",
+      "parentTestId": "T-FR-PRJ-001",
+      "implementationPhases": [
+        5
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-PRJ-002",
+      "parentTestId": "T-FR-PRJ-002",
+      "implementationPhases": [
+        5
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-PRJ-003",
+      "parentTestId": "T-FR-PRJ-003",
+      "implementationPhases": [
+        5
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-PRJ-004",
+      "parentTestId": "T-FR-PRJ-004",
+      "implementationPhases": [
+        5
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-PRJ-005",
+      "parentTestId": "T-FR-PRJ-005",
+      "implementationPhases": [
+        5
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-PRJ-006",
+      "parentTestId": "T-FR-PRJ-006",
+      "implementationPhases": [
+        5
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-CHK-001",
+      "parentTestId": "T-FR-CHK-001",
+      "implementationPhases": [
+        5,
+        6
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-CHK-002",
+      "parentTestId": "T-FR-CHK-002",
+      "implementationPhases": [
+        5,
+        6
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-CHK-003",
+      "parentTestId": "T-FR-CHK-003",
+      "implementationPhases": [
+        5,
+        6
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-CHK-004",
+      "parentTestId": "T-FR-CHK-004",
+      "implementationPhases": [
+        5,
+        6
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-TSK-001",
+      "parentTestId": "T-FR-TSK-001",
+      "implementationPhases": [
+        5
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-TSK-002",
+      "parentTestId": "T-FR-TSK-002",
+      "implementationPhases": [
+        5
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-TSK-003",
+      "parentTestId": "T-FR-TSK-003",
+      "implementationPhases": [
+        5
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-UPD-001",
+      "parentTestId": "T-FR-UPD-001",
+      "implementationPhases": [
+        7
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-UPD-002",
+      "parentTestId": "T-FR-UPD-002",
+      "implementationPhases": [
+        7
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-UPD-003",
+      "parentTestId": "T-FR-UPD-003",
+      "implementationPhases": [
+        7
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-FIL-001",
+      "parentTestId": "T-FR-FIL-001",
+      "implementationPhases": [
+        6
+      ],
+      "verificationPerspectives": "発行時認可・取得時再認可・失効・Range境界"
+    },
+    {
+      "requirementId": "FR-FIL-002",
+      "parentTestId": "T-FR-FIL-002",
+      "implementationPhases": [
+        6
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-FIL-003",
+      "parentTestId": "T-FR-FIL-003",
+      "implementationPhases": [
+        6
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-FIL-004",
+      "parentTestId": "T-FR-FIL-004",
+      "implementationPhases": [
+        6
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-FIL-005",
+      "parentTestId": "T-FR-FIL-005",
+      "implementationPhases": [
+        6
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-COM-001",
+      "parentTestId": "T-FR-COM-001",
+      "implementationPhases": [
+        7
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-COM-002",
+      "parentTestId": "T-FR-COM-002",
+      "implementationPhases": [
+        7
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-REV-001",
+      "parentTestId": "T-FR-REV-001",
+      "implementationPhases": [
+        7
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-REV-002",
+      "parentTestId": "T-FR-REV-002",
+      "implementationPhases": [
+        7
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-REV-003",
+      "parentTestId": "T-FR-REV-003",
+      "implementationPhases": [
+        7
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-REV-004",
+      "parentTestId": "T-FR-REV-004",
+      "implementationPhases": [
+        7
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-REV-005",
+      "parentTestId": "T-FR-REV-005",
+      "implementationPhases": [
+        7
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-APP-001",
+      "parentTestId": "T-FR-APP-001",
+      "implementationPhases": [
+        7
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-APP-002",
+      "parentTestId": "T-FR-APP-002",
+      "implementationPhases": [
+        7
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-APP-003",
+      "parentTestId": "T-FR-APP-003",
+      "implementationPhases": [
+        7
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-SCH-001",
+      "parentTestId": "T-FR-SCH-001",
+      "implementationPhases": [
+        5
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-SCH-002",
+      "parentTestId": "T-FR-SCH-002",
+      "implementationPhases": [
+        5
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-SCH-003",
+      "parentTestId": "T-FR-SCH-003",
+      "implementationPhases": [
+        5
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-SCH-004",
+      "parentTestId": "T-FR-SCH-004",
+      "implementationPhases": [
+        5
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-NOT-001",
+      "parentTestId": "T-FR-NOT-001",
+      "implementationPhases": [
+        7
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-NOT-002",
+      "parentTestId": "T-FR-NOT-002",
+      "implementationPhases": [
+        7
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-SCH-005",
+      "parentTestId": "T-FR-SCH-005",
+      "implementationPhases": [
+        5
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-DEL-001",
+      "parentTestId": "T-FR-DEL-001",
+      "implementationPhases": [
+        7
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-DEL-002",
+      "parentTestId": "T-FR-DEL-002",
+      "implementationPhases": [
+        7
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-DEL-003",
+      "parentTestId": "T-FR-DEL-003",
+      "implementationPhases": [
+        7
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-AUD-001",
+      "parentTestId": "T-FR-AUD-001",
+      "implementationPhases": [
+        8
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-AUD-002",
+      "parentTestId": "T-FR-AUD-002",
+      "implementationPhases": [
+        8
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-ADM-001",
+      "parentTestId": "T-FR-ADM-001",
+      "implementationPhases": [
+        8
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-ADM-002",
+      "parentTestId": "T-FR-ADM-002",
+      "implementationPhases": [
+        8
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-ADM-003",
+      "parentTestId": "T-FR-ADM-003",
+      "implementationPhases": [
+        8
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-ADM-004",
+      "parentTestId": "T-FR-ADM-004",
+      "implementationPhases": [
+        8
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-BIL-001",
+      "parentTestId": "T-FR-BIL-001",
+      "implementationPhases": [
+        8
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-BIL-002",
+      "parentTestId": "T-FR-BIL-002",
+      "implementationPhases": [
+        8
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-BIL-003",
+      "parentTestId": "T-FR-BIL-003",
+      "implementationPhases": [
+        8
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-BIL-004",
+      "parentTestId": "T-FR-BIL-004",
+      "implementationPhases": [
+        8
+      ],
+      "verificationPerspectives": "正常・権限拒否・境界・重複"
+    },
+    {
+      "requirementId": "FR-BIL-005",
+      "parentTestId": "T-FR-BIL-005",
+      "implementationPhases": [
+        8
+      ],
+      "verificationPerspectives": "増加・削除減少・重複・再計数・補正"
+    },
+    {
+      "requirementId": "NFR-SEC-001",
+      "parentTestId": "T-NFR-SEC-001",
+      "implementationPhases": [
+        2,
+        6,
+        8
+      ],
+      "verificationPerspectives": "正常・攻撃入力・拒否・再起動"
+    },
+    {
+      "requirementId": "NFR-SEC-002",
+      "parentTestId": "T-NFR-SEC-002",
+      "implementationPhases": [
+        2,
+        6,
+        8
+      ],
+      "verificationPerspectives": "正常・攻撃入力・拒否・再起動"
+    },
+    {
+      "requirementId": "NFR-SEC-003",
+      "parentTestId": "T-NFR-SEC-003",
+      "implementationPhases": [
+        2,
+        6,
+        8
+      ],
+      "verificationPerspectives": "正常・攻撃入力・拒否・再起動"
+    },
+    {
+      "requirementId": "NFR-SEC-004",
+      "parentTestId": "T-NFR-SEC-004",
+      "implementationPhases": [
+        2,
+        6,
+        8
+      ],
+      "verificationPerspectives": "正常・攻撃入力・拒否・再起動"
+    },
+    {
+      "requirementId": "NFR-SEC-005",
+      "parentTestId": "T-NFR-SEC-005",
+      "implementationPhases": [
+        2,
+        6,
+        8
+      ],
+      "verificationPerspectives": "正常・攻撃入力・拒否・再起動"
+    },
+    {
+      "requirementId": "NFR-SEC-006",
+      "parentTestId": "T-NFR-SEC-006",
+      "implementationPhases": [
+        2,
+        6,
+        8
+      ],
+      "verificationPerspectives": "正常・攻撃入力・拒否・再起動"
+    },
+    {
+      "requirementId": "NFR-PRV-001",
+      "parentTestId": "T-NFR-PRV-001",
+      "implementationPhases": [
+        2,
+        6,
+        8,
+        10
+      ],
+      "verificationPerspectives": "正常・境界・障害・証拠"
+    },
+    {
+      "requirementId": "NFR-PRV-002",
+      "parentTestId": "T-NFR-PRV-002",
+      "implementationPhases": [
+        2,
+        6,
+        8,
+        10
+      ],
+      "verificationPerspectives": "正常・境界・障害・証拠"
+    },
+    {
+      "requirementId": "NFR-PRV-003",
+      "parentTestId": "T-NFR-PRV-003",
+      "implementationPhases": [
+        2,
+        6,
+        8,
+        10
+      ],
+      "verificationPerspectives": "正常・境界・障害・証拠"
+    },
+    {
+      "requirementId": "NFR-ACC-001",
+      "parentTestId": "T-NFR-ACC-001",
+      "implementationPhases": [
+        9
+      ],
+      "verificationPerspectives": "正常・境界・障害・証拠"
+    },
+    {
+      "requirementId": "NFR-UX-001",
+      "parentTestId": "T-NFR-UX-001",
+      "implementationPhases": [
+        9
+      ],
+      "verificationPerspectives": "正常・境界・障害・証拠"
+    },
+    {
+      "requirementId": "NFR-PERF-001",
+      "parentTestId": "T-NFR-PERF-001",
+      "implementationPhases": [
+        10
+      ],
+      "verificationPerspectives": "基準値・2倍負荷・単一障害"
+    },
+    {
+      "requirementId": "NFR-PERF-002",
+      "parentTestId": "T-NFR-PERF-002",
+      "implementationPhases": [
+        10
+      ],
+      "verificationPerspectives": "基準値・2倍負荷・単一障害"
+    },
+    {
+      "requirementId": "NFR-AVL-001",
+      "parentTestId": "T-NFR-AVL-001",
+      "implementationPhases": [
+        10
+      ],
+      "verificationPerspectives": "基準値・2倍負荷・単一障害"
+    },
+    {
+      "requirementId": "NFR-AVL-002",
+      "parentTestId": "T-NFR-AVL-002",
+      "implementationPhases": [
+        10
+      ],
+      "verificationPerspectives": "基準値・2倍負荷・単一障害"
+    },
+    {
+      "requirementId": "NFR-BCP-001",
+      "parentTestId": "T-NFR-BCP-001",
+      "implementationPhases": [
+        2,
+        3,
+        8,
+        10
+      ],
+      "verificationPerspectives": "正常・障害・復元・rollback"
+    },
+    {
+      "requirementId": "NFR-BCP-002",
+      "parentTestId": "T-NFR-BCP-002",
+      "implementationPhases": [
+        2,
+        3,
+        8,
+        10
+      ],
+      "verificationPerspectives": "正常・障害・復元・rollback"
+    },
+    {
+      "requirementId": "NFR-BCP-003",
+      "parentTestId": "T-NFR-BCP-003",
+      "implementationPhases": [
+        2,
+        3,
+        8,
+        10
+      ],
+      "verificationPerspectives": "正常・障害・復元・rollback"
+    },
+    {
+      "requirementId": "NFR-OBS-001",
+      "parentTestId": "T-NFR-OBS-001",
+      "implementationPhases": [
+        1
+      ],
+      "verificationPerspectives": "正常・境界・障害・証拠"
+    },
+    {
+      "requirementId": "NFR-OBS-002",
+      "parentTestId": "T-NFR-OBS-002",
+      "implementationPhases": [
+        1
+      ],
+      "verificationPerspectives": "正常・境界・障害・証拠"
+    },
+    {
+      "requirementId": "NFR-OPS-001",
+      "parentTestId": "T-NFR-OPS-001",
+      "implementationPhases": [
+        1,
+        2
+      ],
+      "verificationPerspectives": "正常・障害・復元・rollback"
+    },
+    {
+      "requirementId": "NFR-OPS-002",
+      "parentTestId": "T-NFR-OPS-002",
+      "implementationPhases": [
+        1,
+        2
+      ],
+      "verificationPerspectives": "正常・障害・復元・rollback"
+    },
+    {
+      "requirementId": "NFR-PORT-001",
+      "parentTestId": "T-NFR-PORT-001",
+      "implementationPhases": [
+        1
+      ],
+      "verificationPerspectives": "正常・境界・障害・証拠"
+    }
+  ]
+}

@@ -6,6 +6,9 @@ on:
       - "docs/**"
       - "scripts/verify_traceability.py"
       - "scripts/test_verify_traceability.py"
+      - "scripts/generate_test_manifest.py"
+      - "scripts/test_generate_test_manifest.py"
+      - "contracts/test-manifest.json"
       - ".github/workflows/traceability.yml"
       - "package.json"
   push:
@@ -14,6 +17,9 @@ on:
       - "docs/**"
       - "scripts/verify_traceability.py"
       - "scripts/test_verify_traceability.py"
+      - "scripts/generate_test_manifest.py"
+      - "scripts/test_generate_test_manifest.py"
+      - "contracts/test-manifest.json"
       - ".github/workflows/traceability.yml"
       - "package.json"
   workflow_dispatch:
@@ -35,3 +41,7 @@ jobs:
         run: python -m unittest scripts/test_verify_traceability.py
       - name: Verify document traceability
         run: python scripts/verify_traceability.py
+      - name: Run test manifest fixture
+        run: python -m unittest scripts/test_generate_test_manifest.py
+      - name: Verify test manifest
+        run: python scripts/generate_test_manifest.py --check
