@@ -43,4 +43,4 @@ CREATE TABLE audit.support_request (
 REVOKE ALL ON audit.operator,audit.support_request FROM PUBLIC;
 GRANT SELECT ON audit.operator TO app_runtime;
 GRANT SELECT,INSERT,UPDATE ON audit.support_request TO app_runtime;
-GRANT DELETE ON catalog.public_profile_projection,catalog.public_service_projection TO app_runtime;
+GRANT DELETE ON catalog.public_profile_projection TO app_runtime;
