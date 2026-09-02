@@ -284,6 +284,40 @@ class DatabaseMigrationIntegrationTest {
         }
     }
 
+    @Test
+    void identitySchemaRejectsWorkspaceWithoutActiveOwnerAndHasNoTenantViolations() throws Exception {
+        String url = System.getenv("STAGE_ACCORD_TEST_DB_URL");
+        requireDedicatedDummyDatabase(url);
+        String username = System.getenv("STAGE_ACCORD_TEST_DB_USERNAME");
+        String password = System.getenv("STAGE_ACCORD_TEST_DB_PASSWORD");
+        migrateFresh(url, username, password);
+
+        try (var connection = DriverManager.getConnection(url, username, password)) {
+            UUID accountId = UUID.randomUUID();
+            UUID workspaceId = UUID.randomUUID();
+            execute(connection, "insert into iam.account (id, email_digest_v2, email_ciphertext, status, auth_generation) values ('"
+                    + accountId + "', decode(repeat('11', 32), 'hex'), '{}', 'active', 0)");
+            connection.setAutoCommit(false);
+            execute(connection, "insert into workspace.workspace (id, owner_account_id, name, status, billing_mode) values ('"
+                    + workspaceId + "', '" + accountId + "', 'Dummy workspace', 'active', 'trial')");
+            assertThatThrownBy(connection::commit)
+                    .isInstanceOf(SQLException.class)
+                    .hasMessageContaining("active owner membership");
+            connection.rollback();
+
+            execute(connection, "insert into workspace.workspace (id, owner_account_id, name, status, billing_mode) values ('"
+                    + workspaceId + "', '" + accountId + "', 'Dummy workspace', 'active', 'trial')");
+            execute(connection, "insert into workspace.membership (workspace_id, id, account_id, role, status, joined_at) values ('"
+                    + workspaceId + "', '" + UUID.randomUUID() + "', '" + accountId + "', 'owner', 'active', now())");
+            connection.commit();
+
+            try (var statement = connection.prepareStatement("select * from infra.verify_tenant_constraints()");
+                    var result = statement.executeQuery()) {
+                assertThat(result.next()).isFalse();
+            }
+        }
+    }
+
     private static byte[] hashByte(int value) {
         byte[] hash = new byte[32];
         java.util.Arrays.fill(hash, (byte) value);
@@ -319,7 +353,7 @@ class DatabaseMigrationIntegrationTest {
                 .locations("classpath:db/migration")
                 .load();
         flyway.clean();
-        assertThat(flyway.migrate().migrationsExecuted).isEqualTo(6);
+        assertThat(flyway.migrate().migrationsExecuted).isEqualTo(7);
         return flyway;
     }
 
