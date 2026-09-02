@@ -22,19 +22,14 @@ EXPECTED_PROFILES = {"app", "worker", "local", "production"}
 LOOPBACK_HOSTS = {"localhost", "127.0.0.1", "::1", "0.0.0.0"}
 
 SECRET_BINDINGS = {
-    "stage-accord.out-of-scope.ai.openai.api-key": "openai-api-key",
-    "stage-accord.out-of-scope.ai.azure-openai.api-key": "azure-openai-api-key",
-    "stage-accord.out-of-scope.cloud-sync.api-token": "cloud-api-token",
     "stage-accord.object-storage.application.access-key-id": "s3-application-access-key-id",
     "stage-accord.object-storage.application.secret-access-key": "s3-application-secret-access-key",
     "stage-accord.billing.stripe.api-key": "stripe-api-key",
     "stage-accord.billing.stripe.webhook-secret": "stripe-webhook-secret",
     "stage-accord.mail.ses.access-key-id": "ses-access-key-id",
     "stage-accord.mail.ses.secret-access-key": "ses-secret-access-key",
-    "stage-accord.out-of-scope.sso.oidc.client-secret": "oidc-client-secret",
     "stage-accord.security.session-hmac-key": "session-hmac-key",
     "stage-accord.security.csrf-hmac-key": "csrf-hmac-key",
-    "stage-accord.out-of-scope.plugin.trusted-secret": "plugin-trusted-secret",
     "stage-accord.database.username": "db-username",
     "stage-accord.database.password": "db-password",
     "stage-accord.object-storage.worker.access-key-id": "s3-worker-access-key-id",
