@@ -19,7 +19,7 @@ import jakarta.validation.ConstraintViolationException;
 public final class ApiExceptionHandler {
 
     @ExceptionHandler(ApiFailure.class)
-    ProblemDetail handleApiFailure(ApiFailure failure) {
+    public ProblemDetail handleApiFailure(ApiFailure failure) {
         return problem(failure.status(), failure.code());
     }
 

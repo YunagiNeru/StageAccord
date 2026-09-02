@@ -1,0 +1,152 @@
+package com.stageaccord.identityaccess.api;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
+import org.springframework.context.annotation.Profile;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.stageaccord.identityaccess.application.IdentityAccessService;
+import com.stageaccord.identityaccess.application.SessionDescriptor;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
+@Validated
+@RestController
+@Profile("app")
+@RequestMapping("/api/v1/auth")
+public final class IdentityController {
+    static final String SESSION_COOKIE = "__Host-stageaccord-session";
+    private static final Duration SESSION_LIFETIME = Duration.ofDays(7);
+
+    private final IdentityAccessService identities;
+
+    public IdentityController(IdentityAccessService identities) {
+        this.identities = identities;
+    }
+
+    @PostMapping("/email-verifications")
+    public ResponseEntity<Void> startEmailVerification(@Valid @RequestBody EmailRequest request) {
+        identities.startEmailVerification(request.email());
+        return ResponseEntity.accepted().build();
+    }
+
+    @PostMapping("/email-verifications/{id}/completions")
+    public ResponseEntity<Void> completeEmailVerification(@PathVariable UUID id,
+            @Valid @RequestBody TokenRequest request) {
+        identities.completeEmailVerification(id, request.token());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/registrations")
+    public ResponseEntity<RegistrationResponse> registerCreator(@Valid @RequestBody RegistrationRequest request) {
+        UUID accountId = identities.registerCreator(request.emailChallengeId(), request.emailChallengeToken(),
+                request.email(), request.password());
+        return ResponseEntity.status(HttpStatus.CREATED).body(new RegistrationResponse(accountId, "pending"));
+    }
+
+    @PostMapping("/totp-enrollments")
+    public ResponseEntity<TotpEnrollmentResponse> startTotpEnrollment(
+            @Valid @RequestBody StartTotpEnrollmentRequest request) {
+        var enrollment = identities.startTotpEnrollment(request.accountId(), request.emailChallengeId(),
+                request.emailChallengeToken());
+        return ResponseEntity.status(HttpStatus.CREATED).body(new TotpEnrollmentResponse(
+                enrollment.enrollmentId(), enrollment.token(), enrollment.secret(), enrollment.expiresAt()));
+    }
+
+    @PostMapping("/totp-enrollments/{id}/confirmations")
+    public ResponseEntity<RecoveryCodesResponse> confirmTotpEnrollment(@PathVariable UUID id,
+            @Valid @RequestBody ConfirmTotpRequest request) {
+        var completion = identities.confirmTotpEnrollment(id, request.token(), request.code());
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .header(HttpHeaders.SET_COOKIE, sessionCookie(completion.session().token()).toString())
+                .body(new RecoveryCodesResponse(completion.recoveryCodes()));
+    }
+
+    @PostMapping("/sessions")
+    public ResponseEntity<Void> authenticate(@Valid @RequestBody AuthenticationRequest request) {
+        var session = identities.authenticate(request.email(), request.password(), request.totpCode());
+        return ResponseEntity.noContent()
+                .header(HttpHeaders.SET_COOKIE, sessionCookie(session.token()).toString())
+                .build();
+    }
+
+    @GetMapping("/session")
+    public CurrentSessionResponse getCurrentSession(@CookieValue(SESSION_COOKIE) String token) {
+        return current(identities.resolveSession(token));
+    }
+
+    @GetMapping("/sessions")
+    public List<CurrentSessionResponse> listSessions(@CookieValue(SESSION_COOKIE) String token) {
+        return identities.listSessions(token).stream().map(IdentityController::current).toList();
+    }
+
+    @DeleteMapping("/sessions/{sessionId}")
+    public ResponseEntity<Void> revokeSession(@CookieValue(SESSION_COOKIE) String token,
+            @PathVariable UUID sessionId) {
+        identities.revokeSession(token, sessionId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/sessions/current")
+    public ResponseEntity<Void> logout(@CookieValue(SESSION_COOKIE) String token) {
+        identities.logout(token);
+        return ResponseEntity.noContent()
+                .header(HttpHeaders.SET_COOKIE, expiredSessionCookie().toString())
+                .build();
+    }
+
+    private static CurrentSessionResponse current(SessionDescriptor session) {
+        return new CurrentSessionResponse(session.id(), session.accountId(),
+                session.strength().name().toLowerCase(java.util.Locale.ROOT),
+                session.authenticatedAt(), session.lastSeenAt(), session.absoluteExpiresAt(),
+                session.revokedAt() != null);
+    }
+
+    private static ResponseCookie sessionCookie(String token) {
+        return ResponseCookie.from(SESSION_COOKIE, token).httpOnly(true).secure(true)
+                .sameSite("Lax").path("/").maxAge(SESSION_LIFETIME).build();
+    }
+
+    private static ResponseCookie expiredSessionCookie() {
+        return ResponseCookie.from(SESSION_COOKIE, "").httpOnly(true).secure(true)
+                .sameSite("Lax").path("/").maxAge(Duration.ZERO).build();
+    }
+
+    public record EmailRequest(@NotBlank @Email @Size(max = 320) String email) {}
+    public record TokenRequest(@NotBlank @Size(max = 256) String token) {}
+    public record RegistrationRequest(@NotNull UUID emailChallengeId,
+            @NotBlank @Size(max = 256) String emailChallengeToken,
+            @NotBlank @Email @Size(max = 320) String email,
+            @NotBlank @Size(min = 12, max = 128) String password) {}
+    public record RegistrationResponse(UUID accountId, String status) {}
+    public record StartTotpEnrollmentRequest(@NotNull UUID accountId, @NotNull UUID emailChallengeId,
+            @NotBlank @Size(max = 256) String emailChallengeToken) {}
+    public record TotpEnrollmentResponse(UUID enrollmentId, String token, String secret, Instant expiresAt) {}
+    public record ConfirmTotpRequest(@NotBlank @Size(max = 256) String token,
+            @NotBlank @Size(min = 6, max = 6) String code) {}
+    public record RecoveryCodesResponse(List<String> recoveryCodes) {}
+    public record AuthenticationRequest(@NotBlank @Email @Size(max = 320) String email,
+            @NotBlank @Size(max = 128) String password,
+            @NotBlank @Size(min = 6, max = 6) String totpCode) {}
+    public record CurrentSessionResponse(UUID sessionId, UUID accountId, String authStrength,
+            Instant authenticatedAt, Instant lastSeenAt, Instant absoluteExpiresAt, boolean revoked) {}
+}
