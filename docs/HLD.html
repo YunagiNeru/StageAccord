@@ -484,7 +484,7 @@
   <main class="page" id="main">
     <header class="hero" id="top">
       <div class="section__head">
-        <div class="hero__meta"><span>HLD</span><span>Version 1.6.0</span><span>承認日 2026-09-02</span><span>情報基準日 2026-08-11</span><span>承認済み・実装開始可</span></div>
+        <div class="hero__meta"><span>HLD</span><span>Version 1.7.0</span><span>承認日 2026-09-02</span><span>情報基準日 2026-09-02</span><span>承認済み・実装開始可</span></div>
         <h1>Stage Accord 概要設計書</h1>
         <p class="hero__lede">制作依頼の受付、合意、進行、修正、承認、納品を一つの証跡へつなぐ。アプリケーションは単一オンプレミスホスト、オブジェクトはAmazon S3で運用し、危険な状態では処理を止める。</p>
       </div>
@@ -1044,7 +1044,7 @@
             <tr><th scope="row"><a href="REQUIREMENTS.html#FR-BIL-005"><code>FR-BIL-005</code></a><br>利用上限の適用</th><td><a href="#HLD-BIL-001"><code>HLD-BIL-001</code></a></td><td><code>billing / worker</code></td><td>subscription・entitlement・Stripe event</td><td>Stripe webhook／請求REST／日次照合</td><td>署名検証・workspace owner・冪等キー</td><td>trial／active／grace／restricted／cancelledと請求監査</td><td><code>T-FR-BIL-005</code></td><td><a href="#DEC-103"><code>DEC-103</code></a>／なし</td></tr>
             <tr><th scope="row"><a href="REQUIREMENTS.html#NFR-SEC-001"><code>NFR-SEC-001</code></a><br>認可境界</th><td><a href="#HLD-TEN-001"><code>HLD-TEN-001</code></a></td><td><code>全業務モジュール</code></td><td>workspace_id複合制約・RLS候補</td><td>全REST／worker／管理操作</td><td>deny-by-default・workspace scope</td><td>境界拒否と越境監査</td><td><code>T-NFR-SEC-001</code></td><td><a href="#DEC-108"><code>DEC-108</code></a>／なし</td></tr>
             <tr><th scope="row"><a href="REQUIREMENTS.html#NFR-SEC-002"><code>NFR-SEC-002</code></a><br>主要攻撃への防御</th><td><a href="#HLD-NET-001"><code>HLD-NET-001</code></a></td><td><code>edge / app</code></td><td>request metadata・security event</td><td>proxy／アップロード制御API／S3署名PUT／REST</td><td>rate limit・CSRF・CSP・入力検証・限定CORS</td><td>拒否／隔離とセキュリティ監査</td><td><code>T-NFR-SEC-002</code></td><td><a href="#DEC-101"><code>DEC-101</code></a>／なし</td></tr>
-            <tr><th scope="row"><a href="REQUIREMENTS.html#NFR-SEC-003"><code>NFR-SEC-003</code></a><br>秘密情報と設定ファイルの分離</th><td><a href="#HLD-KEY-001"><code>HLD-KEY-001</code></a></td><td><code>configuration</code></td><td>用途別秘密・所有者・権限</td><td>Git管理外file mount／署名処理</td><td>サービス分離・読取専用・起動前検査</td><td>生成／記入／回転／失効の監査</td><td><code>T-NFR-SEC-003</code></td><td><a href="#DEC-112"><code>DEC-112</code></a>／なし</td></tr>
+            <tr><th scope="row"><a href="REQUIREMENTS.html#NFR-SEC-003"><code>NFR-SEC-003</code></a><br>秘密情報と設定ファイルの分離</th><td><a href="#HLD-KEY-001"><code>HLD-KEY-001</code></a></td><td><code>configuration</code></td><td>単一非秘密設定・用途別秘密・所有者・権限</td><td><code>application.properties</code>／Git管理外file mount／署名処理</td><td>サービス分離・読取専用・起動前検査</td><td>生成／記入／回転／失効の監査</td><td><code>T-NFR-SEC-003</code></td><td><a href="#DEC-112"><code>DEC-112</code></a>／なし</td></tr>
             <tr><th scope="row"><a href="REQUIREMENTS.html#NFR-SEC-004"><code>NFR-SEC-004</code></a><br>ネットワーク境界</th><td><a href="#HLD-NET-001"><code>HLD-NET-001</code></a></td><td><code>edge / app / data</code></td><td>network policy・endpoint inventory</td><td>公開3入口／内部mTLS</td><td>deny-by-default・管理面非公開</td><td>接続許可／拒否と構成監査</td><td><code>T-NFR-SEC-004</code></td><td><a href="#DEC-101"><code>DEC-101</code></a>／なし</td></tr>
             <tr><th scope="row"><a href="REQUIREMENTS.html#NFR-SEC-005"><code>NFR-SEC-005</code></a><br>マルウェア検査モード</th><td><a href="#HLD-FIL-002"><code>HLD-FIL-002</code></a></td><td><code>file / worker</code></td><td>object version・scan mode・byte count・result</td><td>アップロード制御API／INSTREAM scan</td><td>required失敗時は隔離、bypassは状態分離</td><td>モード、変更、件数、ファイル状態を監査</td><td><code>T-NFR-SEC-005</code></td><td><a href="#DEC-104"><code>DEC-104</code></a>／なし</td></tr>
             <tr><th scope="row"><a href="REQUIREMENTS.html#NFR-SEC-006"><code>NFR-SEC-006</code></a><br>脆弱性と供給網管理</th><td><a href="#HLD-REL-001"><code>HLD-REL-001</code></a></td><td><code>build / runtime</code></td><td>SBOM・image digest・vulnerability evidence</td><td>CI／registry／deployment gate</td><td>署名済みイメージのみ</td><td>検出／例外期限／配備停止の監査</td><td><code>T-NFR-SEC-006</code></td><td><a href="#DEC-101"><code>DEC-101</code></a>／なし</td></tr>
@@ -1113,7 +1113,7 @@
             <tr id="DEC-109"><th scope="row"><a href="#DEC-109">DEC-109</a></th><td>合意の正本</td><td>RFC 8785正規化JSON、SHA-256、renderer version、locale、time zoneを固定</td><td>表示HTMLそのものは実装変更で変動し、過去合意を安定再現できない。</td><td>同じ意味が環境に依存せず同じハッシュになる標準へ移行。</td></tr>
             <tr id="DEC-110"><th scope="row"><a href="#DEC-110">DEC-110</a></th><td>認証・復旧</td><td>パスキー第一、パスワード＋TOTP代替、コードまたは72時間二者審査</td><td>メール単体やTOTP単体は多要素性と復旧時の乗っ取り耐性を満たさない。</td><td>同等以上の認証強度と全体失効をE2Eで証明。</td></tr>
             <tr id="DEC-111"><th scope="row"><a href="#DEC-111">DEC-111</a></th><td>監査保全</td><td>RFC 8785、SHA-256連鎖、Ed25519日次固定点、劣化時刻spool</td><td>追記方針だけでは変更・削除・並べ替え・時刻事故中の欠落を検知できない。</td><td>暗号危殆化時に検証履歴を保つ移行方式。</td></tr>
-            <tr id="DEC-112"><th scope="row"><a href="#DEC-112">DEC-112</a></th><td>設定と秘密</td><td>Git管理外の用途別平文ファイルを対象コンテナだけへ読み取り専用マウント</td><td>一つの共通envファイルは秘密の露出範囲と誤配布を拡大する。</td><td>同等以上の直接記入、用途分離、失効、復元可能性を持つ方式。</td></tr>
+            <tr id="DEC-112"><th scope="row"><a href="#DEC-112">DEC-112</a></th><td>設定と秘密</td><td>local／productionとapp／workerを一つの<code>application.properties</code>で管理し、秘密だけをGit管理外の用途別平文ファイルとして対象コンテナへ読み取り専用マウント</td><td>環境別envや複数のSpring設定ファイルは正本を分散させる。秘密をpropertiesへ直書きする方式はrepositoryと成果物へ秘密を混入させる。</td><td>単一の非秘密設定正本、用途分離、直接記入、失効、復元可能性を同等以上に保つ方式。</td></tr>
             <tr id="DEC-113"><th scope="row"><a href="#DEC-113">DEC-113</a></th><td>削除再適用</td><td>主バックアップから独立した署名付き削除・失効台帳</td><td>現行DBだけの削除状態は古いバックアップ復元で失われる。</td><td>復元点より後の削除・失効を独立取得できる方式。</td></tr>
             <tr id="DEC-114"><th scope="row"><a href="#DEC-114">DEC-114</a></th><td>一貫復旧</td><td>DB checkpoint、S3 version、ファイルmanifest、trust manifest、configuration manifestを照合</td><td>DB、オブジェクト、設定を別々に戻すと欠落、余剰、版、権限、検査状態が不一致になる。</td><td>全参照と設定契約の一貫性を自動検証できる方式。</td></tr>
           </tbody>
@@ -1144,7 +1144,7 @@
         <p>要件と実装の差分を残さないための更新規則。</p>
       </div>
       <dl class="definition-grid">
-        <div><dt>基準文書</dt><dd><a href="REQUIREMENTS.html">Stage Accord 要件定義書 1.5.0</a>。要件本文、優先度、状態、受入条件は同文書を正とする。</dd></div>
+        <div><dt>基準文書</dt><dd><a href="REQUIREMENTS.html">Stage Accord 要件定義書 1.6.0</a>。要件本文、優先度、状態、受入条件は同文書を正とする。</dd></div>
         <div><dt>更新契機</dt><dd>要件変更、モジュール境界変更、データ所有権変更、配置変更、RPO／RTO変更、クラウド移行判断、重大インシデント後。</dd></div>
         <div><dt>レビュー</dt><dd>開発、インフラ、セキュリティ、法務・取引、運用の各責任者が担当章と要件追跡を確認する。</dd></div>
         <div><dt>ロールバック</dt><dd>文書変更はGitの単一コミットで戻す。要件定義書を同時に戻す場合は、適用中の実装・運用判断との不整合を先に確認する。</dd></div>
@@ -1153,7 +1153,7 @@
   </main>
 
   <footer class="page footer">
-    <span>概要設計書 1.6.0</span><span class="footer__brand">Stage Accord</span><a href="REQUIREMENTS.html">要件定義書</a><a href="#top">先頭へ戻る</a><span>承認日 2026-09-02</span><span>情報基準日 2026-08-11</span>
+    <span>概要設計書 1.7.0</span><span class="footer__brand">Stage Accord</span><a href="REQUIREMENTS.html">要件定義書</a><a href="#top">先頭へ戻る</a><span>承認日 2026-09-02</span><span>情報基準日 2026-09-02</span>
   </footer>
 </body>
 </html>

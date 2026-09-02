@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""本番設定を秘密値を表示せずに検証する。"""
+"""単一のSpring設定と本番秘密ファイルを、秘密値を表示せず検証する。"""
 from __future__ import annotations
 
 import argparse
 import ipaddress
-import json
 import os
 import re
 import stat
@@ -18,29 +17,81 @@ HOST = re.compile(r"^(?=.{1,253}$)(?!.*\.\.)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9
 OCI = re.compile(r"^.+@sha256:[0-9a-f]{64}$")
 REGION = re.compile(r"^[a-z]{2}(?:-gov)?-[a-z]+-\d$")
 DURATION = re.compile(r"^[1-9]\d*(?:ms|s|m|h)$")
+INLINE_SECRET = re.compile(r"(?i)(sk_(?:live|test)_|AKIA[0-9A-Z]{16}|BEGIN [A-Z ]*PRIVATE KEY)")
+EXPECTED_PROFILES = {"app", "worker", "local", "production"}
+LOOPBACK_HOSTS = {"localhost", "127.0.0.1", "::1", "0.0.0.0"}
+
+SECRET_BINDINGS = {
+    "stage-accord.out-of-scope.ai.openai.api-key": "openai-api-key",
+    "stage-accord.out-of-scope.ai.azure-openai.api-key": "azure-openai-api-key",
+    "stage-accord.out-of-scope.cloud-sync.api-token": "cloud-api-token",
+    "stage-accord.object-storage.application.access-key-id": "s3-application-access-key-id",
+    "stage-accord.object-storage.application.secret-access-key": "s3-application-secret-access-key",
+    "stage-accord.billing.stripe.api-key": "stripe-api-key",
+    "stage-accord.billing.stripe.webhook-secret": "stripe-webhook-secret",
+    "stage-accord.mail.ses.access-key-id": "ses-access-key-id",
+    "stage-accord.mail.ses.secret-access-key": "ses-secret-access-key",
+    "stage-accord.out-of-scope.sso.oidc.client-secret": "oidc-client-secret",
+    "stage-accord.security.session-hmac-key": "session-hmac-key",
+    "stage-accord.security.csrf-hmac-key": "csrf-hmac-key",
+    "stage-accord.out-of-scope.plugin.trusted-secret": "plugin-trusted-secret",
+    "stage-accord.database.username": "db-username",
+    "stage-accord.database.password": "db-password",
+    "stage-accord.object-storage.worker.access-key-id": "s3-worker-access-key-id",
+    "stage-accord.object-storage.worker.secret-access-key": "s3-worker-secret-access-key",
+    "stage-accord.security.field-encryption-key": "field-encryption-key",
+}
+
+PRODUCTION_SECRET_PATHS = {
+    "stage-accord.secrets.db-username-file": ("application", "db-username", 1),
+    "stage-accord.secrets.db-password-file": ("application", "db-password", 16),
+    "stage-accord.secrets.valkey-username-file": ("application", "valkey-username", 1),
+    "stage-accord.secrets.valkey-password-file": ("application", "valkey-password", 16),
+    "stage-accord.secrets.s3-access-key-id-file": ("application", "s3-application-access-key-id", 16),
+    "stage-accord.secrets.s3-secret-access-key-file": ("application", "s3-application-secret-access-key", 32),
+    "stage-accord.secrets.s3-worker-access-key-id-file": ("worker", "s3-worker-access-key-id", 16),
+    "stage-accord.secrets.s3-worker-secret-access-key-file": ("worker", "s3-worker-secret-access-key", 32),
+    "stage-accord.secrets.stripe-api-key-file": ("application", "stripe-api-key", 16),
+    "stage-accord.secrets.stripe-webhook-secret-file": ("application", "stripe-webhook-secret", 16),
+    "stage-accord.secrets.mail-username-file": ("worker", "smtp-username", 1),
+    "stage-accord.secrets.mail-password-file": ("worker", "smtp-password", 16),
+    "stage-accord.secrets.session-hmac-key-file": ("application", "session-hmac-key", 32),
+    "stage-accord.secrets.csrf-hmac-key-file": ("application", "csrf-hmac-key", 32),
+    "stage-accord.secrets.field-encryption-key-file": ("application", "field-encryption-key", 32),
+}
 
 
 class PreflightError(RuntimeError):
     pass
 
 
-def load_json(path: Path) -> dict:
-    return json.loads(path.read_text(encoding="utf-8"))
-
-
-def load_env(path: Path) -> dict[str, str]:
-    values: dict[str, str] = {}
+def load_properties_documents(path: Path) -> tuple[dict[str, str], dict[str, dict[str, str]]]:
+    documents: list[dict[str, str]] = [{}]
     for number, raw in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
         line = raw.strip()
-        if not line or line.startswith("#"):
+        if line == "#---":
+            documents.append({})
+            continue
+        if not line or line.startswith(("#", "!")):
             continue
         if "=" not in line:
-            raise PreflightError(f"設定行{number}に=がありません。")
+            raise PreflightError(f"application.propertiesの{number}行目に=がありません。")
         name, value = line.split("=", 1)
-        if name in values:
-            raise PreflightError(f"設定キーが重複しています: {name}")
-        values[name] = value
-    return values
+        name = name.strip()
+        if not name or name in documents[-1]:
+            raise PreflightError(f"設定キーが空または同一区画で重複しています: {name or number}")
+        documents[-1][name] = value.strip()
+
+    common = documents[0]
+    if "spring.config.activate.on-profile" in common:
+        raise PreflightError("共通区画へprofile指定は置けません。")
+    profiles: dict[str, dict[str, str]] = {}
+    for document in documents[1:]:
+        profile = document.get("spring.config.activate.on-profile", "").strip()
+        if not profile or profile in profiles:
+            raise PreflightError(f"profile区画が未指定または重複しています: {profile or '<empty>'}")
+        profiles[profile] = document
+    return common, profiles
 
 
 def require(values: dict[str, str], name: str) -> str:
@@ -51,117 +102,152 @@ def require(values: dict[str, str], name: str) -> str:
 
 
 def validate_url(value: str, schemes: set[str], name: str) -> None:
-    parsed = urlparse(value)
+    parsed = urlparse(value.removeprefix("jdbc:"))
     if parsed.scheme not in schemes or not parsed.hostname or parsed.username or parsed.password:
-        raise PreflightError(f"URL形式が不正です: {name}")
+        raise PreflightError(f"URL形式または資格情報分離が不正です: {name}")
 
 
-def validate_kind(name: str, value: str, kind: str, expected: str | None, values: dict[str, str]) -> None:
-    if expected is not None and value != expected:
-        raise PreflightError(f"固定値と一致しません: {name}")
-    if kind == "literal": return
-    if kind == "public-host":
-        if not HOST.fullmatch(value) or value.endswith((".local", ".localhost")): raise PreflightError(f"公開hostが不正です: {name}")
-    elif kind == "https-origin-list":
-        for origin in value.split(","):
-            validate_url(origin.strip(), {"https"}, name)
-            if urlparse(origin.strip()).path not in ("", "/"): raise PreflightError(f"originにpathを含められません: {name}")
-    elif kind == "jdbc-postgresql-tls-url":
-        if not value.startswith("jdbc:postgresql://") or "sslmode=verify-full" not in value: raise PreflightError(f"DB TLS検証が不足しています: {name}")
-    elif kind == "rediss-url": validate_url(value, {"rediss"}, name)
-    elif kind == "aws-region":
-        if not REGION.fullmatch(value): raise PreflightError(f"AWS regionが不正です: {name}")
-    elif kind == "amazon-s3-endpoint":
-        validate_url(value, {"https"}, name)
-        expected_endpoint = f"https://s3.{require(values, 'S3_REGION')}.amazonaws.com"
-        if value != expected_endpoint: raise PreflightError("Amazon S3公式endpointとregionが一致しません。")
-    elif kind == "bucket-name":
-        if not BUCKET.fullmatch(value): raise PreflightError(f"bucket名が不正です: {name}")
-        try: ipaddress.ip_address(value)
-        except ValueError: pass
-        else: raise PreflightError(f"bucket名をIP形式にできません: {name}")
-    elif kind == "scan-mode":
-        if value not in {"required", "bypass"}: raise PreflightError("MALWARE_SCAN_MODEはrequiredまたはbypassです。")
-    elif kind == "conditional-host":
-        if values.get("MALWARE_SCAN_MODE") == "required" and not (HOST.fullmatch(value) or _is_ip(value)): raise PreflightError("required時はCLAMAV_HOSTが必要です。")
-    elif kind == "tcp-port":
-        if not value.isdigit() or not 1 <= int(value) <= 65535: raise PreflightError(f"portが不正です: {name}")
-    elif kind == "duration":
-        if not DURATION.fullmatch(value): raise PreflightError(f"durationが不正です: {name}")
-    elif kind == "positive-integer":
-        if not value.isdigit() or int(value) <= 0: raise PreflightError(f"正整数ではありません: {name}")
-    elif kind == "non-negative-integer":
-        if not value.isdigit(): raise PreflightError(f"非負整数ではありません: {name}")
-    elif kind == "email-address":
-        if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", value): raise PreflightError(f"email形式が不正です: {name}")
-    elif kind == "oci-digest":
-        if not OCI.fullmatch(value): raise PreflightError(f"OCI imageがdigest固定ではありません: {name}")
-    elif kind == "absolute-directory":
-        if not value.startswith("/"): raise PreflightError(f"絶対directoryではありません: {name}")
-    else: raise PreflightError(f"未知の検証kindです: {kind}")
+def validate_bucket(value: str, name: str) -> None:
+    if not BUCKET.fullmatch(value):
+        raise PreflightError(f"bucket名が不正です: {name}")
+    try:
+        ipaddress.ip_address(value)
+    except ValueError:
+        return
+    raise PreflightError(f"bucket名をIP形式にできません: {name}")
 
 
-def _is_ip(value: str) -> bool:
-    try: ipaddress.ip_address(value); return True
-    except ValueError: return False
-
-
-def validate_schema(manifest: dict) -> None:
-    if manifest.get("schemaVersion") != 2: raise PreflightError("manifest schemaVersionが不正です。")
-    names = [item["name"] for item in manifest["configuration"]] + [item["variable"] for item in manifest["secretFiles"]]
-    if len(names) != len(set(names)): raise PreflightError("manifestに重複キーがあります。")
-
-
-def validate_template_keys(values: dict[str, str], manifest: dict) -> None:
-    expected = {item["name"] for item in manifest["configuration"]} | {item["variable"] for item in manifest["secretFiles"]}
-    if set(values) != expected:
-        missing = expected - set(values); unknown = set(values) - expected
-        raise PreflightError(f"template key集合が不一致です: missing={sorted(missing)}, unknown={sorted(unknown)}")
-
-
-def validate_values(values: dict[str, str], manifest: dict, schema_only: bool) -> None:
-    expected = {item["name"] for item in manifest["configuration"]} | {item["variable"] for item in manifest["secretFiles"]}
-    unknown = set(values) - expected
-    if unknown: raise PreflightError(f"未管理の設定キーがあります: {','.join(sorted(unknown))}")
-    for item in manifest["configuration"]:
-        name = item["name"]
-        if item.get("when") and values.get(next(iter(item["when"]))) != next(iter(item["when"].values())):
-            continue
-        value = require(values, name)
-        validate_kind(name, value, item["kind"], item.get("expected"), values)
-    buckets = [require(values, name) for name in ("S3_QUARANTINE_BUCKET","S3_CLEAN_BUCKET","S3_PREVIEW_BUCKET","S3_DELIVERY_BUCKET")]
-    if len(set(buckets)) != 4: raise PreflightError("4用途bucketは相互に異なる必要があります。")
-    if require(values, "WEBAUTHN_RP_ID") != require(values, "APP_PUBLIC_HOST"): raise PreflightError("RP IDとAPP_PUBLIC_HOSTが一致しません。")
-    for item in manifest["secretFiles"]:
-        path_value = require(values, item["variable"])
-        if not path_value.startswith("/") or path_value.rstrip("/").split("/")[-1] != item["file"]: raise PreflightError(f"秘密file pathが不正です: {item['variable']}")
-        if not schema_only: validate_secret(Path(path_value), item["minimumBytes"])
-
-
-def validate_secret(path: Path, minimum_bytes: int) -> None:
-    if not path.is_file() or path.stat().st_size < minimum_bytes: raise PreflightError(f"秘密fileがないか短すぎます: {path}")
+def validate_secret_file(path: Path, minimum_bytes: int) -> None:
+    if not path.is_file() or path.stat().st_size < minimum_bytes:
+        raise PreflightError(f"秘密fileがないか短すぎます: {path}")
     mode = stat.S_IMODE(path.stat().st_mode)
-    if mode & 0o007 or mode & 0o020: raise PreflightError(f"秘密fileの権限が過剰です: {path}")
+    if mode & 0o027:
+        raise PreflightError(f"秘密fileの権限が過剰です: {path}")
+
+
+def validate_contract(common: dict[str, str], profiles: dict[str, dict[str, str]], schema_only: bool) -> None:
+    if set(profiles) != EXPECTED_PROFILES:
+        raise PreflightError(f"profile集合が不正です: {sorted(profiles)}")
+    if common.get("spring.profiles.default") != "none":
+        raise PreflightError("既定profileはnoneでなければなりません。")
+    expected_common_import = "optional:configtree:/run/secrets/application/,optional:configtree:/run/secrets/worker/"
+    if common.get("spring.config.import") != expected_common_import:
+        raise PreflightError("本番configtree importが不正です。")
+    expected_local_import = "optional:configtree:secrets/application/,optional:configtree:secrets/worker/"
+    if profiles["local"].get("spring.config.import") != expected_local_import:
+        raise PreflightError("local configtree importが不正です。")
+
+    all_values = [common, *profiles.values()]
+    for document in all_values:
+        for name, value in document.items():
+            if re.fullmatch(r"[A-Z][A-Z0-9_]*", name):
+                raise PreflightError(f"環境変数形式の旧設定キーを使用できません: {name}")
+            if INLINE_SECRET.search(value):
+                raise PreflightError(f"application.propertiesへ秘密値を直書きできません: {name}")
+    for name, filename in SECRET_BINDINGS.items():
+        if common.get(name) != "${" + filename + ":}":
+            raise PreflightError(f"秘密値のconfigtree参照が不正です: {name}")
+
+    production = common | profiles["production"]
+    if production.get("stage-accord.environment") != "production":
+        raise PreflightError("production profileと環境値が一致しません。")
+    if profiles["local"].get("stage-accord.environment") != "local":
+        raise PreflightError("local profileと環境値が一致しません。")
+
+    region = require(production, "stage-accord.object-storage.region")
+    if not REGION.fullmatch(region):
+        raise PreflightError("S3 regionが不正です。")
+    endpoint = require(production, "stage-accord.object-storage.endpoint")
+    validate_url(endpoint, {"https"}, "stage-accord.object-storage.endpoint")
+    if not schema_only and endpoint != f"https://s3.{region}.amazonaws.com":
+        raise PreflightError("Amazon S3公式endpointとregionが一致しません。")
+
+    bucket_names = [
+        "stage-accord.object-storage.quarantine-bucket",
+        "stage-accord.object-storage.clean-bucket",
+        "stage-accord.object-storage.preview-bucket",
+        "stage-accord.object-storage.delivery-bucket",
+    ]
+    buckets = [require(production, name) for name in bucket_names]
+    for name, value in zip(bucket_names, buckets, strict=True):
+        validate_bucket(value, name)
+    if len(set(buckets)) != len(buckets):
+        raise PreflightError("4用途bucketは相互に異なる必要があります。")
+
+    mode = require(production, "stage-accord.malware-scan.mode")
+    if mode not in {"required", "bypass"}:
+        raise PreflightError("malware scan modeはrequiredまたはbypassです。")
+    if mode == "required":
+        scan_host = require(production, "stage-accord.malware-scan.host").lower()
+        if scan_host in LOOPBACK_HOSTS or scan_host.endswith(".invalid"):
+            raise PreflightError("required時のClamAV hostが不正です。")
+    port = require(production, "stage-accord.malware-scan.port")
+    if not port.isdigit() or not 1 <= int(port) <= 65535:
+        raise PreflightError("ClamAV portが不正です。")
+    for name in ("stage-accord.malware-scan.connect-timeout", "stage-accord.malware-scan.read-timeout"):
+        if not DURATION.fullmatch(require(production, name)):
+            raise PreflightError(f"durationが不正です: {name}")
+
+    rp_id = require(production, "stage-accord.webauthn.rp-id").lower()
+    if not HOST.fullmatch(rp_id) or rp_id in LOOPBACK_HOSTS or rp_id.endswith((".local", ".localhost", ".invalid")):
+        raise PreflightError("WebAuthn RP IDが公開hostではありません。")
+    for origin in require(production, "stage-accord.webauthn.allowed-origins").split(","):
+        parsed = urlparse(origin.strip())
+        if parsed.scheme != "https" or parsed.hostname != rp_id or parsed.username or parsed.password or parsed.path not in ("", "/"):
+            raise PreflightError("WebAuthn originがRP IDと一致しません。")
+
+    database_url = require(production, "stage-accord.database.source-url")
+    validate_url(database_url, {"postgres", "postgresql"}, "stage-accord.database.source-url")
+    if not schema_only and "sslmode=verify-full" not in urlparse(database_url.removeprefix("jdbc:")).query.split("&"):
+        raise PreflightError("本番DBはsslmode=verify-fullが必要です。")
+    if not schema_only:
+        validate_url(require(production, "stage-accord.valkey.url"), {"rediss"}, "stage-accord.valkey.url")
+
+    for name, (consumer, filename, minimum_bytes) in PRODUCTION_SECRET_PATHS.items():
+        expected = Path("/run/secrets") / consumer / filename
+        actual = Path(require(production, name))
+        if actual != expected:
+            raise PreflightError(f"本番秘密file pathが不正です: {name}")
+        if not schema_only:
+            validate_secret_file(actual, minimum_bytes)
+
+    if not schema_only:
+        for name in ("APP_IMAGE", "EDGE_IMAGE"):
+            if not OCI.fullmatch(os.environ.get(name, "")):
+                raise PreflightError(f"OCI imageがdigest固定ではありません: {name}")
+        stripe_file = Path(require(production, "stage-accord.secrets.stripe-api-key-file"))
+        if not stripe_file.read_text(encoding="utf-8").strip().startswith("sk_live_"):
+            raise PreflightError("本番Stripe keyがlive modeではありません。")
+
+
+def validate_obsolete_files(root: Path) -> None:
+    obsolete = [
+        root / "backend/src/main/resources/application.yml",
+        root / "backend/src/main/resources/application-app.yml",
+        root / "backend/src/main/resources/application-worker.yml",
+        root / "backend/src/main/resources/application-production.yml",
+        root / "deploy/config/production.env.example",
+        root / "deploy/config/production-manifest.json",
+    ]
+    existing = [str(path.relative_to(root)) for path in obsolete if path.exists()]
+    if existing:
+        raise PreflightError(f"廃止済み設定fileが残っています: {existing}")
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     root = Path(__file__).resolve().parents[2]
-    parser.add_argument("--config", type=Path, default=Path("/etc/stageaccord/config/production.env"))
-    parser.add_argument("--manifest", type=Path, default=root / "deploy/config/production-manifest.json")
+    parser.add_argument("--properties", type=Path, default=root / "backend/src/main/resources/application.properties")
     parser.add_argument("--schema-only", action="store_true")
     args = parser.parse_args()
     try:
-        manifest = load_json(args.manifest); validate_schema(manifest)
-        config = args.config if args.config.exists() else root / "deploy/config/production.env.example"
-        values = load_env(config)
-        if args.schema_only:
-            validate_template_keys(values, manifest)
-        else:
-            validate_values(values, manifest, False)
-    except (OSError, json.JSONDecodeError, PreflightError) as exc:
-        print(f"PREFLIGHT FAILED: {exc}", file=sys.stderr); return 1
-    print("PREFLIGHT PASSED: configuration contract is valid; secret values were not printed.")
+        common, profiles = load_properties_documents(args.properties)
+        validate_contract(common, profiles, args.schema_only)
+        validate_obsolete_files(root)
+    except (OSError, UnicodeError, PreflightError) as exc:
+        print(f"PREFLIGHT FAILED: {exc}", file=sys.stderr)
+        return 1
+    print("PREFLIGHT PASSED: single Spring configuration contract is valid; secret values were not printed.")
     return 0
 
 

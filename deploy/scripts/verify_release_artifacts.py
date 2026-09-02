@@ -5,14 +5,12 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[2]
-CONFIG = Path("/etc/stageaccord/config/production.env")
 
 
 def main() -> int:
     result = subprocess.run([
         sys.executable,
         str(ROOT / "deploy/scripts/preflight_production.py"),
-        "--config", str(CONFIG),
     ], check=False)
     if result.returncode != 0:
         return result.returncode

@@ -45,8 +45,8 @@ services:
     image: ${APP_IMAGE:?APP_IMAGE must be digest-pinned}
     user: "10201:10201"
     command: [application]
-    env_file: [/etc/stageaccord/config/production.env]
     environment:
+      APP_ENVIRONMENT: production
       RUNTIME_ROLE: application
       SPRING_PROFILES_ACTIVE: production,app
     expose: ["8080"]
@@ -72,8 +72,8 @@ services:
     image: ${APP_IMAGE:?APP_IMAGE must be digest-pinned}
     user: "10202:10202"
     command: [worker]
-    env_file: [/etc/stageaccord/config/production.env]
     environment:
+      APP_ENVIRONMENT: production
       RUNTIME_ROLE: worker
       SPRING_PROFILES_ACTIVE: production,worker
     volumes:
@@ -99,4 +99,3 @@ networks:
     internal: true
   egress:
     driver: bridge
-

@@ -11,26 +11,43 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.yaml.snakeyaml.Yaml;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.WebApplicationType;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Configuration;
 
 class ApplicationConfigurationSyntaxTest {
 
-    private static final List<String> CONFIGURATION_RESOURCES = List.of(
-            "application.yml",
-            "application-production.yml",
-            "application-app.yml",
-            "application-worker.yml");
+    @Test
+    void singlePropertiesFileResolvesLocalApplicationProfile() {
+        SpringApplication application = new SpringApplication(ConfigurationProbe.class);
+        application.setWebApplicationType(WebApplicationType.NONE);
+        try (ConfigurableApplicationContext context = application.run("--spring.profiles.active=local,app")) {
+            assertThat(context.getEnvironment().getProperty("stage-accord.environment")).isEqualTo("local");
+            assertThat(context.getEnvironment().getProperty("server.port")).isEqualTo("8080");
+            assertThat(context.getEnvironment().getProperty("stage-accord.worker.inbound-business-routes-enabled"))
+                    .isNull();
+        }
+    }
 
     @Test
-    void allConfigurationResourcesAreValidYamlMappings() throws IOException {
-        Yaml yaml = new Yaml();
-
-        for (String resourceName : CONFIGURATION_RESOURCES) {
-            try (InputStream input = getClass().getClassLoader().getResourceAsStream(resourceName)) {
-                assertThat(input).as("resource %s", resourceName).isNotNull();
-                Object parsed = yaml.load(input);
-                assertThat(parsed).as("root mapping of %s", resourceName).isInstanceOf(Map.class);
-            }
+    void singlePropertiesFileResolvesLocalWorkerProfile() {
+        SpringApplication application = new SpringApplication(ConfigurationProbe.class);
+        application.setWebApplicationType(WebApplicationType.NONE);
+        try (ConfigurableApplicationContext context = application.run("--spring.profiles.active=local,worker")) {
+            assertThat(context.getEnvironment().getProperty("stage-accord.environment")).isEqualTo("local");
+            assertThat(context.getEnvironment().getProperty("server.port")).isEqualTo("8081");
+            assertThat(context.getEnvironment().getProperty("stage-accord.worker.inbound-business-routes-enabled"))
+                    .isEqualTo("false");
         }
+    }
+
+    @Test
+    void obsoleteApplicationYamlResourcesAreAbsent() {
+        ClassLoader loader = getClass().getClassLoader();
+        assertThat(loader.getResource("application.properties")).isNotNull();
+        assertThat(List.of("application.yml", "application-production.yml", "application-app.yml",
+                "application-worker.yml")).allSatisfy(name -> assertThat(loader.getResource(name)).isNull());
     }
 
     @Test
@@ -50,5 +67,9 @@ class ApplicationConfigurationSyntaxTest {
                 assertThat(parsed).as("root document of %s", file).isInstanceOfAny(Map.class, List.class);
             }
         }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    static class ConfigurationProbe {
     }
 }
